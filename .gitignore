@@ -1,5 +1,8 @@
+# Игнорируем папку с установленными библиотеками
 node_modules
-# Keep environment variables out of version control
+
+# Игнорируем файл с секретными ключами
 .env
 
-/generated/prisma
+# Игнорируем сгенерированный Prisma Client
+generated/prisma
