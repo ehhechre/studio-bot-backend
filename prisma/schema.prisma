@@ -1,0 +1,71 @@
+// Этот блок говорит Prisma, как подключаться к нашей базе данных.
+// Он был создан автоматически командой 'prisma init'.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // Prisma возьмет ссылку на БД из файла .env
+}
+
+// === НАЧАЛО НАШИХ МОДЕЛЕЙ ===
+// Модель - это описание таблицы для Prisma.
+
+// Описываем таблицу 'users'. Названия полей должны совпадать с колонками в БД.
+model User {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  telegram_id     BigInt   @unique @db.BigInt
+  username        String?
+  first_name      String?
+  last_name       String?
+  language_code   String?
+  created_at      DateTime? @default(now()) @db.Timestamptz(6)
+
+  // Связи: у одного юзера может быть много заявок и много сессий
+  applications    Application[]
+  quiz_sessions   QuizSession[]
+
+  @@map("users") // Явно указываем, что эта модель соответствует таблице "users"
+}
+
+// Описываем таблицу 'applications'
+model Application {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id         String            @db.Uuid
+  status          ApplicationStatus @default(new)
+  answers         Json
+  contact_info    String?
+  source          String?           @default("bot")
+  is_test         Boolean?          @default(false)
+  created_at      DateTime?         @default(now()) @db.Timestamptz(6)
+
+  // Связь: эта заявка принадлежит одному пользователю
+  user            User              @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("applications")
+}
+
+// Описываем таблицу 'quiz_sessions'
+model QuizSession {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id         String    @db.Uuid
+  current_step    Int?      @default(0)
+  answers         Json?     @default("{}")
+  is_completed    Boolean?  @default(false)
+  updated_at      DateTime? @default(now()) @db.Timestamptz(6)
+  created_at      DateTime? @default(now()) @db.Timestamptz(6)
+
+  // Связь: эта сессия принадлежит одному пользователю
+  user            User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("quiz_sessions")
+}
+
+// Описываем наш специальный тип 'application_status'
+enum ApplicationStatus {
+  new
+  in_progress
+  closed
+  rejected
+}
