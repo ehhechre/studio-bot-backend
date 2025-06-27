@@ -53,6 +53,10 @@ model QuizSession {
   current_step    Int?      @default(0)
   answers         Json?     @default("{}")
   is_completed    Boolean?  @default(false)
+  started_at      DateTime? @default(now()) @db.Timestamptz(6)
+  completed_at    DateTime? @db.Timestamptz(6)
+  completion_time_minutes Int?
+  quiz_type       String?   @default("website_brief")
   updated_at      DateTime? @default(now()) @db.Timestamptz(6)
   created_at      DateTime? @default(now()) @db.Timestamptz(6)
 
