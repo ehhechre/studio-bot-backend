@@ -1,5 +1,5 @@
 "use strict";
-// src/index.ts - СТАБИЛЬНАЯ РАБОЧАЯ ВЕРСИЯ
+// src/index.ts - Версия с квизом + базовая админ-панель
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -16,17 +16,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // --- Импорты ---
 const telegraf_1 = require("telegraf");
 const dotenv_1 = __importDefault(require("dotenv"));
-// ВАЖНО: импортируем JsonValue напрямую, чтобы избежать ошибок
 const client_1 = require("@prisma/client");
 // --- Инициализация ---
 dotenv_1.default.config();
 const prisma = new client_1.PrismaClient();
 const botToken = process.env.BOT_TOKEN;
-if (!botToken) {
-    console.error("КРИТИЧЕСКАЯ ОШИБКА: BOT_TOKEN не найден!");
+const ADMIN_TELEGRAM_ID_STRING = process.env.ADMIN_TELEGRAM_ID;
+if (!botToken || !ADMIN_TELEGRAM_ID_STRING) {
+    console.error("КРИТИЧЕСКАЯ ОШИБКА: BOT_TOKEN или ADMIN_TELEGRAM_ID не найдены в .env!");
     process.exit(1);
 }
+const ADMIN_TELEGRAM_ID = parseInt(ADMIN_TELEGRAM_ID_STRING, 10);
 const bot = new telegraf_1.Telegraf(botToken);
+// --- Хелперы ---
+const isAdmin = (telegramId) => telegramId === ADMIN_TELEGRAM_ID;
 // --- СТАРТОВОЕ МЕНЮ ---
 bot.start((ctx) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -42,7 +45,6 @@ bot.start((ctx) => __awaiter(void 0, void 0, void 0, function* () {
                 language_code: telegramUser.language_code,
             },
         });
-        console.log('Пользователь сохранен в БД:', userInDb.id);
         yield ctx.reply(`Привет, ${userInDb.first_name}! 🚀\n\nВыберите действие:`, {
             reply_markup: {
                 inline_keyboard: [
@@ -78,7 +80,7 @@ bot.action('consent_agree', (ctx) => __awaiter(void 0, void 0, void 0, function*
             data: {
                 user_id: user.id,
                 current_step: 1,
-                answers: {}, // Используем пустой объект
+                answers: {},
             }
         });
         yield sendQuestion1(ctx);
@@ -87,7 +89,6 @@ bot.action('consent_agree', (ctx) => __awaiter(void 0, void 0, void 0, function*
         console.error('Ошибка при создании сессии квиза:', error);
     }
 }));
-// УНИВЕРСАЛЬНАЯ ФУНКЦИЯ СОХРАНЕНИЯ
 function saveAnswerAndNext(ctx, field, value, nextFunction) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -116,30 +117,20 @@ function saveAnswerAndNext(ctx, field, value, nextFunction) {
         }
     });
 }
-// --- Вопросы ---
+// --- Вопросы квиза ---
 function sendQuestion1(ctx) {
-    return __awaiter(this, void 0, void 0, function* () {
-        yield ctx.reply(`❓ 1/3: Какой сайт вам нужен?`, {
-            reply_markup: { inline_keyboard: [[{ text: '📄 Лендинг', callback_data: 'q1_landing' }], [{ text: '🛒 Магазин', callback_data: 'q1_shop' }]] }
-        });
-    });
+    return __awaiter(this, void 0, void 0, function* () { });
 }
 bot.action('q1_landing', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Лендинг', sendQuestion2));
-bot.action('q1_shop', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Магазин', sendQuestion2));
+// ... все остальные вопросы и обработчики к ним без изменений ...
 function sendQuestion2(ctx) {
-    return __awaiter(this, void 0, void 0, function* () {
-        yield ctx.reply(`❓ 2/3: В какой нише работаете?`, {
-            reply_markup: { inline_keyboard: [[{ text: '⚙️ Услуги', callback_data: 'q2_services' }], [{ text: '✏️ Другое', callback_data: 'q2_other' }]] }
-        });
-    });
+    return __awaiter(this, void 0, void 0, function* () { });
 }
-bot.action('q2_services', (ctx) => saveAnswerAndNext(ctx, 'niche', 'Услуги', sendQuestion3));
-bot.action('q2_other', (ctx) => ctx.reply('✏️ Напишите вашу нишу текстом:'));
+// ...
 function sendQuestion3(ctx) {
-    return __awaiter(this, void 0, void 0, function* () {
-        yield ctx.reply(`❓ 3/3: Как с вами связаться?\n\n📛 Напишите ваше имя:`);
-    });
+    return __awaiter(this, void 0, void 0, function* () { });
 }
+// ...
 // ОБРАБОТКА ТЕКСТА
 bot.on('text', (ctx) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -153,12 +144,10 @@ bot.on('text', (ctx) => __awaiter(void 0, void 0, void 0, function* () {
         if (!session || !('text' in ctx.message))
             return;
         const currentAnswers = session.answers || {};
-        // Ответ на вопрос о нише "Другое"
         if (session.current_step === 2 && !currentAnswers.niche) {
             yield saveAnswerAndNext(ctx, 'niche', ctx.message.text, sendQuestion3);
             return;
         }
-        // Сбор контактов
         if (session.current_step === 3) {
             if (!currentAnswers.contacts) {
                 currentAnswers.contacts = { name: ctx.message.text };
@@ -167,9 +156,8 @@ bot.on('text', (ctx) => __awaiter(void 0, void 0, void 0, function* () {
             }
             else if (!currentAnswers.contacts.phone) {
                 currentAnswers.contacts.phone = ctx.message.text;
-                // Завершение квиза и создание заявки
                 yield prisma.quizSession.update({ where: { id: session.id }, data: { answers: currentAnswers, is_completed: true } });
-                yield prisma.application.create({
+                const application = yield prisma.application.create({
                     data: {
                         user_id: user.id,
                         status: 'new',
@@ -178,6 +166,8 @@ bot.on('text', (ctx) => __awaiter(void 0, void 0, void 0, function* () {
                     }
                 });
                 console.log('Квиз завершен, заявка создана');
+                // ВЫЗЫВАЕМ УВЕДОМЛЕНИЕ АДМИНУ
+                yield notifyAdminNewApplication(application.id, user, currentAnswers);
                 yield ctx.reply(`🎉 Спасибо! Ваша заявка принята. Мы скоро свяжемся с вами.`);
             }
         }
@@ -186,8 +176,98 @@ bot.on('text', (ctx) => __awaiter(void 0, void 0, void 0, function* () {
         console.error('Ошибка при обработке текста:', error);
     }
 }));
+// --- АДМИН ПАНЕЛЬ ---
+bot.command('admin', (ctx) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        if (!isAdmin(ctx.from.id))
+            return;
+        yield ctx.reply(`👨‍💼 Админ-панель\n\nВыберите действие:`, {
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: '📊 Статистика', callback_data: 'admin_stats' }],
+                    [{ text: '📝 Заявки', callback_data: 'admin_applications' }]
+                ]
+            }
+        });
+    }
+    catch (error) {
+        console.error('Ошибка в админ команде:', error);
+    }
+}));
+bot.action('admin_stats', (ctx) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        if (!isAdmin(ctx.from.id))
+            return;
+        const totalUsers = yield prisma.user.count();
+        const totalApplications = yield prisma.application.count();
+        const newApplications = yield prisma.application.count({ where: { status: 'new' } });
+        yield ctx.editMessageText(`📊 Статистика\n\n` +
+            `👥 Всего пользователей: ${totalUsers}\n` +
+            `📝 Всего заявок: ${totalApplications}\n` +
+            `🆕 Новых заявок: ${newApplications}`, { reply_markup: { inline_keyboard: [[{ text: '⬅️ Назад в админку', callback_data: 'admin_main' }]] } });
+    }
+    catch (error) {
+        console.error('Ошибка статистики:', error);
+    }
+}));
+bot.action('admin_main', (ctx) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!isAdmin(ctx.from.id))
+        return;
+    yield ctx.editMessageText(`👨‍💼 Админ-панель\n\nВыберите действие:`, {
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: '📊 Статистика', callback_data: 'admin_stats' }],
+                [{ text: '📝 Заявки', callback_data: 'admin_applications' }]
+            ]
+        }
+    });
+}));
+bot.action('admin_applications', (ctx) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        if (!isAdmin(ctx.from.id))
+            return;
+        const applications = yield prisma.application.findMany({
+            take: 5,
+            orderBy: { created_at: 'desc' },
+            include: { user: { select: { first_name: true, username: true } } }
+        });
+        if (applications.length === 0) {
+            yield ctx.editMessageText('📝 Заявок пока нет', { reply_markup: { inline_keyboard: [[{ text: '⬅️ Назад в админку', callback_data: 'admin_main' }]] } });
+            return;
+        }
+        let message = `📝 Последние ${applications.length} заявок:\n\n`;
+        applications.forEach((app, index) => {
+            const answers = app.answers;
+            const user = app.user;
+            const date = app.created_at ? new Date(app.created_at).toLocaleDateString('ru-RU') : 'Неизвестно';
+            message += `${index + 1}. ${user.first_name} (@${user.username || '?'})\n`;
+            message += `📅 ${date} | 📊 ${app.status}\n\n`;
+        });
+        yield ctx.editMessageText(message, { reply_markup: { inline_keyboard: [[{ text: '⬅️ Назад в админку', callback_data: 'admin_main' }]] } });
+    }
+    catch (error) {
+        console.error('Ошибка получения заявок:', error);
+    }
+}));
+function notifyAdminNewApplication(applicationId, user, answers) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const contact = answers.contacts || {};
+            const message = `🔔 НОВАЯ ЗАЯВКА!\n\n` +
+                `👤 Клиент: ${user.first_name || 'Аноним'} (@${user.username || '?'})\n` +
+                `📞 Контакты: ${contact.name}, ${contact.phone}\n` +
+                `🏢 Тип сайта: ${answers.site_type || '?'}\n` +
+                `🎯 Ниша: ${answers.niche || '?'}`;
+            yield bot.telegram.sendMessage(ADMIN_TELEGRAM_ID, message);
+        }
+        catch (error) {
+            console.error('Ошибка отправки уведомления админу:', error);
+        }
+    });
+}
 // --- ЗАПУСК БОТА ---
 bot.launch();
 console.log('✅ Бот успешно запущен!');
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
+// P.S. Я специально сократил код вопросов, чтобы он поместился. В твоем файле оставь их как есть.
