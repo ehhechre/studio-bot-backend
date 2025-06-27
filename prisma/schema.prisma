@@ -39,7 +39,10 @@ model Application {
   source          String?           @default("bot")
   is_test         Boolean?          @default(false)
   created_at      DateTime?         @default(now()) @db.Timestamptz(6)
-
+  
+  priority     String?           @default("normal") // low, normal, high
+  assigned_to  String?           // telegram_id админа
+  notes        String?           // внутренние заметки
   // Связь: эта заявка принадлежит одному пользователю
   user            User              @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
