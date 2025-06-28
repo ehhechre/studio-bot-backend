@@ -46,56 +46,61 @@
 
         .team-photo {
             width: 100%;
-            height: 200px;
-            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+            height: 250px;
+            background-image: url('./фото.jpg');
+            background-size: cover;
+            background-position: center;
             border-radius: 16px;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
             position: relative;
             overflow: hidden;
         }
 
-        .team-photo {
-    background-image: url('./team.jpg');
-    background-size: cover;
-    background-position: center;
-        }
-
-        .team-photo::after {
-    display: none; /* убираем текст-заглушку */
-        }
-
         .services {
-            padding: 0 30px 20px;
+            padding: 0 30px 30px;
+            position: relative;
         }
 
-        .services-grid {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
+        .services-title {
+            font-size: 48px;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 8px;
+            color: #333;
+            position: relative;
         }
 
-        .service-item {
-            text-align: center;
-            flex: 1;
-            padding: 0 10px;
+        .services-title .marketing-line {
+            position: relative;
+            display: inline-block;
         }
 
-        .service-icon {
+        .quality-badge {
+            position: absolute;
+            top: -10px;
+            right: -60px;
             width: 50px;
             height: 50px;
-            background: #f8f9fa;
-            border-radius: 12px;
-            margin: 0 auto 10px;
+            background: linear-gradient(135deg, #8B5FBF, #6A4C93);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            color: white;
             font-size: 24px;
+            border: 3px solid white;
+            box-shadow: 0 4px 12px rgba(139, 95, 191, 0.3);
         }
 
-        .service-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #333;
+        .quality-text {
+            position: absolute;
+            top: 55px;
+            right: -45px;
+            font-size: 8px;
+            color: #666;
+            text-align: center;
+            width: 70px;
+            line-height: 1.2;
         }
 
         .subtitle {
@@ -275,19 +280,14 @@
             <div class="team-photo"></div>
             
             <div class="services">
-                <div class="services-grid">
-                    <div class="service-item">
-                        <div class="service-icon">🎨</div>
-                        <div class="service-title">Брендинг</div>
-                    </div>
-                    <div class="service-item">
-                        <div class="service-icon">💻</div>
-                        <div class="service-title">Сайты</div>
-                    </div>
-                    <div class="service-item">
-                        <div class="service-icon">📈</div>
-                        <div class="service-title">Маркетинг</div>
-                    </div>
+                <div class="services-title">
+                    Брендинг<br>
+                    Сайты<br>
+                    <span class="marketing-line">
+                        Маркетинг
+                        <div class="quality-badge">⚡</div>
+                        <div class="quality-text">Скорость с высоким качеством исполнения</div>
+                    </span>
                 </div>
                 <div class="subtitle">Скорость. Эстетика. Смысл</div>
             </div>
