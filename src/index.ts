@@ -45,7 +45,7 @@ bot.start(async (ctx) => {
         reply_markup: {
           inline_keyboard: [
             [{ text: '💰 Рассчитать стоимость', callback_data: 'start_quiz' }],
-            [{ text: '👁 Посмотреть работы', callback_data: 'view_portfolio' }]
+            [{ text: '👁 Посмотреть работы', web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' } }]
           ]
         }
       }
@@ -56,12 +56,7 @@ bot.start(async (ctx) => {
   }
 });
 
-// --- ОБРАБОТЧИКИ ГЛАВНОГО МЕНЮ ---
-bot.action('view_portfolio', (ctx) => {
-  ctx.reply(`📱 Наше портфолио: https://ваш-сайт.ru`, {
-    reply_markup: { inline_keyboard: [[{ text: '💰 Рассчитать стоимость', callback_data: 'start_quiz' }]]}
-  });
-});
+
 
 bot.action('start_quiz', (ctx) => {
   ctx.reply(
