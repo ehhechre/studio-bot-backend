@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polli Digital</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--tg-theme-bg-color, linear-gradient(135deg, #8B5FBF 0%, #6A4C93 100%));
+            color: var(--tg-theme-text-color, white);
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            color: white;
+        }
+
+        .description {
+            font-size: 18px;
+            margin-bottom: 40px;
+            font-weight: 500;
+            color: white;
+        }
+
+        .buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .btn {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            min-height: 48px;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #6A4C93;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            color: #6A4C93;
+        }
+
+        .services {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+            width: 100%;
+        }
+
+        .service-card {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            text-align: center;
+        }
+
+        .service-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .service-title {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* Адаптация под Telegram темы */
+        @media (prefers-color-scheme: dark) {
+            .service-card {
+                background: rgba(255,255,255,0.05);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">Polli Digital</div>
+        <div class="subtitle">Брендинг • Сайты • Маркетинг</div>
+        <div class="description">Скорость. Эстетика. Смысл.</div>
+        
+        <div class="services">
+            <div class="service-card">
+                <div class="service-icon">🎨</div>
+                <div class="service-title">Брендинг</div>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">💻</div>
+                <div class="service-title">Сайты</div>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">📈</div>
+                <div class="service-title">Маркетинг</div>
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button class="btn btn-primary" onclick="startQuiz()">
+                Рассчитать стоимость
+            </button>
+            <button class="btn btn-secondary" onclick="callUs()">
+                Связаться с нами
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Telegram Web App
+        let tg = window.Telegram.WebApp;
+        
+        // Расширяем на весь экран
+        tg.expand();
+        
+        // Готовность приложения
+        tg.ready();
+
+        function startQuiz() {
+            // Отправляем данные обратно в бота
+            tg.sendData(JSON.stringify({
+                action: 'start_quiz',
+                timestamp: Date.now()
+            }));
+            
+            // Закрываем Web App
+            tg.close();
+        }
+
+        function callUs() {
+            // Отправляем данные для связи
+            tg.sendData(JSON.stringify({
+                action: 'contact',
+                timestamp: Date.now()
+            }));
+            
+            tg.close();
+        }
+
+        // Обработка кнопок Telegram
+        tg.onEvent('mainButtonClicked', function() {
+            startQuiz();
+        });
+
+        // Показываем главную кнопку
+        tg.MainButton.text = 'Рассчитать стоимость';
+        tg.MainButton.show();
+    </script>
+</body>
+</html>
