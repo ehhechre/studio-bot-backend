@@ -230,6 +230,19 @@ bot.command('delete_data', (ctx) => __awaiter(void 0, void 0, void 0, function* 
         yield ctx.reply('❌ Ошибка при удалении данных. Обратитесь к администратору.');
     }
 }));
+// Команда для запуска Web App
+bot.command('app', (ctx) => {
+    ctx.reply('🚀 Откройте наше приложение:', {
+        reply_markup: {
+            inline_keyboard: [[
+                    {
+                        text: '🎨 Polli Digital App',
+                        web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
+                    }
+                ]]
+        }
+    });
+});
 // --- ФУНКЦИЯ ДЛЯ ОТПРАВКИ УВЕДОМЛЕНИЯ В КАНАЛ ---
 function notifyChannelNewApplication(application) {
     return __awaiter(this, void 0, void 0, function* () {
