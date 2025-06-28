@@ -168,27 +168,34 @@ bot.on('text', async (ctx) => {
 
 // --- Функция для отправки уведомления в канал ---
 async function notifyChannelNewApplication(application: any) {
-  try {
-    const { user, answers } = application;
-    const contact = answers.contacts || {};
-    const message = 
-      `🔔 НОВАЯ ЗАЯВКА!\n\n` +
-      `👤 Клиент: ${user.first_name || 'Аноним'} (@${user.username || '?'})\n` +
-      `📞 Контакты: ${contact.name}, ${contact.phone}\n` +
-      `\n--- Ответы на квиз ---\n`+
-      `Тип сайта: ${answers.site_type || '?'}\n` +
-      `Ниша: ${answers.niche || '?'}`;
-    
-    // Отправляем в канал, используя переменную из .env
-    if (CHANNEL_ID) {
-        await bot.telegram.sendMessage(CHANNEL_ID, message);
-    } else {
-        console.error('CHANNEL_ID не найден в .env файле!');
+    try {
+      console.log('=== НАЧАЛО ОТПРАВКИ В КАНАЛ ===');
+      console.log('CHANNEL_ID:', process.env.CHANNEL_ID);
+      console.log('Данные заявки:', application);
+      
+      const { user, answers } = application;
+      const contact = answers.contacts || {};
+      const message = 
+        `🔔 НОВАЯ ЗАЯВКА!\n\n` +
+        `👤 Клиент: ${user.first_name || 'Аноним'} (@${user.username || '?'})\n` +
+        `📞 Контакты: ${contact.name}, ${contact.phone}\n` +
+        `\n--- Ответы на квиз ---\n`+
+        `Тип сайта: ${answers.site_type || '?'}\n` +
+        `Ниша: ${answers.niche || '?'}`;
+      
+      console.log('Сообщение для отправки:', message);
+      
+      if (CHANNEL_ID) {
+          console.log('Отправляем в канал...');
+          const result = await bot.telegram.sendMessage(CHANNEL_ID, message);
+          console.log('✅ Сообщение отправлено!', result);
+      } else {
+          console.error('❌ CHANNEL_ID пустой!');
+      }
+    } catch (error) { 
+      console.error('❌ ОШИБКА отправки в канал:', error); 
     }
-  } catch (error) { 
-    console.error('Ошибка отправки уведомления в канал:', error); 
   }
-}
 
 // --- ЗАПУСК БОТА ---
 bot.launch();

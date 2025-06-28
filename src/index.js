@@ -179,6 +179,9 @@ bot.on('text', (ctx) => __awaiter(void 0, void 0, void 0, function* () {
 function notifyChannelNewApplication(application) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            console.log('=== НАЧАЛО ОТПРАВКИ В КАНАЛ ===');
+            console.log('CHANNEL_ID:', process.env.CHANNEL_ID);
+            console.log('Данные заявки:', application);
             const { user, answers } = application;
             const contact = answers.contacts || {};
             const message = `🔔 НОВАЯ ЗАЯВКА!\n\n` +
@@ -187,16 +190,18 @@ function notifyChannelNewApplication(application) {
                 `\n--- Ответы на квиз ---\n` +
                 `Тип сайта: ${answers.site_type || '?'}\n` +
                 `Ниша: ${answers.niche || '?'}`;
-            // Отправляем в канал, используя переменную из .env
+            console.log('Сообщение для отправки:', message);
             if (CHANNEL_ID) {
-                yield bot.telegram.sendMessage(CHANNEL_ID, message);
+                console.log('Отправляем в канал...');
+                const result = yield bot.telegram.sendMessage(CHANNEL_ID, message);
+                console.log('✅ Сообщение отправлено!', result);
             }
             else {
-                console.error('CHANNEL_ID не найден в .env файле!');
+                console.error('❌ CHANNEL_ID пустой!');
             }
         }
         catch (error) {
-            console.error('Ошибка отправки уведомления в канал:', error);
+            console.error('❌ ОШИБКА отправки в канал:', error);
         }
     });
 }
