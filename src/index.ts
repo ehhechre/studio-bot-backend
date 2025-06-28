@@ -188,18 +188,80 @@ bot.on('text', async (ctx) => {
     });
     if (!session || !('text' in ctx.message)) return;
     const currentAnswers = (session.answers as any) || {};
+    
+    // Обработка ввода ниши на шаге 2
     if (session.current_step === 2 && !currentAnswers.niche) {
       await saveAnswerAndNext(ctx, 'niche', ctx.message.text, sendQuestion3);
       return;
     }
-    if (session.current_step === 3) {
-      if (!currentAnswers.contacts) {
-        currentAnswers.contacts = { name: ctx.message.text };
-        await prisma.quizSession.update({ data: { answers: currentAnswers }, where: { id: session.id } });
-        await ctx.reply('📱 Теперь напишите ваш телефон:');
-      } else if (!currentAnswers.contacts.phone) {
-        currentAnswers.contacts.phone = ctx.message.text;
-        await prisma.quizSession.update({ data: { answers: currentAnswers, is_completed: true }, where: { id: session.id } });
+    
+    // Обработка ввода имени на шаге 3
+    // --- ОБРАБОТКА ТЕКСТА ---
+bot.on('text', async (ctx) => {
+    try {
+      const user = await prisma.user.findUnique({ where: { telegram_id: ctx.from.id } });
+      if (!user) return;
+      const session = await prisma.quizSession.findFirst({
+        where: { user_id: user.id, is_completed: false },
+        orderBy: { created_at: 'desc' },
+      });
+      if (!session || !('text' in ctx.message)) return;
+      const currentAnswers = (session.answers as any) || {};
+      
+      // Обработка ввода ниши на шаге 2
+      if (session.current_step === 2 && !currentAnswers.niche) {
+        await saveAnswerAndNext(ctx, 'niche', ctx.message.text, sendQuestion3);
+        return;
+      }
+      
+      // Обработка ввода имени на шаге 3
+      if (session.current_step === 3) {
+        if (!currentAnswers.contacts) {
+          currentAnswers.contacts = { name: ctx.message.text };
+          await prisma.quizSession.update({ data: { answers: currentAnswers }, where: { id: session.id } });
+          await ctx.reply(
+            '📱 Поделитесь вашим контактом для связи:',
+            {
+              reply_markup: {
+                keyboard: [
+                  [{ text: '📞 Поделиться контактом', request_contact: true }]
+                ],
+                resize_keyboard: true,
+                one_time_keyboard: true
+              }
+            }
+          );
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка при обработке текста:', error);
+    }
+  });
+  
+  // --- ОБРАБОТКА КОНТАКТА ---
+  bot.on('contact', async (ctx) => {
+    try {
+      const user = await prisma.user.findUnique({ where: { telegram_id: ctx.from.id } });
+      if (!user) return;
+      
+      const session = await prisma.quizSession.findFirst({
+        where: { user_id: user.id, is_completed: false },
+        orderBy: { created_at: 'desc' },
+      });
+      
+      if (!session) return;
+      
+      const currentAnswers = (session.answers as any) || {};
+      
+      if (currentAnswers.contacts && !currentAnswers.contacts.phone) {
+        // Получаем номер телефона из контакта
+        currentAnswers.contacts.phone = ctx.message.contact.phone_number;
+        
+        await prisma.quizSession.update({ 
+          data: { answers: currentAnswers, is_completed: true }, 
+          where: { id: session.id } 
+        });
+        
         const application = await prisma.application.create({
           data: {
             user_id: user.id,
@@ -209,13 +271,140 @@ bot.on('text', async (ctx) => {
           },
           include: { user: true },
         });
+        
         console.log('Квиз завершен, заявка создана');
-        await notifyChannelNewApplication(application); // <-- Заменили на новую функцию
-        await ctx.reply(`🎉 Спасибо! Ваша заявка принята. Мы скоро свяжемся с вами.`);
+        console.log('>>> Пытаемся вызвать notifyChannelNewApplication');
+        try {
+          await notifyChannelNewApplication(application);
+          console.log('>>> Функция notifyChannelNewApplication завершена');
+        } catch (error) {
+          console.error('>>> ОШИБКА В notifyChannelNewApplication:', error);
+        }
+        
+        await ctx.reply(
+          `🎉 Спасибо! Ваша заявка принята. Мы скоро свяжемся с вами.`,
+          {
+            reply_markup: { remove_keyboard: true } // Убираем клавиатуру
+          }
+        );
       }
+    } catch (error) {
+      console.error('Ошибка при обработке контакта:', error);
+    }
+  });
+  
+  // Обработка отказа от согласия
+  bot.action('consent_decline', async (ctx) => {
+    await ctx.reply(
+      `❌ Без согласия на обработку персональных данных мы не можем предоставить услуги.\n\n` +
+      `Если передумаете - нажмите /start`
+    );
+  });
+  
+  // Команда удаления персональных данных
+  bot.command('delete_data', async (ctx) => {
+    try {
+      const userId = ctx.from.id;
+      
+      // Удаляем все данные пользователя
+      await prisma.quizSession.deleteMany({ where: { user: { telegram_id: userId } } });
+      await prisma.application.deleteMany({ where: { user: { telegram_id: userId } } });
+      await prisma.user.delete({ where: { telegram_id: userId } });
+      
+      await ctx.reply(
+        `✅ Ваши персональные данные удалены из нашей системы.\n\n` +
+        `Если захотите воспользоваться услугами снова - нажмите /start`
+      );
+      
+      console.log(`Удалены данные пользователя: ${userId}`);
+    } catch (error) {
+      console.error('Ошибка удаления данных:', error);
+      await ctx.reply('❌ Ошибка при удалении данных. Обратитесь к администратору.');
+    }
+  });
+
+// --- ОБРАБОТКА КОНТАКТА ---
+bot.on('contact', async (ctx) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { telegram_id: ctx.from.id } });
+    if (!user) return;
+    
+    const session = await prisma.quizSession.findFirst({
+      where: { user_id: user.id, is_completed: false },
+      orderBy: { created_at: 'desc' },
+    });
+    
+    if (!session) return;
+    
+    const currentAnswers = (session.answers as any) || {};
+    
+    if (currentAnswers.contacts && !currentAnswers.contacts.phone) {
+      // Получаем номер телефона из контакта
+      currentAnswers.contacts.phone = ctx.message.contact.phone_number;
+      
+      await prisma.quizSession.update({ 
+        data: { answers: currentAnswers, is_completed: true }, 
+        where: { id: session.id } 
+      });
+      
+      const application = await prisma.application.create({
+        data: {
+          user_id: user.id,
+          status: 'new',
+          answers: currentAnswers,
+          contact_info: `${currentAnswers.contacts.name}, ${currentAnswers.contacts.phone}`,
+        },
+        include: { user: true },
+      });
+      
+      console.log('Квиз завершен, заявка создана');
+      console.log('>>> Пытаемся вызвать notifyChannelNewApplication');
+      try {
+        await notifyChannelNewApplication(application);
+        console.log('>>> Функция notifyChannelNewApplication завершена');
+      } catch (error) {
+        console.error('>>> ОШИБКА В notifyChannelNewApplication:', error);
+      }
+      
+      await ctx.reply(
+        `🎉 Спасибо! Ваша заявка принята. Мы скоро свяжемся с вами.`,
+        {
+          reply_markup: { remove_keyboard: true } // Убираем клавиатуру
+        }
+      );
     }
   } catch (error) {
-    console.error('Ошибка при обработке текста:', error);
+    console.error('Ошибка при обработке контакта:', error);
+  }
+});
+
+// Обработка отказа от согласия
+bot.action('consent_decline', async (ctx) => {
+  await ctx.reply(
+    `❌ Без согласия на обработку персональных данных мы не можем предоставить услуги.\n\n` +
+    `Если передумаете - нажмите /start`
+  );
+});
+
+// Команда удаления персональных данных
+bot.command('delete_data', async (ctx) => {
+  try {
+    const userId = ctx.from.id;
+    
+    // Удаляем все данные пользователя
+    await prisma.quizSession.deleteMany({ where: { user: { telegram_id: userId } } });
+    await prisma.application.deleteMany({ where: { user: { telegram_id: userId } } });
+    await prisma.user.delete({ where: { telegram_id: userId } });
+    
+    await ctx.reply(
+      `✅ Ваши персональные данные удалены из нашей системы.\n\n` +
+      `Если захотите воспользоваться услугами снова - нажмите /start`
+    );
+    
+    console.log(`Удалены данные пользователя: ${userId}`);
+  } catch (error) {
+    console.error('Ошибка удаления данных:', error);
+    await ctx.reply('❌ Ошибка при удалении данных. Обратитесь к администратору.');
   }
 });
 
