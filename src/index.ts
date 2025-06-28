@@ -17,6 +17,13 @@ const prisma = new PrismaClient();
 const botToken = process.env.BOT_TOKEN;
 const CHANNEL_ID = process.env.CHANNEL_ID; // <-- Новая переменная для канала
 
+// В начало src/index.ts после dotenv.config():
+dotenv.config();
+console.log('=== ЗАГРУЗКА ПЕРЕМЕННЫХ ===');
+console.log('BOT_TOKEN:', process.env.BOT_TOKEN ? 'ЕСТЬ' : 'НЕТ');
+console.log('CHANNEL_ID:', process.env.CHANNEL_ID);
+console.log('===============================');
+
 // Проверяем, что все нужные переменные есть
 if (!botToken || !CHANNEL_ID) {
   console.error("КРИТИЧЕСКАЯ ОШИБКА: BOT_TOKEN или CHANNEL_ID не найдены в .env!");
