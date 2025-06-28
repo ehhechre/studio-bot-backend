@@ -3,8 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Polli Digital</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'benzin': ['Benzin', 'Helvetica', 'sans-serif'],
+                        'helvetica': ['HelveticaCustom', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    colors: {
+                        'primary': '#181818',
+                        'secondary': '#353434',
+                        'accent': '#9272e6',
+                        'accent-light': '#c1aafb',
+                        'accent-lighter': '#eceaf4',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         @font-face {
             font-family: 'Benzin';
@@ -41,469 +64,269 @@
             font-display: swap;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'HelveticaCustom', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            background: white;
-            color: #181818;
-            line-height: 1.4;
-        }
-
-        .container {
-            max-width: 100%;
-            width: 100%;
-            margin: 0 auto;
-            background: white;
-            position: relative;
-        }
-
-        /* Hero Section */
-        .hero-section {
-            position: relative;
-            width: 100%;
-            height: 100vh;
-            min-height: 600px;
-            background: url('./фото.jpg') center/cover;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .hero-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(to top, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.3) 40%, rgba(255,255,255,0) 100%);
-        }
-
-        .logo {
-            font-family: 'Benzin', sans-serif;
-            font-size: clamp(24px, 6vw, 48px);
-            font-weight: 900;
-            color: #181818;
-            margin-bottom: 40px;
-            line-height: 1;
-            position: relative;
-            z-index: 2;
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 2;
-            width: 100%;
-            max-width: 800px;
-        }
-
-        .services-title {
-            font-family: 'Benzin', sans-serif;
-            font-size: clamp(32px, 8vw, 80px);
-            font-weight: 900;
-            line-height: 0.9;
-            color: #181818;
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .services-title .marketing-line {
-            position: relative;
-            display: inline-block;
-        }
-
-        .quality-badge {
-            position: absolute;
-            top: -10px;
-            right: -50px;
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #9272e6, #6A4C93);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 18px;
-            border: 2px solid white;
-            box-shadow: 0 4px 12px rgba(146, 114, 230, 0.3);
-            backdrop-filter: blur(2px);
-        }
-
-        .tagline {
-            font-family: 'HelveticaCustom', sans-serif;
-            font-size: clamp(14px, 4vw, 32px);
-            color: #353434;
-            margin-top: 20px;
-            font-weight: normal;
-        }
-
-        /* CTA Buttons */
-        .cta-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            margin: 40px 20px;
-        }
-
-        .btn {
-            width: 100%;
-            max-width: 350px;
-            height: 60px;
-            border-radius: 30px;
-            font-size: clamp(16px, 4vw, 24px);
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #181818, #333);
-            color: white;
+        /* Кастомные стили для точного соответствия Figma */
+        .figma-shadow-button {
             box-shadow: 0px 4px 15px rgba(11, 0, 30, 0.25);
         }
 
-        .btn-secondary {
-            background: transparent;
-            color: #181818;
-            border: 2px solid #181818;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(146, 114, 230, 0.3);
-        }
-
-        .arrow-icon {
-            width: 20px;
-            height: 20px;
-            display: inline-block;
-        }
-
-        /* Values Section */
-        .values-section {
-            padding: 60px 20px;
-            background: #f8f9fa;
-        }
-
-        .section-title {
-            font-family: 'Benzin', sans-serif;
-            font-size: clamp(24px, 6vw, 48px);
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 40px;
-            line-height: 1.2;
-            color: #181818;
-        }
-
-        .value-cards {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .value-card {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            display: flex;
-            align-items: flex-start;
-            gap: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        }
-
-        .value-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #9272e6, #6A4C93);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 20px;
-            flex-shrink: 0;
+        .figma-backdrop-blur {
             backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
         }
 
-        .value-content h3 {
-            font-family: 'Benzin', sans-serif;
-            font-size: clamp(18px, 4vw, 28px);
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #181818;
+        .figma-gradient-bg {
+            background: linear-gradient(135deg, #9272e6 0%, #6A4C93 100%);
         }
 
-        .value-content p {
-            font-size: clamp(14px, 3vw, 18px);
-            color: #353434;
-            line-height: 1.5;
+        .figma-text-100 {
+            font-size: 100px;
+            line-height: 82px;
         }
 
-        /* Testimonial Section */
-        .testimonial-section {
-            padding: 60px 20px;
-            background: white;
+        .figma-text-76 {
+            font-size: 76px;
+            line-height: 82px;
         }
 
-        .testimonial-rating {
-            text-align: center;
-            font-size: 24px;
-            margin-bottom: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+        .figma-text-64 {
+            font-size: 64px;
+            line-height: normal;
         }
 
-        .rating-circles {
-            display: flex;
-            gap: 8px;
+        .figma-text-46 {
+            font-size: 46px;
+            line-height: 60px;
         }
 
-        .rating-circle {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
+        .figma-text-40 {
+            font-size: 40px;
+            line-height: 60px;
         }
 
-        .circle-1 { background: #9272e6; }
-        .circle-2 { background: #c1aafb; }
-        .circle-3 { background: #eceaf4; }
-
-        .rating-text {
-            font-family: 'Benzin', sans-serif;
-            font-size: 20px;
-            font-weight: 600;
-            color: #181818;
-            margin-left: 10px;
-        }
-
-        .testimonial-card {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            margin: 0 auto;
-            max-width: 500px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-
-        .testimonial-author {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 10px;
-        }
-
-        .testimonial-author span:first-child {
-            font-size: 30px;
-        }
-
-        .testimonial-author span:last-child {
-            font-family: 'Benzin', sans-serif;
-            font-size: clamp(18px, 4vw, 24px);
-            font-weight: 600;
-            color: #181818;
-        }
-
-        .testimonial-role {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 20px;
-            font-weight: bold;
-        }
-
-        .testimonial-text {
-            font-size: clamp(14px, 3vw, 16px);
-            line-height: 1.6;
-            color: #353434;
-            margin-bottom: 20px;
-        }
-
-        .stars {
-            color: #ffd700;
-            font-size: 24px;
-            letter-spacing: 5px;
-        }
-
-        /* Final CTA */
-        .final-cta {
-            padding: 40px 20px;
-            background: linear-gradient(135deg, #9272e6, #6A4C93);
-            text-align: center;
-        }
-
-        .final-cta .btn {
-            background: white;
-            color: #9272e6;
-            font-weight: 600;
-            max-width: 300px;
-        }
-
-        /* Mobile Optimizations */
-        @media (max-width: 480px) {
-            .hero-section {
-                min-height: 500px;
-                padding: 15px;
+        /* Мобильная адаптация */
+        @media (max-width: 768px) {
+            .figma-text-100 {
+                font-size: 48px;
+                line-height: 45px;
             }
-            
-            .services-title {
-                font-size: 36px;
+            .figma-text-76 {
+                font-size: 32px;
+                line-height: 36px;
             }
-            
-            .quality-badge {
-                right: -30px;
-                width: 30px;
-                height: 30px;
-                font-size: 14px;
+            .figma-text-64 {
+                font-size: 24px;
             }
-            
-            .value-card {
-                padding: 20px;
-                flex-direction: column;
-                text-align: center;
+            .figma-text-46 {
+                font-size: 18px;
+                line-height: 24px;
             }
-            
-            .value-icon {
-                margin: 0 auto;
-            }
-
-            .btn {
-                height: 50px;
+            .figma-text-40 {
                 font-size: 16px;
+                line-height: 22px;
             }
-        }
-
-        /* Animations */
-        .fade-in {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s ease;
-        }
-
-        .fade-in.visible {
-            opacity: 1;
-            transform: translateY(0);
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <!-- Hero Section -->
-        <section class="hero-section">
-            <div class="hero-overlay"></div>
-            
-            <div class="hero-content">
-                <div class="logo">polli<br>digital</div>
-                
-                <div class="services-title">
-                    Брендинг<br>
-                    Сайты<br>
-                    <span class="marketing-line">
-                        Маркетинг
-                        <div class="quality-badge">⚡</div>
-                    </span>
-                </div>
-                
-                <div class="tagline">Скорость. Эстетика. Смысл</div>
+<body class="bg-white text-primary font-helvetica">
+    <!-- Hero Section -->
+    <section class="relative w-full h-screen min-h-[600px] bg-cover bg-center" style="background-image: url('./фото.jpg')">
+        <!-- Hero Overlay -->
+        <div class="absolute inset-0 bg-gradient-to-t from-white/90 via-white/30 to-transparent"></div>
+        
+        <!-- Logo -->
+        <div class="absolute top-0 left-5 md:left-20 pt-8">
+            <div class="font-benzin font-black text-primary text-3xl md:text-5xl leading-none">
+                polli<br>digital
             </div>
-        </section>
-
-        <!-- CTA Buttons -->
-        <section class="cta-section">
-            <button class="btn btn-primary" onclick="openQuiz()">
-                Заказать
-                <span class="arrow-icon">→</span>
-            </button>
-            <button class="btn btn-secondary" onclick="callStudio()">
-                Позвонить
-                <span class="arrow-icon">→</span>
-            </button>
-        </section>
-
-        <!-- Values Section -->
-        <section class="values-section">
-            <h2 class="section-title">Мы любим свое дело и дорожим репутацией</h2>
-            
-            <div class="value-cards">
-                <div class="value-card fade-in">
-                    <div class="value-icon">⭐</div>
-                    <div class="value-content">
-                        <h3>500+<br>успешных клиентов</h3>
-                        <p>Мы работали с крупными компаниями и личными брендами, создавая решения, которые приносят результат.</p>
-                    </div>
-                </div>
-
-                <div class="value-card fade-in">
-                    <div class="value-icon">💼</div>
-                    <div class="value-content">
-                        <h3>15+<br>лет опыта</h3>
-                        <p>Команда дизайнеров, маркетологов и разработчиков с проверенным опытом</p>
-                    </div>
-                </div>
-
-                <div class="value-card fade-in">
-                    <div class="value-icon">❤️</div>
-                    <div class="value-content">
-                        <h3>Партнерство<br>с ФОНДАМИ</h3>
-                        <p>Мы поддерживаем благотворительные инициативы: Фонд защиты детей и «СЕМЕЙНАЯ СКАЗКА»</p>
+        </div>
+        
+        <!-- Hero Content -->
+        <div class="absolute bottom-32 left-1/2 transform -translate-x-1/2 w-full max-w-4xl text-center px-4">
+            <!-- Services Headlines как в Figma -->
+            <div class="font-benzin font-normal text-primary tracking-wide mb-6">
+                <div class="figma-text-100 mb-6">Брендинг</div>
+                <div class="figma-text-100 mb-6">Сайты</div>
+                <div class="figma-text-100 relative inline-block">
+                    Маркетинг
+                    <!-- Quality Badge точно как в Figma -->
+                    <div class="absolute -top-2 -right-12 md:-right-16 w-10 h-10 md:w-14 md:h-14 figma-gradient-bg rounded-full figma-backdrop-blur flex items-center justify-center text-white text-xl md:text-2xl border-2 border-white shadow-lg">
+                        ⚡
                     </div>
                 </div>
             </div>
-        </section>
-
-        <!-- Testimonial Section -->
-        <section class="testimonial-section">
-            <h2 class="section-title">Нас рекомендуют</h2>
             
-            <div class="testimonial-rating">
-                <div class="rating-circles">
-                    <div class="rating-circle circle-1"></div>
-                    <div class="rating-circle circle-2"></div>
-                    <div class="rating-circle circle-3"></div>
-                </div>
-                <span class="rating-text">500+</span>
+            <!-- Tagline как в Figma -->
+            <div class="font-helvetica font-normal text-secondary figma-text-46 mt-8">
+                Скорость. Эстетика. Смысл
             </div>
-            
-            <div class="testimonial-card fade-in">
-                <div class="testimonial-author">
-                    <span>👩‍💼</span>
-                    <span>Оксана Л.</span>
+        </div>
+        
+        <!-- Play Button (правый нижний угол) -->
+        <div class="absolute bottom-24 right-8 md:right-24 w-60 h-60 hidden md:block">
+            <div class="relative w-56 h-52 top-3 left-2">
+                <div class="absolute w-36 h-36 top-10 left-10 bg-accent/80 rounded-full figma-backdrop-blur"></div>
+                <div class="absolute w-24 h-24 top-16 left-16 text-white">
+                    <svg class="w-full h-full" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
                 </div>
-                <div class="testimonial-role">#презентация</div>
-                <div class="testimonial-text">
-                    Приехала в студию дизайна New, чтобы они мне оформили презентацию на тему трендов моды (так как я шью премиум одежду на заказ и выступаю на конференциях). Ребята с первого раза все сделали идеально и мое выступление на конференции прошло отлично! Буду к ним и дальше обращаться, ребята молодцы!
-                </div>
-                <div class="stars">⭐⭐⭐⭐⭐</div>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <!-- Final CTA -->
-        <section class="final-cta">
-            <button class="btn" onclick="openMaps()">
-                Смотреть на Яндекс.Картах 📍
-            </button>
-        </section>
-    </div>
+    <!-- CTA Buttons Section - Точные размеры из Figma -->
+    <section class="flex flex-col items-center gap-6 my-10 px-4">
+        <!-- Заказать Button -->
+        <button onclick="openQuiz()" class="w-full max-w-sm md:max-w-2xl h-16 md:h-48 rounded-full md:rounded-[90px] bg-black figma-shadow-button flex items-center justify-center hover:bg-gray-800 transition-all">
+            <div class="flex items-center">
+                <span class="font-helvetica font-normal text-white text-lg md:figma-text-64 text-center">
+                    Заказать
+                </span>
+                <svg class="w-6 h-6 md:w-20 md:h-20 ml-2 md:ml-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                </svg>
+            </div>
+        </button>
+
+        <!-- Позвонить Button -->
+        <button onclick="callStudio()" class="w-full max-w-sm md:max-w-2xl h-16 md:h-48 rounded-full md:rounded-[90px] border-2 border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-all">
+            <div class="flex items-center">
+                <span class="font-helvetica font-bold text-primary text-lg md:figma-text-64 text-center">
+                    Позвонить
+                </span>
+                <svg class="w-6 h-6 md:w-20 md:h-20 ml-2 md:ml-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                </svg>
+            </div>
+        </button>
+    </section>
+
+    <!-- Reputation Section - Точный заголовок из Figma -->
+    <section class="my-20 px-4">
+        <h2 class="font-benzin font-normal text-primary figma-text-76 text-center tracking-wide w-full max-w-4xl mx-auto">
+            Мы любим свое дело и дорожим репутацией
+        </h2>
+    </section>
+
+    <!-- Stats Cards - Размеры как в Figma -->
+    <section class="flex flex-col gap-8 my-20 px-4">
+        <!-- 500+ Card -->
+        <div class="w-full max-w-4xl h-auto md:h-[470px] mx-auto relative bg-white rounded-3xl overflow-hidden shadow-lg">
+            <div class="absolute w-32 md:w-40 h-32 md:h-40 top-0 left-4 md:left-12 bg-accent/80 rounded-full figma-backdrop-blur"></div>
+            
+            <div class="relative pt-16 md:pt-14 pl-4 md:pl-12 pr-4 pb-8">
+                <div class="ml-0 md:ml-60">
+                    <h3 class="font-benzin font-normal text-black text-4xl md:text-6xl leading-tight tracking-wide">
+                        500+
+                    </h3>
+                    <h4 class="font-benzin font-normal text-primary figma-text-46 leading-tight tracking-wide mt-2">
+                        успешных клиентов
+                    </h4>
+                    <p class="font-helvetica font-normal text-secondary figma-text-46 leading-relaxed tracking-wide mt-8">
+                        Мы работали с крупными компаниями и личными брендами, создавая решения, которые приносят результат.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 15+ Card -->
+        <div class="w-full max-w-4xl h-auto md:h-[470px] mx-auto relative bg-white rounded-3xl overflow-hidden shadow-lg">
+            <div class="absolute w-32 md:w-40 h-32 md:h-40 top-0 left-4 md:left-12 bg-accent/80 rounded-full figma-backdrop-blur"></div>
+            
+            <div class="relative pt-16 md:pt-14 pl-4 md:pl-12 pr-4 pb-8">
+                <div class="ml-0 md:ml-60">
+                    <h3 class="font-benzin font-normal text-black text-4xl md:text-6xl leading-tight tracking-wide">
+                        15+
+                    </h3>
+                    <h4 class="font-benzin font-normal text-primary figma-text-46 leading-tight tracking-wide mt-2">
+                        лет опыта
+                    </h4>
+                    <p class="font-helvetica font-normal text-secondary figma-text-46 leading-relaxed tracking-wide mt-8">
+                        Команда дизайнеров, маркетологов и разработчиков с проверенным опытом
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Partnership Card -->
+        <div class="w-full max-w-4xl h-auto md:h-[470px] mx-auto relative bg-white rounded-3xl overflow-hidden shadow-lg">
+            <div class="absolute w-32 md:w-40 h-32 md:h-40 top-0 left-4 md:left-12 bg-accent/80 rounded-full figma-backdrop-blur"></div>
+            
+            <div class="relative pt-16 md:pt-14 pl-4 md:pl-12 pr-4 pb-8">
+                <div class="ml-0 md:ml-60">
+                    <h4 class="font-benzin font-normal text-primary figma-text-46 leading-tight tracking-wide whitespace-pre-line">
+                        Партнерство
+с фондами
+                    </h4>
+                    <p class="font-helvetica font-normal text-secondary figma-text-46 leading-relaxed tracking-wide mt-8">
+                        Мы поддерживаем благотворительные инициативы: Фонд защиты детей и «СЕМЕЙНАЯ СКАЗКА»
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recommendations Section -->
+    <section class="my-20 px-4">
+        <div class="relative w-full max-w-4xl h-56 mx-auto">
+            <h2 class="font-benzin font-normal text-primary figma-text-76 text-center tracking-wide mt-16">
+                Нас рекомендуют
+            </h2>
+        </div>
+
+        <!-- Rating Circles как в Figma -->
+        <div class="flex justify-center my-10">
+            <div class="flex items-center gap-4">
+                <div class="w-16 md:w-20 h-16 md:h-20 bg-accent rounded-full"></div>
+                <div class="w-16 md:w-20 h-16 md:h-20 bg-accent-light rounded-full"></div>
+                <div class="w-16 md:w-20 h-16 md:h-20 bg-accent-lighter rounded-full"></div>
+                <span class="font-benzin font-normal text-black figma-text-40 ml-5">500+</span>
+            </div>
+        </div>
+
+        <!-- Testimonial Card точно как в Figma -->
+        <div class="w-full max-w-2xl h-auto md:h-[960px] mx-auto bg-white rounded-3xl shadow-md">
+            <div class="p-0 relative h-full">
+                <!-- Profile Image -->
+                <div class="absolute top-5 left-1/2 transform -translate-x-1/2">
+                    <div class="w-32 md:w-36 h-32 md:h-36 bg-gray-200 rounded-full flex items-center justify-center text-4xl md:text-6xl">
+                        👩‍💼
+                    </div>
+                </div>
+
+                <div class="pt-40 md:pt-48 px-8 md:px-12 text-center">
+                    <h3 class="font-benzin font-normal text-primary figma-text-46 tracking-wide">
+                        Оксана Л.
+                    </h3>
+
+                    <div class="font-helvetica font-bold text-secondary text-2xl md:text-4xl text-center leading-14 tracking-wide mt-4">
+                        #презентация
+                    </div>
+
+                    <p class="font-helvetica font-normal text-secondary text-xl md:text-4xl text-center tracking-wide leading-14 mt-10">
+                        Приехала в студию дизайна New, чтобы они мне оформили презентацию на тему трендов моды (так как я шью премиум одежду на заказ и выступаю на конференциях).&nbsp;&nbsp;Ребята с первого раза все сделали идеально и мое выступление на конференции прошло отлично! Буду к ним и дальше обращаться, ребята молодцы)
+                    </p>
+
+                    <!-- Star Rating -->
+                    <div class="flex justify-center mt-16 text-2xl md:text-4xl">
+                        <span class="text-yellow-400">⭐⭐⭐⭐⭐</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Yandex Maps Button -->
+    <section class="my-20 px-4">
+        <button onclick="openMaps()" class="w-full max-w-sm md:max-w-2xl h-16 md:h-48 rounded-full md:rounded-[90px] bg-black figma-shadow-button flex items-center justify-center mx-auto hover:bg-gray-800 transition-all">
+            <div class="flex items-center">
+                <span class="font-helvetica font-normal text-white text-lg md:figma-text-64 text-center leading-tight">
+                    Смотреть на Яндекс.Картах
+                </span>
+                <span class="text-2xl md:text-5xl ml-2 md:ml-4">📍</span>
+            </div>
+        </button>
+    </section>
 
     <script>
         // Telegram Web App initialization
@@ -539,27 +362,17 @@
             window.open('https://yandex.ru/maps/', '_blank');
         }
 
-        // Smooth animations on scroll
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
+        // Принудительная перезагрузка для борьбы с кэшем
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister();
                 }
             });
-        }, observerOptions);
+        }
 
-        // Apply animation to cards
-        document.addEventListener('DOMContentLoaded', () => {
-            const cards = document.querySelectorAll('.fade-in');
-            cards.forEach(card => {
-                observer.observe(card);
-            });
-        });
+        // Добавляем версию для обхода кэша
+        console.log('Polli Digital v2.1 - Tailwind Edition');
     </script>
 </body>
 </html>
