@@ -125,27 +125,33 @@
             margin-left: 15px;
         }
 
+        /* Контейнер для услуг с overflow visible */
+        .services-wrapper {
+            position: relative;
+            overflow: visible;
+            padding-right: 50px; /* Место для кружка */
+        }
+
         /* Маркетинг с крутящимся элементом справа */
         .marketing-line {
             position: relative;
             display: inline-block;
-            padding-right: 55px; /* Добавляем место для кружка */
         }
 
-        /* Крутящийся элемент справа от Маркетинг (исправленная позиция) */
+        /* Крутящийся элемент справа от Маркетинг (для Telegram Web App) */
         .quality-badge {
             position: absolute;
-            top: 5px;
-            right: -15px;
-            width: 45px;
-            height: 45px;
+            top: -5px;
+            right: -50px;
+            width: 40px;
+            height: 40px;
             background: linear-gradient(135deg, #9272e6, #7c5ce6);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 18px;
+            font-size: 16px;
             border: 2px solid white;
             box-shadow: 0 3px 15px rgba(146, 114, 230, 0.4);
             z-index: 5;
@@ -154,11 +160,11 @@
         /* Круговой текст вокруг кружка */
         .circular-text {
             position: absolute;
-            top: -10px;
-            right: -30px;
-            width: 75px;
-            height: 75px;
-            font-size: 7px;
+            top: -18px;
+            right: -63px;
+            width: 66px;
+            height: 66px;
+            font-size: 6px;
             color: #666;
             pointer-events: none;
         }
@@ -268,21 +274,21 @@
             }
             
             .quality-badge {
-                right: -10px;
-                width: 35px;
-                height: 35px;
+                right: -40px;
+                width: 32px;
+                height: 32px;
                 font-size: 14px;
             }
             
             .circular-text {
-                right: -20px;
-                width: 60px;
-                height: 60px;
-                font-size: 6px;
+                right: -50px;
+                width: 52px;
+                height: 52px;
+                font-size: 5px;
             }
             
-            .marketing-line {
-                padding-right: 45px;
+            .services-wrapper {
+                padding-right: 40px;
             }
         }
 
@@ -378,35 +384,37 @@
                         <div className="hero-content">
                             {/* Заголовки услуг - позиционирование по желтой линии */}
                             <div className="services-block">
-                                {/* Брендинг - левее */}
-                                <div className="service-title branding-title">Брендинг</div>
-                                
-                                {/* Сайты - на одном уровне с Маркетинг */}
-                                <div className="service-title sites-title">Сайты</div>
-                                
-                                {/* Маркетинг - на одном уровне с Сайты + крутящийся элемент */}
-                                <div className="service-title marketing-title">
-                                    <span className="marketing-line">
-                                        Маркетинг
-                                        
-                                        {/* Крутящийся элемент справа (исправленная позиция) */}
-                                        <div className="quality-badge">⚡</div>
-                                        <div className="circular-text">
-                                            <svg viewBox="0 0 100 100">
-                                                <defs>
-                                                    <path
-                                                        id="circle"
-                                                        d="M 50, 50 m -35, 0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0"
-                                                    />
-                                                </defs>
-                                                <text fontSize="8" fill="#9272e6">
-                                                    <textPath href="#circle">
-                                                        КАЧЕСТВО • СКОРОСТЬ • ЭСТЕТИКА •
-                                                    </textPath>
-                                                </text>
-                                            </svg>
-                                        </div>
-                                    </span>
+                                <div className="services-wrapper">
+                                    {/* Брендинг - левее */}
+                                    <div className="service-title branding-title">Брендинг</div>
+                                    
+                                    {/* Сайты - на одном уровне с Маркетинг */}
+                                    <div className="service-title sites-title">Сайты</div>
+                                    
+                                    {/* Маркетинг - на одном уровне с Сайты + крутящийся элемент */}
+                                    <div className="service-title marketing-title">
+                                        <span className="marketing-line">
+                                            Маркетинг
+                                            
+                                            {/* Крутящийся элемент справа (для Telegram Web App) */}
+                                            <div className="quality-badge">⚡</div>
+                                            <div className="circular-text">
+                                                <svg viewBox="0 0 100 100">
+                                                    <defs>
+                                                        <path
+                                                            id="circle"
+                                                            d="M 50, 50 m -35, 0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0"
+                                                        />
+                                                    </defs>
+                                                    <text fontSize="8" fill="#9272e6">
+                                                        <textPath href="#circle">
+                                                            КАЧЕСТВО • СКОРОСТЬ • ЭСТЕТИКА •
+                                                        </textPath>
+                                                    </text>
+                                                </svg>
+                                            </div>
+                                        </span>
+                                    </div>
                                 </div>
 
                                 {/* Подзаголовок - сокращенное расстояние */}
@@ -445,7 +453,7 @@
 
         ReactDOM.render(<HeroSection />, document.getElementById('root'));
         
-        console.log('🎯 Polli Digital v9.0 - Фиолетовый кружок исправлен!');
+        console.log('🎯 Polli Digital v9.1 - Фикс для Telegram Web App на Samsung!');
         
         // Проверка загрузки шрифтов
         document.fonts.ready.then(() => {
@@ -454,6 +462,12 @@
                 console.log(`Шрифт ${font.family}: ${font.status}`);
             });
         });
+        
+        // Детект Telegram Web App
+        if (window.Telegram?.WebApp) {
+            console.log('📱 Запущено в Telegram Web App');
+            console.log('Платформа:', window.Telegram.WebApp.platform);
+        }
     </script>
 </body>
 </html>
