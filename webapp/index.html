@@ -7,926 +7,307 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Polli Digital</title>
+    
+    <!-- React через CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Telegram Web App -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Кастомные шрифты -->
     <style>
         @font-face {
-            font-family: 'Benzin';
+            font-family: 'Benzin-Medium';
             src: url('./fonts/Benzin-Bold.woff2') format('woff2');
-            font-weight: bold;
-            font-display: swap;
-        }
-
-        @font-face {
-            font-family: 'Benzin';
-            src: url('./fonts/Benzin-ExtraBold.woff2') format('woff2');
-            font-weight: 900;
-            font-display: swap;
-        }
-
-        @font-face {
-            font-family: 'Benzin';
-            src: url('./fonts/Benzin-Regular.woff2') format('woff2');
             font-weight: normal;
             font-display: swap;
         }
 
         @font-face {
-            font-family: 'HelveticaCustom';
+            font-family: 'Helvetica-Regular';
             src: url('./fonts/HelveticaRegular.woff') format('woff');
             font-weight: normal;
             font-display: swap;
         }
 
-        @font-face {
-            font-family: 'HelveticaCustom';
-            src: url('./fonts/HelveticaMedium.woff') format('woff');
-            font-weight: 500;
-            font-display: swap;
+        /* Точные CSS переменные из Figma */
+        :root {
+            --u-3kc-1t: rgba(24, 24, 24, 1);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* Кастомные классы для точного соответствия Figma */
+        .font-benzin {
+            font-family: 'Benzin-Medium', Helvetica, sans-serif;
+        }
+        
+        .font-helvetica {
+            font-family: 'Helvetica-Regular', Helvetica, sans-serif;
         }
 
+        .text-u-3kc-1t {
+            color: var(--u-3kc-1t);
+        }
+
+        /* Антикэш стили */
         body {
-            font-family: 'HelveticaCustom', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            background: white;
-            color: #181818;
-            line-height: 1.4;
-            overflow-x: hidden;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .container {
-            max-width: 100%;
-            width: 100%;
+        /* Фиксированные размеры для мобильных */
+        .hero-container {
+            width: 100vw;
+            max-width: 1080px;
             margin: 0 auto;
-            background: white;
             position: relative;
-        }
-
-        /* Hero Section - точно как в Figma */
-        .hero-section {
-            position: relative;
-            width: 100%;
-            height: 100vh;
-            min-height: 700px;
-            background: url('./фото.jpg') center/cover;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-end;
-            padding-bottom: 100px;
-        }
-
-        .hero-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(to top, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
-        }
-
-        .logo {
-            font-family: 'Benzin', sans-serif;
-            font-size: 48px;
-            font-weight: 900;
-            color: #181818;
-            line-height: 1;
-            position: absolute;
-            top: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 2;
-            text-align: center;
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 2;
-            text-align: center;
-            width: 100%;
-            max-width: 800px;
-            padding: 0 20px;
-        }
-
-        .services-title {
-            font-family: 'Benzin', sans-serif;
-            font-size: 80px;
-            font-weight: 900;
-            line-height: 0.85;
-            color: #181818;
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .services-title .marketing-line {
-            position: relative;
-            display: inline-block;
-        }
-
-        .quality-badge {
-            position: absolute;
-            top: -15px;
-            right: -60px;
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #9272e6, #6A4C93);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 24px;
-            border: 3px solid white;
-            box-shadow: 0 4px 12px rgba(146, 114, 230, 0.4);
-            backdrop-filter: blur(2px);
-        }
-
-        .tagline {
-            font-family: 'HelveticaCustom', sans-serif;
-            font-size: 46px;
-            color: #353434;
-            font-weight: normal;
-            line-height: 60px;
-            margin-top: 30px;
-        }
-
-        /* CTA Buttons - размеры как в Figma */
-        .cta-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 24px;
-            margin: 40px 20px;
-        }
-
-        .btn {
-            width: 100%;
-            max-width: 420px;
-            height: 100px;
-            border-radius: 50px;
-            font-size: 32px;
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        .btn-primary {
-            background: #181818;
-            color: white;
-            box-shadow: 0px 4px 15px rgba(11, 0, 30, 0.25);
-        }
-
-        .btn-secondary {
-            background: transparent;
-            color: #181818;
-            border: 2px solid #181818;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(146, 114, 230, 0.3);
-        }
-
-        .arrow-icon {
-            width: 42px;
-            height: 42px;
-            display: inline-block;
-        }
-
-        /* Values Section */
-        .values-section {
-            padding: 80px 20px;
-            background: white;
-        }
-
-        .section-title {
-            font-family: 'Benzin', sans-serif;
-            font-size: 76px;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 60px;
-            line-height: 82px;
-            color: #181818;
-            max-width: 873px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .value-cards {
-            display: flex;
-            flex-direction: column;
-            gap: 32px;
-            max-width: 1020px;
-            margin: 0 auto;
-        }
-
-        .value-card {
-            background: white;
-            border-radius: 24px;
-            min-height: 470px;
-            position: relative;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             overflow: hidden;
-            padding: 57px 50px;
         }
 
-        .value-icon {
-            position: absolute;
-            top: 0;
-            left: 48px;
-            width: 162px;
-            height: 162px;
-            background: rgba(146, 114, 230, 0.8);
-            border-radius: 81px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 60px;
+        /* Backdrop blur эффект */
+        .backdrop-blur-custom {
             backdrop-filter: blur(2px);
-        }
-
-        .value-content {
-            margin-left: 248px;
-            padding-top: 0;
-        }
-
-        .value-content h3 {
-            font-family: 'Benzin', sans-serif;
-            font-size: 60px;
-            font-weight: normal;
-            margin-bottom: 14px;
-            color: #181818;
-            line-height: 60px;
-        }
-
-        .value-content h4 {
-            font-family: 'Benzin', sans-serif;
-            font-size: 46px;
-            font-weight: normal;
-            margin-bottom: 40px;
-            color: #181818;
-            line-height: 46px;
-        }
-
-        .value-content p {
-            font-family: 'HelveticaCustom', sans-serif;
-            font-size: 46px;
-            color: #353434;
-            line-height: 60px;
-            font-weight: normal;
-        }
-
-        /* Testimonial Section */
-        .testimonial-section {
-            padding: 80px 20px;
-            background: white;
-        }
-
-        .testimonial-title {
-            font-family: 'Benzin', sans-serif;
-            font-size: 76px;
-            font-weight: normal;
-            text-align: center;
-            margin-bottom: 40px;
-            line-height: 82px;
-            color: #181818;
-        }
-
-        .testimonial-rating {
-            text-align: center;
-            margin-bottom: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-        }
-
-        .rating-circles {
-            display: flex;
-            gap: 16px;
-        }
-
-        .rating-circle {
-            width: 77px;
-            height: 77px;
-            border-radius: 50%;
-        }
-
-        .circle-1 { background: #9272e6; }
-        .circle-2 { background: #c1aafb; }
-        .circle-3 { background: #eceaf4; }
-
-        .rating-text {
-            font-family: 'Benzin', sans-serif;
-            font-size: 40px;
-            font-weight: normal;
-            color: #181818;
-            line-height: 60px;
-            margin-left: 16px;
-        }
-
-        .testimonial-card {
-            background: white;
-            border-radius: 24px;
-            width: 920px;
-            min-height: 960px;
-            margin: 0 auto;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
-            position: relative;
-            padding: 50px;
-        }
-
-        .testimonial-avatar {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 142px;
-            height: 142px;
-            background: #f0f0f0;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 60px;
-        }
-
-        .testimonial-content {
-            padding-top: 181px;
-            text-align: center;
-        }
-
-        .testimonial-author {
-            font-family: 'Benzin', sans-serif;
-            font-size: 46px;
-            font-weight: normal;
-            color: #181818;
-            line-height: 60px;
-            margin-bottom: 16px;
-        }
-
-        .testimonial-role {
-            font-family: 'HelveticaCustom', sans-serif;
-            font-size: 36px;
-            color: #353535;
-            font-weight: bold;
-            line-height: 56px;
-            margin-bottom: 40px;
-        }
-
-        .testimonial-text {
-            font-family: 'HelveticaCustom', sans-serif;
-            font-size: 36px;
-            line-height: 56px;
-            color: #353434;
-            margin-bottom: 60px;
-            text-align: center;
-        }
-
-        .stars {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            font-size: 32px;
-        }
-
-        .star {
-            color: #ffd700;
-            width: 64px;
-            height: 61px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* Projects Section */
-        .projects-section {
-            padding: 80px 20px;
-            background: white;
-            text-align: center;
-        }
-
-        .projects-title {
-            font-family: 'Benzin', sans-serif;
-            font-size: 76px;
-            font-weight: normal;
-            color: #181818;
-            line-height: 82px;
-            margin-bottom: 40px;
-        }
-
-        .projects-image {
-            width: 664px;
-            height: 1340px;
-            max-width: 100%;
-            margin: 0 auto 24px;
-            background: #f0f0f0;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: #666;
-        }
-
-        .projects-btn {
-            width: 642px;
-            height: 153px;
-            max-width: 100%;
-            border-radius: 68px;
-            border: 2px solid #181818;
-            background: transparent;
-            color: #181818;
-            font-family: 'HelveticaCustom', sans-serif;
-            font-size: 49px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            margin: 0 auto;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .projects-btn:hover {
-            background: #181818;
-            color: white;
-        }
-
-        /* Contact Section */
-        .contact-section {
-            padding: 80px 20px;
-            background: white;
-        }
-
-        .contact-title {
-            font-family: 'Benzin', sans-serif;
-            font-size: 76px;
-            font-weight: normal;
-            color: #181818;
-            line-height: 82px;
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .contact-info {
-            margin: 40px 0;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .contact-item {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 24px;
-            padding-left: 80px;
-        }
-
-        .contact-icon {
-            width: 52px;
-            height: 52px;
-            margin-right: 72px;
-            flex-shrink: 0;
-        }
-
-        .contact-text {
-            font-family: 'Benzin', sans-serif;
-            font-size: 40px;
-            font-weight: normal;
-            color: #181818;
-            line-height: 60px;
-        }
-
-        .map-container {
-            width: 920px;
-            height: 800px;
-            max-width: 100%;
-            margin: 40px auto;
-            background: #f0f0f0;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: #666;
-        }
-
-        .social-icons {
-            display: flex;
-            justify-content: center;
-            gap: 40px;
-            margin: 40px 0;
-        }
-
-        .social-icon {
-            width: 162px;
-            height: 162px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 48px;
-            color: white;
-            text-decoration: none;
-        }
-
-        .social-telegram { background: #00a9e0; }
-        .social-whatsapp { background: #62e200; }
-
-        .final-cta {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 24px;
-            margin: 40px 0;
-        }
-
-        /* Footer */
-        .footer {
-            width: 100%;
-            height: 375px;
-            background: #181818;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 64px;
-        }
-
-        .footer-link {
-            font-family: 'HelveticaCustom', sans-serif;
-            font-size: 46px;
-            font-weight: normal;
-            color: rgba(255, 255, 255, 0.8);
-            line-height: 60px;
-            text-decoration: underline;
-            transition: color 0.3s ease;
-        }
-
-        .footer-link:hover {
-            color: white;
-        }
-
-        /* Maps Button */
-        .maps-btn {
-            width: 100%;
-            max-width: 420px;
-            height: 100px;
-            border-radius: 50px;
-            background: #181818;
-            color: white;
-            border: none;
-            font-family: 'HelveticaCustom', sans-serif;
-            font-size: 32px;
-            font-weight: normal;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            cursor: pointer;
-            box-shadow: 0px 4px 15px rgba(11, 0, 30, 0.25);
-            margin: 40px auto;
-            transition: all 0.3s ease;
-        }
-
-        .maps-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(11, 0, 30, 0.4);
-        }
-
-        /* Mobile Adaptations */
-        @media (max-width: 768px) {
-            .services-title {
-                font-size: 48px;
-                line-height: 45px;
-            }
-            
-            .quality-badge {
-                right: -30px;
-                width: 30px;
-                height: 30px;
-                font-size: 16px;
-            }
-            
-            .tagline {
-                font-size: 24px;
-                line-height: 32px;
-            }
-            
-            .section-title {
-                font-size: 36px;
-                line-height: 42px;
-            }
-            
-            .value-card {
-                min-height: auto;
-                padding: 40px 20px;
-            }
-            
-            .value-icon {
-                position: relative;
-                left: 0;
-                width: 80px;
-                height: 80px;
-                font-size: 30px;
-                margin: 0 auto 20px;
-            }
-            
-            .value-content {
-                margin-left: 0;
-                text-align: center;
-            }
-            
-            .value-content h3 {
-                font-size: 28px;
-                line-height: 32px;
-            }
-            
-            .value-content h4 {
-                font-size: 22px;
-                line-height: 26px;
-            }
-            
-            .value-content p {
-                font-size: 16px;
-                line-height: 24px;
-            }
-            
-            .testimonial-card {
-                width: 100%;
-                min-height: auto;
-                padding: 30px 20px;
-            }
-            
-            .testimonial-content {
-                padding-top: 120px;
-            }
-            
-            .testimonial-author {
-                font-size: 24px;
-                line-height: 30px;
-            }
-            
-            .testimonial-role {
-                font-size: 18px;
-                line-height: 24px;
-            }
-            
-            .testimonial-text {
-                font-size: 16px;
-                line-height: 24px;
-            }
-            
-            .contact-item {
-                flex-direction: column;
-                text-align: center;
-                padding-left: 0;
-            }
-            
-            .contact-icon {
-                margin: 0 auto 16px;
-            }
-            
-            .contact-text {
-                font-size: 18px;
-                line-height: 24px;
-            }
-            
-            .btn {
-                height: 60px;
-                font-size: 18px;
-                max-width: 300px;
-            }
-            
-            .arrow-icon {
-                width: 20px;
-                height: 20px;
-            }
+            -webkit-backdrop-filter: blur(2px);
         }
     </style>
-</head>
-<body>
-    <div class="container">
-        <!-- Hero Section -->
-        <section class="hero-section">
-            <div class="hero-overlay"></div>
-            
-            <div class="logo">polli<br>digital</div>
-            
-            <div class="hero-content">
-                <div class="services-title">
-                    Брендинг<br>
-                    Сайты<br>
-                    <span class="marketing-line">
-                        Маркетинг
-                        <div class="quality-badge">⚡</div>
-                    </span>
-                </div>
-                
-                <div class="tagline">Скорость. Эстетика. Смысл</div>
-            </div>
-        </section>
-
-        <!-- CTA Buttons -->
-        <section class="cta-section">
-            <button class="btn btn-primary" onclick="openQuiz()">
-                Заказать
-                <span class="arrow-icon">→</span>
-            </button>
-            <button class="btn btn-secondary" onclick="callStudio()">
-                Позвонить
-                <span class="arrow-icon">→</span>
-            </button>
-        </section>
-
-        <!-- Values Section -->
-        <section class="values-section">
-            <h2 class="section-title">Мы любим свое дело и дорожим репутацией</h2>
-            
-            <div class="value-cards">
-                <div class="value-card">
-                    <div class="value-icon">⭐</div>
-                    <div class="value-content">
-                        <h3>500+</h3>
-                        <h4>успешных клиентов</h4>
-                        <p>Мы работали с крупными компаниями и личными брендами, создавая решения, которые приносят результат.</p>
-                    </div>
-                </div>
-
-                <div class="value-card">
-                    <div class="value-icon">💼</div>
-                    <div class="value-content">
-                        <h3>15+</h3>
-                        <h4>лет опыта</h4>
-                        <p>Команда дизайнеров, маркетологов и разработчиков с проверенным опытом</p>
-                    </div>
-                </div>
-
-                <div class="value-card">
-                    <div class="value-icon">❤️</div>
-                    <div class="value-content">
-                        <h4>Партнерство<br>с фондами</h4>
-                        <p>Мы поддерживаем благотворительные инициативы: Фонд защиты детей и «СЕМЕЙНАЯ СКАЗКА»</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Testimonial Section -->
-        <section class="testimonial-section">
-            <h2 class="testimonial-title">Нас рекомендуют</h2>
-            
-            <div class="testimonial-rating">
-                <div class="rating-circles">
-                    <div class="rating-circle circle-1"></div>
-                    <div class="rating-circle circle-2"></div>
-                    <div class="rating-circle circle-3"></div>
-                </div>
-                <span class="rating-text">500+</span>
-            </div>
-            
-            <div class="testimonial-card">
-                <div class="testimonial-avatar">👩‍💼</div>
-                
-                <div class="testimonial-content">
-                    <div class="testimonial-author">Оксана Л.</div>
-                    <div class="testimonial-role">#презентация</div>
-                    <div class="testimonial-text">
-                        Приехала в студию дизайна New, чтобы они мне оформили презентацию на тему трендов моды (так как я шью премиум одежду на заказ и выступаю на конференциях). Ребята с первого раза все сделали идеально и мое выступление на конференции прошло отлично! Буду к ним и дальше обращаться, ребята молодцы!
-                    </div>
-                    <div class="stars">
-                        <span class="star">⭐</span>
-                        <span class="star">⭐</span>
-                        <span class="star">⭐</span>
-                        <span class="star">⭐</span>
-                        <span class="star">⭐</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Maps Button -->
-        <button class="maps-btn" onclick="openMaps()">
-            Смотреть на Яндекс.Картах 📍
-        </button>
-
-        <!-- Projects Section -->
-        <section class="projects-section">
-            <h2 class="projects-title">Наши проекты</h2>
-            <div class="projects-image">Портфолио проектов</div>
-            <button class="projects-btn" onclick="viewProjects()">
-                Смотреть
-                <span>→</span>
-            </button>
-        </section>
-
-        <!-- Contact Section -->
-        <section class="contact-section">
-            <h2 class="contact-title">Связаться с нами</h2>
-            
-            <div class="final-cta">
-                <button class="btn btn-primary" onclick="openQuiz()">
-                    Оставить заявку
-                    <span class="arrow-icon">→</span>
-                </button>
-                <button class="btn btn-secondary" onclick="callStudio()">
-                    Позвонить
-                    <span class="arrow-icon">→</span>
-                </button>
-            </div>
-            
-            <div class="contact-info">
-                <div class="contact-item">
-                    <div class="contact-icon">📞</div>
-                    <div class="contact-text">+7 (911) 184-80-08</div>
-                </div>
-                <div class="contact-item">
-                    <div class="contact-icon">✉️</div>
-                    <div class="contact-text">info@newdigital.moscow</div>
-                </div>
-                <div class="contact-item">
-                    <div class="contact-icon">📍</div>
-                    <div class="contact-text">Москва, Армянский переулок, 11/2А, 101000</div>
-                </div>
-            </div>
-            
-            <div class="map-container">Карта офиса</div>
-            
-            <div class="social-icons">
-                <a href="#" class="social-icon social-telegram">📱</a>
-                <a href="#" class="social-icon social-whatsapp">📞</a>
-            </div>
-        </section>
-
-        <!-- Footer -->
-        <footer class="footer">
-            <a href="#" class="footer-link">Договор-офферты</a>
-            <a href="#" class="footer-link">Политика конфиденциальности</a>
-        </footer>
-    </div>
-
+    
     <script>
-        // Telegram Web App initialization
-        const tg = window.Telegram?.WebApp;
-        
-        if (tg) {
-            tg.ready();
-            tg.expand();
-            tg.setHeaderColor('#9272e6');
-            tg.setBackgroundColor('#ffffff');
-        }
-
-        // Functions for buttons
-        function openQuiz() {
-            if (tg) {
-                tg.showAlert('Переходим к расчету стоимости!', () => {
-                    tg.close();
-                });
-            } else {
-                alert('Откройте это приложение в Telegram для расчета стоимости');
+        // Конфигурация Tailwind
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'benzin': ['Benzin-Medium', 'Helvetica', 'sans-serif'],
+                        'helvetica': ['Helvetica-Regular', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    colors: {
+                        'u-3kc-1t': 'var(--u-3kc-1t)',
+                    },
+                    fontSize: {
+                        '100px': '100px',
+                        '76px': '76px',
+                        '64px': '64px',
+                        '46px': '46px',
+                    },
+                    spacing: {
+                        '37px': '37px',
+                        '78px': '78px',
+                        '80px': '80px',
+                        '107px': '107px',
+                        '214px': '214px',
+                        '217px': '217px',
+                        '219px': '219px',
+                        '241px': '241px',
+                        '309px': '309px',
+                        '572px': '572px',
+                        '762px': '762px',
+                    }
+                }
             }
         }
+    </script>
+</head>
+<body class="bg-white">
+    <div id="root"></div>
 
-        function callStudio() {
-            if (tg) {
-                tg.openTelegramLink('https://t.me/your_studio_contact');
-            } else {
-                window.open('https://t.me/your_studio_contact', '_blank');
-            }
-        }
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-        function openMaps() {
-            window.open('https://yandex.ru/maps/', '_blank');
-        }
+        // Точный компонент героя из Figma
+        const HeroSection = () => {
+            const [tg, setTg] = useState(null);
 
-        function viewProjects() {
-            if (tg) {
-                tg.showAlert('Переходим к портфолио!');
-            } else {
-                alert('Раздел портфолио');
-            }
-        }
+            useEffect(() => {
+                // Telegram Web App инициализация
+                if (window.Telegram?.WebApp) {
+                    const telegram = window.Telegram.WebApp;
+                    telegram.ready();
+                    telegram.expand();
+                    telegram.setHeaderColor('#ffffff');
+                    telegram.setBackgroundColor('#ffffff');
+                    setTg(telegram);
+                }
+            }, []);
 
-        // Принудительная очистка кэша
-        console.log('Polli Digital v3.0 - Pixel Perfect Edition');
-        
-        // Добавляем уникальный параметр для обхода кэша
-        const timestamp = Date.now();
-        document.documentElement.setAttribute('data-version', timestamp);
+            // Данные для основных секций - точно как в Figma коде
+            const mainServices = [
+                { text: "Брендинг", className: "w-[642px]" },
+                { text: "Сайты", className: "w-[464px]" },
+                { text: "Маркетинг", className: "w-[736px]" },
+            ];
+
+            const handleOrderClick = () => {
+                if (tg) {
+                    tg.showAlert('Переходим к расчету стоимости!', () => {
+                        tg.close();
+                    });
+                } else {
+                    alert('Откройте это приложение в Telegram для расчета стоимости');
+                }
+            };
+
+            const handleCallClick = () => {
+                if (tg) {
+                    tg.openTelegramLink('https://t.me/your_studio_contact');
+                } else {
+                    window.open('https://t.me/your_studio_contact', '_blank');
+                }
+            };
+
+            return (
+                <div className="hero-container">
+                    {/* Точная копия Hero Section из Figma */}
+                    <div className="relative w-full h-[1131px] bg-white">
+                        
+                        {/* Главное изображение - точные размеры из Figma */}
+                        <div 
+                            className="absolute w-full h-[706px] top-[78px] left-0 bg-cover bg-center"
+                            style={{backgroundImage: `url('./фото.jpg')`}}
+                        />
+
+                        {/* Градиент оверлей - точно как в Figma */}
+                        <div 
+                            className="absolute w-full h-[431px] top-[572px] left-0"
+                            style={{
+                                background: 'linear-gradient(to top, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.7) 50%, rgba(255,255,255,0) 100%)'
+                            }}
+                        />
+
+                        {/* Логотип - точное позиционирование */}
+                        <div className="absolute w-[234px] h-[150px] top-0 left-20">
+                            <div className="font-benzin font-normal text-u-3kc-1t text-[48px] leading-[50px] tracking-[0]">
+                                polli<br />digital
+                            </div>
+                        </div>
+
+                        {/* Контент Hero - точные размеры и позиции из Figma */}
+                        <div className="absolute w-[961px] h-[369px] top-[762px] left-[68px]">
+                            
+                            {/* Основные услуги - точное позиционирование каждой */}
+                            <div className="w-[642px] h-[82px] top-0 left-0 font-benzin font-normal text-u-3kc-1t text-100px text-center leading-[82px] absolute tracking-[0]">
+                                Брендинг
+                            </div>
+                            
+                            <div className="w-[464px] h-[82px] top-[107px] left-[219px] font-benzin font-normal text-u-3kc-1t text-100px text-center leading-[82px] absolute tracking-[0]">
+                                Сайты
+                            </div>
+                            
+                            <div className="w-[736px] h-[82px] top-[214px] left-[217px] font-benzin font-normal text-u-3kc-1t text-100px text-center leading-[82px] absolute tracking-[0] relative">
+                                Маркетинг
+                                
+                                {/* Кружок с молнией - точно как в Figma */}
+                                <div className="absolute w-[50px] h-[50px] -top-[10px] -right-[60px] bg-[#9272e6cc] rounded-[25px] backdrop-blur-custom flex items-center justify-center border-2 border-white shadow-lg">
+                                    <span className="text-white text-[24px]">⚡</span>
+                                </div>
+                            </div>
+
+                            {/* Подзаголовок - точные размеры */}
+                            <div className="w-[628px] h-[60px] top-[309px] left-[241px] font-helvetica font-normal text-[#353434] text-46px text-center leading-[60px] absolute tracking-[0]">
+                                Скорость. Эстетика. Смысл
+                            </div>
+                        </div>
+
+                        {/* Группа изображений снизу слева - точная позиция */}
+                        <div className="absolute w-[127px] h-[133px] top-[979px] left-20 bg-gray-200 rounded-lg flex items-center justify-center">
+                            <span className="text-gray-500 text-sm">Группа</span>
+                        </div>
+
+                        {/* Play button справа - точные размеры и позиция */}
+                        <div className="absolute w-[246px] h-[246px] top-[718px] left-[743px]">
+                            <div className="relative w-[231px] h-[225px] top-[11px] left-2">
+                                {/* Фон кнопки */}
+                                <div className="absolute w-[142px] h-[142px] top-[42px] left-11 bg-[#9272e6cc] rounded-[71px] backdrop-blur-custom" />
+                                
+                                {/* Стрелка Play */}
+                                <div className="absolute w-24 h-24 top-[65px] left-[67px] text-white flex items-center justify-center">
+                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M8 5v14l11-7z"/>
+                                    </svg>
+                                </div>
+                                
+                                {/* Декоративные точки */}
+                                <div className="absolute w-[5px] h-[5px] top-[110px] left-[7px] bg-black rounded-[2.5px]" />
+                                <div className="absolute w-[5px] h-[5px] top-[110px] left-[217px] bg-black rounded-[2.5px]" />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* CTA Кнопки - точные размеры из Figma */}
+                    <div className="relative w-full">
+                        
+                        {/* Кнопка Заказать - точные размеры и позиция */}
+                        <button 
+                            onClick={handleOrderClick}
+                            className="absolute w-[840px] h-[200px] top-[1288px] left-[113px] rounded-[90px] shadow-[0px_4px_15px_#0b001e40] bg-black text-white flex items-center justify-center hover:bg-gray-800 transition-all"
+                        >
+                            <div className="relative w-[389px] h-[100px] flex items-center justify-center">
+                                <div className="w-[289px] h-[87px] font-helvetica font-normal text-white text-64px text-center leading-normal">
+                                    Заказать
+                                </div>
+                                <svg className="w-[85px] h-[85px] ml-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                </svg>
+                            </div>
+                        </button>
+
+                        {/* Кнопка Позвонить - точные размеры и позиция */}
+                        <button 
+                            onClick={handleCallClick}
+                            className="absolute w-[840px] h-[200px] top-[1518px] left-[120px] rounded-[90px] border-2 border-gray-300 bg-white text-black flex items-center justify-center hover:bg-gray-50 transition-all"
+                        >
+                            <div className="relative w-[447px] h-[98px] flex items-center justify-center">
+                                <div className="w-[346px] h-[87px] font-helvetica font-bold text-[#181818] text-64px text-center leading-normal">
+                                    Позвонить
+                                </div>
+                                <svg className="w-[85px] h-[85px] ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                </svg>
+                            </div>
+                        </button>
+                    </div>
+
+                    {/* Адаптивные стили для мобильных */}
+                    <style jsx>{`
+                        @media (max-width: 768px) {
+                            .hero-container {
+                                transform: scale(0.5);
+                                transform-origin: top center;
+                                height: 900px;
+                            }
+                        }
+                        
+                        @media (max-width: 480px) {
+                            .hero-container {
+                                transform: scale(0.4);
+                                transform-origin: top center;
+                                height: 720px;
+                            }
+                        }
+                    `}</style>
+                </div>
+            );
+        };
+
+        // Рендер приложения
+        const App = () => {
+            return (
+                <div className="min-h-screen bg-white">
+                    <HeroSection />
+                </div>
+            );
+        };
+
+        // Монтирование React приложения
+        ReactDOM.render(<App />, document.getElementById('root'));
+
+        // Логирование для отладки
+        console.log('Polli Digital v4.0 - React Figma Edition');
+        console.log('Hero блок создан с точными размерами из Figma!');
     </script>
 </body>
 </html>

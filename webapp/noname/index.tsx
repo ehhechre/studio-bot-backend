@@ -1,367 +1,387 @@
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, Mail, MapPin, Phone } from "lucide-react";
+import { ArrowRight, Mail, MapPin, Phone, Star } from "lucide-react";
 import React from "react";
 
-export default function PropertyDefaultSubsection(): JSX.Element {
-  // Hero section data
-  const heroText = {
-    mainHeadings: ["Брендинг", "Сайты", "Маркетинг"],
-    tagline: "Скорость. Эстетика. Смысл",
-  };
+export default function PropertyDefault(): JSX.Element {
+  // Data for the main sections
+  const mainServices = [
+    { text: "Брендинг", className: "w-[642px]" },
+    { text: "Сайты", className: "w-[464px]" },
+    { text: "Маркетинг", className: "w-[736px]" },
+  ];
 
-  // Stats data
-  const stats = [
+  // Data for the achievement cards
+  const achievements = [
     {
-      number: "500+",
-      title: "успешных клиентов",
+      title: "500+",
+      subtitle: "успешных клиентов",
       description:
         "Мы работали с крупными компаниями и личными брендами, создавая решения, которые приносят результат.",
+      icon: "group2",
     },
     {
-      number: "15+",
-      title: "лет опыта",
+      title: "15+",
+      subtitle: "лет опыта",
       description:
         "Команда дизайнеров, маркетологов и разработчиков с проверенным опытом",
+      icon: "layer-93",
     },
     {
-      title: "Партнерство с фондами",
+      title: "",
+      subtitle: "Партнерство\nс фондами",
       description:
         "Мы поддерживаем благотворительные инициативы: Фонд защиты детей и «СЕМЕЙНАЯ СКАЗКА»",
+      icon: "group3",
     },
   ];
 
-  // Testimonial data
-  const testimonial = {
-    name: "Оксана Л.",
-    tag: "#презентация",
-    text: "Приехала в студию дизайна New, чтобы они мне оформили презентацию на тему трендов моды (так как я шью премиум одежду на заказ и выступаю на конференциях).  Ребята с первого раза все сделали идеально и мое выступление на конференции прошло отлично! Буду к ним и дальше обращаться, ребята молодцы)",
-  };
-
-  // Contact info data
+  // Data for contact information
   const contactInfo = [
     {
       icon: <Phone className="w-[52px] h-[52px]" />,
       text: "+7 (911) 184-80-08",
+      className: "w-[549px]",
     },
     {
       icon: <Mail className="w-[52px] h-9 mt-[5px]" />,
       text: "info@newdigital.moscow",
+      className: "w-[668px]",
     },
     {
       icon: <MapPin className="w-[52px] h-[52px]" />,
       text: "Москва, Армянский переулок, 11/2А, 101000",
+      className: "w-[914px]",
     },
   ];
 
+  // Social media icons
+  const socialMedia = [
+    { color: "bg-[#00a9e0]", icon: "vector3" },
+    { color: "bg-[#62e200]", icon: "vector4" },
+  ];
+
   // Footer links
-  const footerLinks = ["Договор-офферты", "Политика конфиденциальности"];
+  const footerLinks = [
+    { text: "Договор-офферты", className: "left-[338px]" },
+    { text: "Политика конфиденциальности", className: "left-[191px]" },
+  ];
 
   return (
-    <main className="relative w-full bg-white">
+    <div className="relative w-[1080px] h-[10055px] bg-white">
       {/* Hero Section */}
-      <section className="relative w-full">
-        <div className="relative w-full">
-          {/* Hero Image */}
-          <div className="relative w-full h-[706px]">
-            <img
-              className="w-full h-full object-cover"
-              alt="Hero Image"
-              src=""
-            />
-          </div>
+      <div className="absolute w-[1080px] h-[1131px] top-[37px] left-0">
+        <img
+          className="absolute w-[1080px] h-[706px] top-[78px] left-0"
+          alt="Image"
+          src=""
+        />
 
-          {/* Logo */}
-          <div className="absolute top-0 left-20">
-            <img
-              className="w-[234px] h-[150px] object-cover"
-              alt="Logo"
-              src=""
-            />
-          </div>
+        <div className="absolute w-[1080px] h-[431px] top-[572px] left-0 bg-[url(/subtract.svg)] bg-[100%_100%]" />
 
-          {/* Hero Text Overlay */}
-          <div className="absolute w-full bottom-0 left-0">
-            <div className="bg-[url(/subtract.svg)] bg-[100%_100%] w-full h-[431px]" />
-          </div>
+        <img
+          className="absolute w-[234px] h-[150px] top-0 left-20 object-cover"
+          alt="Element"
+          src=""
+        />
 
-          {/* Hero Text Content */}
-          <div className="absolute bottom-[200px] left-1/2 -translate-x-1/2 w-[961px] text-center">
-            {heroText.mainHeadings.map((heading, index) => (
-              <h1
-                key={`heading-${index}`}
-                className="[font-family:'Benzin-Medium-☞',Helvetica] font-normal text-[#181818] text-[100px] leading-[82px] tracking-[0] mb-6"
-              >
-                {heading}
-              </h1>
-            ))}
-            <p className="[font-family:'Helvetica-Regular',Helvetica] font-normal text-[#353434] text-[46px] leading-[60px] tracking-[0] mt-8">
-              {heroText.tagline}
-            </p>
-          </div>
-
-          {/* Play Button */}
-          <div className="absolute bottom-[100px] right-[100px] w-[246px] h-[246px]">
-            <div className="relative w-[231px] h-[225px] top-[11px] left-2">
-              <div className="absolute w-[142px] h-[142px] top-[42px] left-11 bg-[#9272e6cc] rounded-[71px] backdrop-blur-[2px]"></div>
-              <img
-                className="w-[231px] h-[225px] absolute left-0 top-0"
-                alt="Play button"
-                src=""
-              />
-              <ArrowRight className="absolute w-24 h-24 top-[65px] left-[67px] text-white" />
+        <div className="absolute w-[961px] h-[369px] top-[762px] left-[68px]">
+          {mainServices.map((service, index) => (
+            <div
+              key={`service-${index}`}
+              className={`${service.className} h-[82px] ${index === 0 ? "top-0 left-0" : index === 1 ? "top-[107px] left-[219px]" : "top-[214px] left-[217px]"} [font-family:'Benzin-Medium-☞',Helvetica] font-normal text-u-3kc-1t text-[100px] text-center leading-[82px] absolute tracking-[0]`}
+            >
+              {service.text}
             </div>
-          </div>
+          ))}
 
-          {/* Group Image */}
-          <div className="absolute bottom-[20px] left-20">
-            <img className="w-[127px] h-[133px]" alt="Group" src="" />
+          <div className="w-[628px] h-[60px] top-[309px] left-[241px] [font-family:'Helvetica-Regular',Helvetica] font-normal text-[#353434] text-[46px] text-center leading-[60px] absolute tracking-[0]">
+            Скорость. Эстетика. Смысл
           </div>
         </div>
-      </section>
 
-      {/* CTA Buttons Section */}
-      <section className="flex flex-col items-center gap-6 my-10">
-        <Button className="w-[840px] h-[200px] rounded-[90px] shadow-[0px_4px_15px_#0b001e40] bg-black hover:bg-black/90">
-          <div className="flex items-center justify-center">
-            <span className="[font-family:'Helvetica-Regular',Helvetica] font-normal text-white text-[64px] text-center leading-[normal]">
-              Заказать
-            </span>
-            <ArrowRight className="w-[85px] h-[85px] ml-4" />
+        <img
+          className="absolute w-[127px] h-[133px] top-[979px] left-20"
+          alt="Group"
+          src=""
+        />
+
+        <div className="absolute w-[246px] h-[246px] top-[718px] left-[743px]">
+          <div className="relative w-[231px] h-[225px] top-[11px] left-2">
+            <div className="absolute w-[142px] h-[142px] top-[42px] left-11 bg-[#9272e6cc] rounded-[71px] backdrop-blur-[2px] backdrop-brightness-[100%] [-webkit-backdrop-filter:blur(2px)_brightness(100%)]" />
+
+            <img
+              className="absolute w-[231px] h-[225px] top-0 left-0"
+              alt="Image"
+              src=""
+            />
+
+            <ArrowRight className="absolute w-24 h-24 top-[65px] left-[67px]" />
+
+            <div className="absolute w-[5px] h-[5px] top-[110px] left-[7px] bg-black rounded-[2.5px]" />
+            <div className="absolute w-[5px] h-[5px] top-[110px] left-[217px] bg-black rounded-[2.5px]" />
           </div>
-        </Button>
+        </div>
+      </div>
 
-        <Button
-          variant="outline"
-          className="w-[840px] h-[200px] rounded-[90px] border-2 border-gray-200"
+      {/* Main Heading */}
+      <div className="w-[873px] h-[246px] top-[1834px] left-[100px] [font-family:'Benzin-Medium-☞',Helvetica] font-normal text-u-3kc-1t text-[76px] text-center leading-[82px] absolute tracking-[0]">
+        Мы любим свое дело и дорожим репутацией
+      </div>
+
+      {/* Recommendations Heading */}
+      <div className="absolute w-[873px] h-[228px] top-[3746px] left-[104px]">
+        <div className="w-[873px] h-[164px] top-16 left-0 [font-family:'Benzin-Medium-☞',Helvetica] font-normal text-u-3kc-1t text-[76px] text-center leading-[82px] absolute tracking-[0]">
+          Нас рекомендуют
+        </div>
+
+        <img
+          className="absolute w-[132px] h-[130px] top-0 left-[629px]"
+          alt="Group"
+          src=""
+        />
+      </div>
+
+      {/* Projects Heading */}
+      <div className="w-[873px] h-[82px] top-[5491px] left-[104px] [font-family:'Benzin-Medium-☞',Helvetica] font-normal text-u-3kc-1t text-[76px] text-center leading-[82px] absolute tracking-[0]">
+        Наши проекты
+      </div>
+
+      {/* Contact Us Heading */}
+      <div className="w-[587px] h-[164px] top-[7271px] left-[246px] [font-family:'Benzin-Medium-☞',Helvetica] font-normal text-u-3kc-1t text-[76px] text-center leading-[82px] absolute tracking-[0]">
+        Связаться с нами
+      </div>
+
+      {/* Order Button */}
+      <Button className="absolute w-[840px] h-[200px] top-[1288px] left-[113px] rounded-[90px] shadow-[0px_4px_15px_#0b001e40] bg-black text-white h-auto">
+        <div className="relative w-[389px] h-[100px] flex items-center justify-center">
+          <div className="w-[289px] h-[87px] [font-family:'Helvetica-Regular',Helvetica] font-normal text-white text-[64px] text-center leading-[normal]">
+            Заказать
+          </div>
+          <ArrowRight className="w-[85px] h-[85px] ml-5" />
+        </div>
+      </Button>
+
+      {/* Achievement Cards */}
+      {achievements.map((achievement, index) => (
+        <Card
+          key={`achievement-${index}`}
+          className="absolute w-[1020px] h-[470px] top-[${2161 + index * 530}px] left-[${index === 2 ? 31 : 30}px] border-0 shadow-none"
         >
-          <div className="flex items-center justify-center">
-            <span className="[font-family:'Helvetica-Bold',Helvetica] font-bold text-[#181818] text-[64px] text-center leading-[normal]">
-              Позвонить
-            </span>
-            <ArrowRight className="w-[85px] h-[85px] ml-4" />
-          </div>
-        </Button>
-      </section>
+          <CardContent className="relative h-[470px] p-0">
+            <div className="absolute w-[162px] h-[162px] top-0 left-12 bg-[#9272e6cc] rounded-[81px] backdrop-blur-[2px] backdrop-brightness-[100%] [-webkit-backdrop-filter:blur(2px)_brightness(100%)]" />
 
-      {/* Tagline Section */}
-      <section className="my-20">
-        <h2 className="[font-family:'Benzin-Medium-☞',Helvetica] font-normal text-[#181818] text-[76px] text-center leading-[82px] tracking-[0] w-[873px] mx-auto">
-          Мы любим свое дело и дорожим репутацией
-        </h2>
-      </section>
+            <img
+              className="absolute w-[1020px] h-[470px] top-0 left-0"
+              alt="Subtract"
+              src=""
+            />
 
-      {/* Stats Section */}
-      <section className="flex flex-col gap-12 my-20">
-        {stats.map((stat, index) => (
-          <Card
-            key={`stat-${index}`}
-            className="w-[1020px] h-[470px] mx-auto border-none"
-          >
-            <CardContent className="p-0 relative h-full">
-              <div className="absolute w-[162px] h-[162px] top-0 left-12 bg-[#9272e6cc] rounded-[81px] backdrop-blur-[2px]"></div>
-              <img
-                className="w-full h-full absolute top-0 left-0"
-                alt={`Stat background ${index + 1}`}
-                src=""
-              />
+            <div className="absolute w-[895px] h-[339px] top-[57px] left-[50px]">
+              {achievement.subtitle && (
+                <div className="h-[46px] top-[74px] left-[248px] [font-family:'Benzin-Medium-☞',Helvetica] font-normal text-u-3kc-1t text-[46px] leading-[46px] whitespace-nowrap absolute tracking-[0]">
+                  {achievement.subtitle}
+                </div>
+              )}
 
-              <div className="absolute top-[57px] left-[50px] w-[895px]">
-                {stat.number && (
-                  <h3 className="[font-family:'Benzin-Medium-☞',Helvetica] font-normal text-black text-6xl leading-[60px] tracking-[0] ml-[248px]">
-                    {stat.number}
-                  </h3>
-                )}
-                <h4 className="[font-family:'Benzin-Medium-☞',Helvetica] font-normal text-[#181818] text-[46px] leading-[46px] tracking-[0] ml-[248px] mt-[14px]">
-                  {stat.title}
-                </h4>
-                <p className="[font-family:'Helvetica-Regular',Helvetica] font-normal text-[#353434] text-[46px] leading-[60px] tracking-[0] mt-[50px]">
-                  {stat.description}
-                </p>
+              {achievement.title && (
+                <div className="h-[60px] top-0 left-[248px] [font-family:'Benzin-Medium-☞',Helvetica] font-normal text-black text-6xl leading-[60px] whitespace-nowrap absolute tracking-[0]">
+                  {achievement.title}
+                </div>
+              )}
+
+              <div
+                className={`${index === 0 ? "w-[889px] h-[180px] top-[159px]" : index === 1 ? "w-[889px] h-[120px] top-[171px]" : "w-[920px] h-[180px] top-[161px]"} left-0 [font-family:'Helvetica-Regular',Helvetica] font-normal text-[#353434] text-[46px] leading-[60px] absolute tracking-[0]`}
+              >
+                {achievement.description}
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </section>
-
-      {/* Recommendations Section */}
-      <section className="my-20">
-        <div className="relative w-[873px] h-[228px] mx-auto">
-          <h2 className="[font-family:'Benzin-Medium-☞',Helvetica] font-normal text-[#181818] text-[76px] text-center leading-[82px] tracking-[0] mt-16">
-            Нас рекомендуют
-          </h2>
-          <img
-            className="absolute w-[132px] h-[130px] top-0 right-[112px]"
-            alt="Recommendation icon"
-            src=""
-          />
-        </div>
-
-        {/* Recommendation Circles */}
-        <div className="flex justify-center my-10">
-          <div className="flex gap-4">
-            <div className="w-[77px] h-[77px] bg-[#9272e6] rounded-[38.5px]"></div>
-            <div className="w-[77px] h-[77px] bg-[#c1aafb] rounded-[38.5px]"></div>
-            <div className="w-[77px] h-[77px] bg-[#eceaf4] rounded-[38.5px]"></div>
-            <span className="[font-family:'Benzin-Medium-☞',Helvetica] font-normal text-black text-[40px] leading-[60px] ml-5">
-              500+
-            </span>
-          </div>
-        </div>
-
-        {/* Testimonial Card */}
-        <Card className="w-[920px] h-[960px] mx-auto border-none bg-[url(/union.svg)] bg-[100%_100%]">
-          <CardContent className="p-0 relative h-full">
-            <div className="absolute top-5 left-1/2 -translate-x-1/2">
-              <img
-                className="w-[142px] h-[142px] rounded-full"
-                alt="User avatar"
-                src=""
-              />
             </div>
 
-            <div className="pt-[181px] px-[50px] text-center">
-              <h3 className="[font-family:'Benzin-Medium-☞',Helvetica] font-normal text-[#181818] text-[46px] leading-[60px] tracking-[0]">
-                {testimonial.name}
-              </h3>
+            <img
+              className={`absolute ${index === 0 ? "w-[52px] h-[50px] top-14 left-[103px]" : index === 1 ? "w-[43px] h-[43px] top-[59px] left-[107px]" : "w-[53px] h-[46px] top-[58px] left-[103px]"}`}
+              alt="Group"
+              src=""
+            />
+          </CardContent>
+        </Card>
+      ))}
 
-              <div className="[font-family:'Helvetica-Bold',Helvetica] font-bold text-[#353535] text-4xl text-center leading-[56px] tracking-[0] mt-2">
-                {testimonial.tag}
+      {/* Call Button */}
+      <Button
+        variant="outline"
+        className="absolute w-[840px] h-[200px] top-[1518px] left-[120px] rounded-[90px] border-0 h-auto"
+      >
+        <div className="relative w-[447px] h-[98px] flex items-center justify-center">
+          <div className="w-[346px] h-[87px] [font-family:'Helvetica-Bold',Helvetica] font-bold text-[#181818] text-[64px] text-center leading-[normal]">
+            Позвонить
+          </div>
+          <ArrowRight className="w-[85px] h-[85px] ml-3" />
+        </div>
+      </Button>
+
+      {/* Second Call Button */}
+      <Button
+        variant="outline"
+        className="absolute w-[840px] h-[200px] top-[7746px] left-[120px] rounded-[90px] border-0 h-auto"
+      >
+        <div className="relative w-[447px] h-[98px] flex items-center justify-center">
+          <div className="w-[346px] h-[87px] [font-family:'Helvetica-Bold',Helvetica] font-bold text-[#181818] text-[64px] text-center leading-[normal]">
+            Позвонить
+          </div>
+          <ArrowRight className="w-[85px] h-[85px] ml-3" />
+        </div>
+      </Button>
+
+      <img
+        className="absolute w-[127px] h-[133px] top-[7303px] left-[107px]"
+        alt="Group"
+        src=""
+      />
+
+      {/* Rating Indicator */}
+      <div className="absolute w-[349px] h-[77px] top-[4005px] left-[367px]">
+        <div className="absolute w-[193px] h-[77px] top-0 left-0 flex">
+          <div className="absolute w-[77px] h-[77px] top-0 left-0 bg-[#9272e6] rounded-[38.5px]" />
+          <div className="absolute w-[77px] h-[77px] top-0 left-14 bg-[#c1aafb] rounded-[38.5px]" />
+          <div className="absolute w-[77px] h-[77px] top-0 left-[116px] bg-[#eceaf4] rounded-[38.5px]" />
+        </div>
+
+        <div className="h-[60px] top-3 left-[212px] [font-family:'Benzin-Medium-☞',Helvetica] font-normal text-black text-[40px] leading-[60px] whitespace-nowrap absolute tracking-[0]">
+          500+
+        </div>
+      </div>
+
+      {/* Yandex Maps Button */}
+      <Button className="absolute w-[840px] h-[200px] top-[5172px] left-[120px] rounded-[90px] shadow-[0px_4px_15px_#0b001e40] bg-black text-white h-auto">
+        <div className="relative w-[521px] h-[125px] flex items-center justify-center">
+          <div className="w-[461px] h-[119px] [font-family:'Helvetica-Regular',Helvetica] font-normal text-white text-[64px] text-center leading-[70.4px]">
+            &nbsp;&nbsp; Смотреть на Яндекс.Картах
+          </div>
+          <img className="w-[46px] h-[57px] ml-3" alt="Logo yamaps" src="" />
+        </div>
+      </Button>
+
+      {/* Testimonial Card */}
+      <Card className="absolute w-[920px] h-[960px] top-[4142px] left-[31px] border-0 shadow-none">
+        <CardContent className="relative h-[960px] p-0">
+          <div className="absolute w-[920px] h-[960px] top-0 left-0 bg-[url(/union.svg)] bg-[100%_100%]">
+            <div className="relative w-[826px] h-[721px] top-[181px] left-[50px]">
+              <div className="h-[60px] top-0 left-[267px] [font-family:'Benzin-Medium-☞',Helvetica] font-normal text-u-3kc-1t text-[46px] leading-[60px] whitespace-nowrap absolute tracking-[0]">
+                Оксана Л.
               </div>
 
-              <p className="[font-family:'Helvetica-Regular',Helvetica] font-normal text-[#353434] text-4xl text-center tracking-[0] leading-[56px] mt-10">
-                {testimonial.text}
-              </p>
+              <div className="absolute w-[820px] h-[448px] top-[140px] left-0 [font-family:'Helvetica-Regular',Helvetica] font-normal text-[#353434] text-4xl text-center tracking-[0] leading-[56px]">
+                Приехала в студию дизайна New, чтобы они мне оформили
+                презентацию на тему трендов моды (так как я шью премиум одежду
+                на заказ и выступаю на конференциях).&nbsp;&nbsp;Ребята с
+                первого раза все сделали идеально и мое выступление на
+                конференции прошло отлично! Буду к ним и дальше обращаться,
+                ребята молодцы)
+              </div>
 
-              {/* Star Rating */}
-              <div className="flex justify-center mt-16">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <img
-                    key={`star-${star}`}
-                    className="w-16 h-[61px]"
-                    alt={`Star ${star}`}
-                    src=""
+              <Badge className="w-[275px] h-14 top-[67px] left-[272px] [font-family:'Helvetica-Bold',Helvetica] font-bold text-[#353535] text-4xl text-center leading-[56px] absolute tracking-[0] bg-transparent">
+                #презентация
+              </Badge>
+
+              <div className="absolute w-[406px] h-[72px] top-[649px] left-[207px] flex">
+                {[1, 2, 3, 4, 5].map((_, index) => (
+                  <Star
+                    key={`star-${index}`}
+                    className={`left-[${index * 84 + 4}px] absolute w-16 h-[61px] top-0.5 fill-current text-yellow-400`}
                   />
                 ))}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Yandex Maps Button */}
-        <Button className="w-[840px] h-[200px] rounded-[90px] shadow-[0px_4px_15px_#0b001e40] bg-black hover:bg-black/90 mx-auto block my-20">
-          <div className="flex items-center justify-center">
-            <span className="[font-family:'Helvetica-Regular',Helvetica] font-normal text-white text-[64px] text-center leading-[70.4px]">
-              &nbsp;&nbsp; Смотреть на Яндекс.Картах
-            </span>
+          <img
+            className="absolute w-[142px] h-[142px] top-5 left-[389px] rounded-full"
+            alt="Mask group"
+            src=""
+          />
+        </CardContent>
+      </Card>
+
+      {/* Submit Application Button */}
+      <Button className="absolute w-[840px] h-[200px] top-[7516px] left-[120px] rounded-[90px] shadow-[0px_4px_15px_#0b001e40] bg-black text-white h-auto">
+        <div className="relative w-[611px] h-[99px] flex items-center justify-center">
+          <div className="w-[512px] h-[87px] [font-family:'Helvetica-Regular',Helvetica] font-normal text-white text-[64px] text-center leading-[normal]">
+            Оставить заявку
+          </div>
+          <ArrowRight className="w-[85px] h-[85px] ml-3" />
+        </div>
+      </Button>
+
+      {/* View Button */}
+      <Button
+        variant="outline"
+        className="absolute w-[642px] h-[153px] top-[6999px] left-20 rounded-[68.79px] border-0 h-auto"
+      >
+        <div className="relative w-[319px] h-[75px] flex items-center justify-center">
+          <div className="w-[239px] h-[67px] [font-family:'Helvetica-Bold',Helvetica] font-bold text-[#181818] text-[49px] text-center leading-[normal]">
+            Смотреть
+          </div>
+          <ArrowRight className="w-[65px] h-[65px] ml-3" />
+        </div>
+      </Button>
+
+      {/* Project Image */}
+      <img
+        className="absolute w-[664px] h-[1340px] top-[5635px] left-[70px]"
+        alt="Element"
+        src=""
+      />
+
+      {/* Map Image */}
+      <img
+        className="absolute w-[920px] h-[800px] top-[8323px] left-20 object-cover"
+        alt="Rectangle"
+        src=""
+      />
+
+      {/* Contact Information */}
+      {contactInfo.map((contact, index) => (
+        <div
+          key={`contact-${index}`}
+          className={`absolute ${contact.className} h-[60px] top-[${index === 0 ? 8076 : index === 1 ? 8183 : 9178}px] left-[${index === 2 ? 78 : 81}px] flex items-center`}
+        >
+          <div className="absolute left-0">{contact.icon}</div>
+          <div
+            className={`absolute ${index === 2 ? "w-[840px]" : index === 1 ? "w-[594px]" : "w-[474px]"} h-[60px] top-0 left-[${index === 1 ? 72 : index === 2 ? 72 : 73}px] [font-family:'Benzin-Medium-☞',Helvetica] font-normal text-u-3kc-1t text-[40px] tracking-[0] leading-[60px]`}
+          >
+            {contact.text}
+          </div>
+        </div>
+      ))}
+
+      {/* Social Media Icons */}
+      <div className="absolute w-[364px] h-[162px] top-[9418px] left-[358px] flex space-x-10">
+        {socialMedia.map((social, index) => (
+          <div
+            key={`social-${index}`}
+            className={`absolute w-[162px] h-[162px] top-0 left-[${index * 202}px] ${social.color} rounded-[81px] flex items-center justify-center`}
+          >
             <img
-              className="w-[46px] h-[57px] ml-4"
-              alt="Yandex Maps logo"
+              className={`w-[81px] h-[${index === 0 ? 69 : 81}px]`}
+              alt="Vector"
               src=""
             />
           </div>
-        </Button>
-      </section>
-
-      {/* Projects Section */}
-      <section className="my-20">
-        <h2 className="[font-family:'Benzin-Medium-☞',Helvetica] font-normal text-[#181818] text-[76px] text-center tracking-[0] leading-[82px] mb-10">
-          Наши проекты
-        </h2>
-
-        <div className="w-[664px] h-[1340px] mx-auto">
-          <img className="w-full h-full" alt="Projects showcase" src="" />
-        </div>
-
-        <Button
-          variant="outline"
-          className="w-[642px] h-[153px] rounded-[68.79px] mx-auto block my-10"
-        >
-          <div className="flex items-center justify-center">
-            <span className="[font-family:'Helvetica-Bold',Helvetica] font-bold text-[#181818] text-[49px] text-center leading-[normal]">
-              Смотреть
-            </span>
-            <ArrowRight className="w-[65px] h-[65px] ml-4" />
-          </div>
-        </Button>
-      </section>
-
-      {/* Contact Section */}
-      <section className="my-20">
-        <h2 className="[font-family:'Benzin-Medium-☞',Helvetica] font-normal text-[#181818] text-[76px] text-center leading-[82px] tracking-[0] mb-10">
-          Связаться с нами
-        </h2>
-
-        <div className="absolute left-[107px]">
-          <img className="w-[127px] h-[133px]" alt="Group" src="" />
-        </div>
-
-        <div className="flex flex-col gap-6 items-center my-10">
-          <Button className="w-[840px] h-[200px] rounded-[90px] shadow-[0px_4px_15px_#0b001e40] bg-black hover:bg-black/90">
-            <div className="flex items-center justify-center">
-              <span className="[font-family:'Helvetica-Regular',Helvetica] font-normal text-white text-[64px] text-center leading-[normal]">
-                Оставить заявку
-              </span>
-              <ArrowRight className="w-[85px] h-[85px] ml-4" />
-            </div>
-          </Button>
-
-          <Button
-            variant="outline"
-            className="w-[840px] h-[200px] rounded-[90px] border-2 border-gray-200"
-          >
-            <div className="flex items-center justify-center">
-              <span className="[font-family:'Helvetica-Bold',Helvetica] font-bold text-[#181818] text-[64px] text-center leading-[normal]">
-                Позвонить
-              </span>
-              <ArrowRight className="w-[85px] h-[85px] ml-4" />
-            </div>
-          </Button>
-        </div>
-
-        {/* Contact Information */}
-        <div className="my-10">
-          {contactInfo.map((info, index) => (
-            <div
-              key={`contact-${index}`}
-              className={`flex items-start ${index === 2 ? "mt-20" : "mb-6"}`}
-            >
-              <div className="ml-20">{info.icon}</div>
-              <p className="[font-family:'Benzin-Medium-☞',Helvetica] font-normal text-[#181818] text-[40px] tracking-[0] leading-[60px] ml-[72px]">
-                {info.text}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        {/* Map Image */}
-        <div className="w-[920px] h-[800px] mx-auto my-10">
-          <img className="w-full h-full object-cover" alt="Map" src="" />
-        </div>
-
-        {/* Social Media Icons */}
-        <div className="flex justify-center gap-10 my-10">
-          <div className="w-[162px] h-[162px] bg-[#00a9e0] rounded-[81px] flex items-center justify-center">
-            <img className="w-[81px] h-[69px]" alt="Social media icon" src="" />
-          </div>
-          <div className="w-[162px] h-[162px] bg-[#62e200] rounded-[81px] flex items-center justify-center">
-            <img className="w-[81px] h-[81px]" alt="Social media icon" src="" />
-          </div>
-        </div>
-      </section>
+        ))}
+      </div>
 
       {/* Footer */}
-      <footer className="w-full h-[375px] bg-black flex flex-col items-center justify-center">
+      <div className="absolute w-[1080px] h-[375px] top-[9680px] left-0 bg-black flex flex-col items-center justify-center">
         {footerLinks.map((link, index) => (
-          <a
+          <div
             key={`footer-${index}`}
-            href="#"
-            className="[font-family:'Helvetica-Regular',Helvetica] font-normal text-[#ffffffcc] text-[46px] leading-[60px] underline tracking-[0] mb-16"
+            className={`h-[60px] top-[${index === 0 ? 79 : 203}px] ${link.className} [font-family:'Helvetica-Regular',Helvetica] font-normal text-[#ffffffcc] text-[46px] leading-[60px] underline whitespace-nowrap absolute tracking-[0] cursor-pointer`}
           >
-            {link}
-          </a>
+            {link.text}
+          </div>
         ))}
-      </footer>
-    </main>
+      </div>
+    </div>
   );
 }

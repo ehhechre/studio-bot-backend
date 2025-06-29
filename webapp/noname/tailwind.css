@@ -7,6 +7,10 @@
   }
 }
 
+:root {
+  --u-3kc-1t: rgba(24, 24, 24, 1);
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
