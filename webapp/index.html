@@ -54,19 +54,18 @@
       height: 42%;
       background: url('./фото.jpg') center top/cover no-repeat;
       position: relative;
-      margin-top: 40px;
+      margin-top: 1px;
     }
 
     .logo {
-      position: absolute;
-      top: 15px;
-      left: 20px;
-      font-family: 'Benzin', sans-serif;
-      font-size: 24px;
-      line-height: 26px;
-      color: #181818;
-      font-weight: 900;
-    }
+        position: relative; /* или просто убери вообще */
+  margin: 15px 0 0 20px;
+  font-family: 'Benzin', sans-serif;
+  font-size: 24px;
+  line-height: 26px;
+  color: #181818;
+  font-weight: 900;
+}
 
     .content-section {
       width: 100%;
@@ -149,9 +148,7 @@
         box-shadow: 0 3px 15px rgba(146, 114, 230, 0.4);
         z-index: 2;
     }
-    .decorative-element {
-  display: none;
-    }
+    
 
     .badge-wrapper .circular-text {
     position: absolute;
@@ -223,8 +220,8 @@
           <div className="logo">polli<br />digital</div>
 
           <div className="team-photo">
-            <div className="decorative-element">✨</div>
-          </div>
+            {/* <div className="decorative-element">✨</div> */}
+            </div>
 
           <div className="content-section">
             <div className="hero-content">
