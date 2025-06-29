@@ -58,7 +58,7 @@
       display: flex;
       flex-direction: column;
       position: relative;
-      padding-bottom: 15px;
+      padding-bottom: 25px;
     }
 
     .hero-header {
@@ -352,13 +352,7 @@
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        background: linear-gradient(45deg, #9272e6, #7c5ce6);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: bold;
-        font-size: 16px;
+        object-fit: cover;
         flex-shrink: 0;
     }
 
@@ -833,45 +827,49 @@
     const { useState, useEffect } = React;
 
     const App = () => {
-      const [isMainButtonActive, setIsMainButtonActive] = useState(false);
-
       const reviews = [
         { 
           name: "Оксана Л.", 
-          text: "Приятно работать с такими профессионалами! Мне очень понравилась презентация, которую они сделали для моей студии дизайна New. Ребята очень быстро схватили идею и сделали все идеально, даже выступала с ней на конференции!", 
+          text: "Приехала в студию дизайна New, чтобы они мне оформили презентацию на тему трендов моды (как и в шоу премиум одежду на заказ и выступала на конференции и вообще Ребята в первого раза все сделали идеально и мой выступление на конференции прошло отлично! Буду к ним и дальше обращаться, ребята молодцы!",
           tags: "#презентация", 
-          initial: "О" 
+          initial: "О",
+          avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b17c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80"
         },
         { 
           name: "Григорий М.", 
-          text: "Сделали все чётко и вовремя! Отличный результат по сувенирной продукции.", 
+          text: "отлил Журналисты продукции каталоги! У нас логистики по производству и реализации основных товаров. нашей запросу учтут статистики, перед нашей тропой хочу выручить и поднять эффективность товары каждого оборотов до всех полнота тегов NEW, со этом наш меню становился благодарности, что всё главное. когда данной список высшего качества, за что им очень благодарю!",
           tags: "#сувенирка", 
-          initial: "Г" 
+          initial: "Г",
+          avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80"
         },
         { 
-          name: "Мария С.", 
-          text: "Превзошли ожидания по дизайну. Каждый раз радуют своим подходом.", 
-          tags: "#дизайн", 
-          initial: "М" 
+          name: "Ирина Тищенко", 
+          text: "Вы лучшая компания теперь с которой я сотрудничала. Я обратилась к вам на проектах креста имиджа для партнеров как консультант и получила все мои изложения. Вы так хорошо возгласили мою идею, что ее тепер думать, что зане выльюские этт пети были изложенияи и учебник, а так же половной самых классных клиентов",
+          tags: "#брендбук", 
+          initial: "И",
+          avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80"
         },
         { 
-          name: "Иван Т.", 
-          text: "Лучшие на рынке, рекомендую! Брендинг получился очень сильным.", 
-          tags: "#брендинг", 
-          initial: "И" 
+          name: "Yana ❤", 
+          text: "Благодарна стоьной и проектной ярусность Отличной компании отмечены на проституток работы: круговая брифуду и сайта, тейлор созданием ресурсов в сайта (навых очень как в части тема нужно). Во всех задачи все профессиональная!",
+          tags: "#маркетинговое продвижение", 
+          initial: "Y",
+          avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80"
         },
         { 
-          name: "Светлана Р.", 
-          text: "Работаем не первый раз. Всегда качественный медиа-контент.", 
-          tags: "#медиа", 
-          initial: "С" 
+          name: "ООО \"Никойл\"", 
+          text: "Хочу поблагодарить студию магазин NEW и ее сотрудников - Дмитрия и Полину! Заказывали у ребят виразховадок с фирмой клиентскими полную комплексную по проблемы мага до практик: логотип и нейчаре и достойно! Потом закажем дизайн и печать бланков и всей документе этого хорошо. Планируем долгосрочное сотрудничество, благодарны за Вашу труд!",
+          tags: "#печать рекламных наклейки", 
+          initial: "Н",
+          avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80"
         },
         { 
-          name: "Андрей Н.", 
-          text: "Приятная команда, сильный результат! Стратегия продвижения дала отличные плоды.", 
-          tags: "#стратегия", 
-          initial: "А" 
-        },
+          name: "Пётр Марков", 
+          text: "Пользуюсь услуги офтали создает сайта для своего бизнеса. Отмечанно отсудили деталь услуги команды Polli.eu их проверенность и отработанность с стилевом и пяло в юрок. Работал довольны, рекомендую!",
+          tags: "#брендбук", 
+          initial: "П",
+          avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80"
+        }
       ];
 
       const stats = [
@@ -958,29 +956,6 @@
           tg.ready();
           tg.expand();
           tg.setHeaderColor('#FFFFFF');
-          
-          // Настроим MainButton
-          tg.MainButton.setText("Рассчитать стоимость проекта");
-          tg.MainButton.color = "#9272e6";
-          tg.MainButton.textColor = "#FFFFFF";
-          tg.MainButton.show();
-          
-          // Обработчик MainButton
-          const handleMainButtonClick = () => {
-            tg.HapticFeedback.impactOccurred('medium');
-            tg.sendData(JSON.stringify({
-              action: 'start_quiz',
-              source: 'main_button'
-            }));
-          };
-          
-          tg.MainButton.onClick(handleMainButtonClick);
-          setIsMainButtonActive(true);
-          
-          // Cleanup
-          return () => {
-            tg.MainButton.offClick(handleMainButtonClick);
-          };
         }
       }, []);
 
@@ -1080,11 +1055,9 @@
                 </div>
               </div>
               <div className="cta-buttons">
-                {!isMainButtonActive && (
-                  <button className="btn btn-primary" onClick={handleOrderClick}>
-                    Заказать →
-                  </button>
-                )}
+                <button className="btn btn-primary" onClick={handleOrderClick}>
+                  Заказать →
+                </button>
                 <button className="btn btn-secondary" onClick={handleCallClick}>
                   Позвонить →
                 </button>
@@ -1123,7 +1096,7 @@
               {reviews.map((review, index) => (
                 <div className="review-card" key={index}>
                   <div className="review-user-info">
-                      <div className="review-user-avatar">{review.initial}</div>
+                      <img src={review.avatar} alt={review.name} className="review-user-avatar" />
                       <strong>{review.name}</strong>
                       <div className="stars">
                           {renderStars(5)}
@@ -1192,11 +1165,9 @@
             <div className="contact-title">Связаться<br />с нами</div>
             
             <div className="contact-buttons">
-              {!isMainButtonActive && (
-                <button className="btn btn-primary" onClick={handleOrderClick}>
-                  Оставить заявку →
-                </button>
-              )}
+              <button className="btn btn-primary" onClick={handleOrderClick}>
+                Оставить заявку →
+              </button>
               <button className="btn btn-secondary" onClick={handleCallClick}>
                 Позвонить →
               </button>
