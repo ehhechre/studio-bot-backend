@@ -1,463 +1,266 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Polli Digital</title>
-    
-    <!-- React через CDN -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
-    <style>
-        @font-face {
-            font-family: 'Benzin';
-            src: url('./fonts/Benzin-Bold.woff2') format('woff2');
-            font-weight: normal;
-            font-display: swap;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <title>Polli Digital</title>
 
-        @font-face {
-            font-family: 'Helvetica';
-            src: url('./fonts/HelveticaRegular.woff') format('woff');
-            font-weight: normal;
-            font-display: swap;
-        }
+  <!-- React через CDN -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <style>
+    @font-face {
+      font-family: 'Benzin';
+      src: url('./fonts/Benzin-Bold.woff2') format('woff2');
+      font-weight: normal;
+      font-display: swap;
+    }
 
-        body {
-            font-family: 'Helvetica', Arial, sans-serif;
-            background: white;
-            color: #181818;
-            overflow-x: hidden;
-            -webkit-user-select: none;
-            -webkit-touch-callout: none;
-            -webkit-tap-highlight-color: transparent;
-        }
+    @font-face {
+      font-family: 'Helvetica';
+      src: url('./fonts/HelveticaRegular.woff') format('woff');
+      font-weight: normal;
+      font-display: swap;
+    }
 
-        /* Главный контейнер */
-        .hero-container {
-            width: 100vw;
-            height: 100vh;
-            position: relative;
-            background: white;
-            display: flex;
-            flex-direction: column;
-        }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        /* Фото команды - обрезанное снизу и опущенное */
-        .team-photo {
-            width: 100%;
-            height: 42%;
-            background: url('./фото.jpg') center top/cover no-repeat;
-            position: relative;
-            margin-top: 40px; /* Опускаем фото ниже логотипа */
-        }
+    body {
+      font-family: 'Helvetica', Arial, sans-serif;
+      background: white;
+      color: #181818;
+      overflow-x: hidden;
+    }
 
-        /* Логотип в левом углу - как на референсе */
-        .logo {
-            position: absolute;
-            top: 15px;
-            left: 20px;
-            text-align: left;
-            z-index: 10;
-            font-family: 'Benzin', sans-serif;
-            font-size: 24px;
-            line-height: 26px;
-            color: #181818;
-            font-weight: 900;
-        }
+    .hero-container {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      background: white;
+      display: flex;
+      flex-direction: column;
+    }
 
-        /* Белая секция с контентом */
-        .content-section {
-            width: 100%;
-            height: 58%;
-            background: white;
-            padding: 25px 20px 20px;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
+    .team-photo {
+      width: 100%;
+      height: 42%;
+      background: url('./фото.jpg') center top/cover no-repeat;
+      position: relative;
+      margin-top: 40px;
+    }
 
-        /* Контент по центру */
-        .hero-content {
-            text-align: left;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            position: relative;
-            padding: 0 10px;
-        }
+    .logo {
+      position: absolute;
+      top: 15px;
+      left: 20px;
+      font-family: 'Benzin', sans-serif;
+      font-size: 24px;
+      line-height: 26px;
+      color: #181818;
+      font-weight: 900;
+    }
 
-        /* Заголовки услуг - позиционирование по желтой линии */
-        .services-block {
-            margin-bottom: 15px; /* Сокращено расстояние */
-            position: relative;
-        }
+    .content-section {
+      width: 100%;
+      height: 58%;
+      background: white;
+      padding: 25px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
 
-        .service-title {
-            font-family: 'Benzin', sans-serif;
-            font-size: 42px;
-            line-height: 40px;
-            color: #181818;
-            font-weight: 900;
-            margin-bottom: 2px;
-            position: relative;
-        }
+    .hero-content {
+      text-align: left;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      position: relative;
+      padding: 0 10px;
+    }
 
-        /* Брендинг - левее */
-        .branding-title {
-            margin-left: -10px;
-        }
+    .services-block {
+      margin-bottom: 15px;
+      position: relative;
+    }
 
-        /* Сайты и Маркетинг - на одном уровне */
-        .sites-title,
-        .marketing-title {
-            margin-left: 15px;
-        }
+    .service-title {
+      font-family: 'Benzin', sans-serif;
+      font-size: 42px;
+      line-height: 40px;
+      color: #181818;
+      font-weight: 900;
+      margin-bottom: 2px;
+    }
 
-        /* Контейнер для услуг с overflow visible */
-        .services-wrapper {
-            position: relative;
-            overflow: visible;
-            padding-right: 50px; /* Место для кружка */
-        }
+    .branding-title {
+      margin-left: -10px;
+    }
 
-        /* Маркетинг с крутящимся элементом справа */
-        .marketing-line {
-            position: relative;
-            display: inline-block;
-        }
+    .sites-title,
+    .marketing-title {
+      margin-left: 15px;
+    }
 
-        /* Крутящийся элемент справа от Маркетинг (для Telegram Web App) */
-        .quality-badge {
-            position: absolute;
-            top: -5px;
-            right: -50px;
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #9272e6, #7c5ce6);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 16px;
-            border: 2px solid white;
-            box-shadow: 0 3px 15px rgba(146, 114, 230, 0.4);
-            z-index: 5;
-        }
+    .tagline {
+      font-family: 'Helvetica', sans-serif;
+      font-size: 16px;
+      line-height: 20px;
+      color: #353434;
+      margin-top: 8px;
+      margin-bottom: 15px;
+      font-weight: normal;
+      margin-left: 15px;
+    }
 
-        /* Круговой текст вокруг кружка */
-        .circular-text {
-            position: absolute;
-            top: -18px;
-            right: -63px;
-            width: 66px;
-            height: 66px;
-            font-size: 6px;
-            color: #666;
-            pointer-events: none;
-        }
+    .badge-wrapper {
+      position: relative;
+      margin-top: 15px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 70px;
+    }
 
-        .circular-text svg {
-            width: 100%;
-            height: 100%;
-            animation: rotate 15s linear infinite;
-        }
+    .badge-wrapper .quality-badge {
+        position: absolute;
+        top: -10px; /* Подняли элемент вверх */
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #9272e6, #7c5ce6);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 16px;
+        border: 2px solid white;
+        box-shadow: 0 3px 15px rgba(146, 114, 230, 0.4);
+        z-index: 2;
+    }
+    .decorative-element {
+  display: none;
+    }
 
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+    .badge-wrapper .circular-text {
+    position: absolute;
+    top: -25px; /* Сдвигаем текст вверх */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 66px;
+    height: 66px;
+    font-size: 6px;
+    pointer-events: none;
+    z-index: 1;
+    }
 
-        /* Подзаголовок - сокращенное расстояние */
-        .tagline {
-            font-family: 'Helvetica', sans-serif;
-            font-size: 16px;
-            line-height: 20px;
-            color: #353434;
-            margin-top: 8px;
-            margin-bottom: 15px; /* Сокращено расстояние до кнопок */
-            font-weight: normal;
-            margin-left: 15px; /* Выравнивание с сайтами/маркетинг */
-        }
+    .badge-wrapper svg {
+      width: 100%;
+      height: 100%;
+      animation: rotate 15s linear infinite;
+    }
 
-        /* Фиолетовые кнопки */
-        .cta-buttons {
-            margin-top: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            padding-bottom: 20px;
-        }
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
 
-        .btn {
-            width: 100%;
-            height: 60px;
-            border-radius: 30px;
-            font-family: 'Helvetica', sans-serif;
-            font-size: 18px;
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            position: relative;
-            overflow: hidden;
-        }
+    .cta-buttons {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      padding-bottom: 20px;
+    }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #9272e6, #7c5ce6);
-            color: white;
-            box-shadow: 0px 4px 15px rgba(146, 114, 230, 0.3);
-        }
+    .btn {
+      width: 100%;
+      height: 60px;
+      border-radius: 30px;
+      font-family: 'Helvetica', sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
 
-        .btn-secondary {
-            background: white;
-            color: #9272e6;
-            border: 2px solid #9272e6;
-        }
+    .btn-primary {
+      background: linear-gradient(135deg, #9272e6, #7c5ce6);
+      color: white;
+      box-shadow: 0px 4px 15px rgba(146, 114, 230, 0.3);
+    }
 
-        .btn:active {
-            transform: scale(0.98);
-        }
-
-        .arrow-icon {
-            width: 20px;
-            height: 20px;
-        }
-
-        /* Убираем Play button временно */
-        .play-button {
-            display: none;
-        }
-
-        /* Дополнительные декоративные элементы */
-        .decorative-element {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            width: 40px;
-            height: 30px;
-            background: rgba(146, 114, 230, 0.1);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            color: #9272e6;
-        }
-
-        /* Адаптивность */
-        @media (max-width: 350px) {
-            .service-title {
-                font-size: 36px;
-                line-height: 34px;
-            }
-            
-            .logo {
-                font-size: 20px;
-                line-height: 22px;
-            }
-            
-            .quality-badge {
-                right: -45px;
-                width: 35px;
-                height: 35px;
-                font-size: 14px;
-            }
-            
-            .circular-text {
-                right: -55px;
-                width: 55px;
-                height: 55px;
-                font-size: 5px;
-            }
-        }
-
-        @media (max-height: 700px) {
-            .team-photo {
-                height: 38%;
-                margin-top: 35px;
-            }
-            
-            .content-section {
-                height: 62%;
-                padding: 20px 20px 15px;
-            }
-            
-            .services-block {
-                margin-bottom: 12px;
-            }
-            
-            .tagline {
-                margin-bottom: 12px;
-            }
-        }
-
-        /* Для высоких экранов */
-        @media (min-height: 800px) {
-            .team-photo {
-                height: 45%;
-                margin-top: 45px;
-            }
-            
-            .content-section {
-                height: 55%;
-                padding: 30px 20px 25px;
-            }
-        }
-    </style>
+    .btn-secondary {
+      background: white;
+      color: #9272e6;
+      border: 2px solid #9272e6;
+    }
+  </style>
 </head>
 <body>
-    <div id="root"></div>
+  <div id="root"></div>
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+  <script type="text/babel">
+    const HeroSection = () => {
+      return (
+        <div className="hero-container">
+          <div className="logo">polli<br />digital</div>
 
-        const HeroSection = () => {
-            const [tg, setTg] = useState(null);
+          <div className="team-photo">
+            <div className="decorative-element">✨</div>
+          </div>
 
-            useEffect(() => {
-                if (window.Telegram?.WebApp) {
-                    const telegram = window.Telegram.WebApp;
-                    telegram.ready();
-                    telegram.expand();
-                    telegram.setHeaderColor('#ffffff');
-                    telegram.setBackgroundColor('#ffffff');
-                    setTg(telegram);
-                }
-            }, []);
+          <div className="content-section">
+            <div className="hero-content">
+              <div className="services-block">
+                <div className="service-title branding-title">Брендинг</div>
+                <div className="service-title sites-title">Сайты</div>
+                <div className="service-title marketing-title">Маркетинг</div>
+              </div>
 
-            const handleOrderClick = () => {
-                if (tg) {
-                    tg.showAlert('Переходим к расчету стоимости!', () => {
-                        tg.close();
-                    });
-                } else {
-                    alert('Откройте это приложение в Telegram для расчета стоимости');
-                }
-            };
+              <div className="tagline">Скорость. Эстетика. Смысл</div>
 
-            const handleCallClick = () => {
-                if (tg) {
-                    tg.openTelegramLink('https://t.me/your_studio_contact');
-                } else {
-                    window.open('https://t.me/your_studio_contact', '_blank');
-                }
-            };
-
-            return (
-                <div className="hero-container">
-                    {/* Логотип в левом углу */}
-                    <div className="logo">
-                        polli<br />digital
-                    </div>
-
-                    {/* Секция с фото команды */}
-                    <div className="team-photo">
-                        {/* Декоративный элемент */}
-                        <div className="decorative-element">
-                            ✨
-                        </div>
-                    </div>
-
-                    {/* Белая секция с контентом */}
-                    <div className="content-section">
-                        <div className="hero-content">
-                            {/* Заголовки услуг */}
-                            <div className="services-block">
-                                {/* Брендинг - левее */}
-                                <div className="service-title branding-title">Брендинг</div>
-                                
-                                {/* Сайты - на одном уровне с Маркетинг */}
-                                <div className="service-title sites-title">Сайты</div>
-                                
-                                {/* Маркетинг */}
-                                <div className="service-title marketing-title">Маркетинг</div>
-
-                                {/* Подзаголовок с крутящимся элементом */}
-                                <div className="tagline">
-                                    Скорость. Эстетика. Смысл
-                                    
-                                    {/* Крутящийся элемент справа от подзаголовка */}
-                                    <div className="quality-badge">⚡</div>
-                                    <div className="circular-text">
-                                        <svg viewBox="0 0 100 100">
-                                            <defs>
-                                                <path
-                                                    id="circle"
-                                                    d="M 50, 50 m -35, 0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0"
-                                                />
-                                            </defs>
-                                            <text fontSize="8" fill="#9272e6">
-                                                <textPath href="#circle">
-                                                    КАЧЕСТВО • СКОРОСТЬ • ЭСТЕТИКА •
-                                                </textPath>
-                                            </text>
-                                        </svg>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Фиолетовые кнопки */}
-                            <div className="cta-buttons">
-                                <button 
-                                    onClick={handleOrderClick}
-                                    className="btn btn-primary"
-                                >
-                                    Заказать
-                                    <svg className="arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                                    </svg>
-                                </button>
-
-                                <button 
-                                    onClick={handleCallClick}
-                                    className="btn btn-secondary"
-                                >
-                                    Позвонить
-                                    <svg className="arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+              <div className="badge-wrapper">
+                <div className="quality-badge">⚡</div>
+                <div className="circular-text">
+                  <svg viewBox="0 0 100 100">
+                    <defs>
+                      <path id="circle" d="M 50, 50 m -35, 0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0" />
+                    </defs>
+                    <text fontSize="8" fill="#9272e6">
+                      <textPath href="#circle">КАЧЕСТВО • СКОРОСТЬ • ЭСТЕТИКА •</textPath>
+                    </text>
+                  </svg>
                 </div>
-            );
-        };
+              </div>
 
-        ReactDOM.render(<HeroSection />, document.getElementById('root'));
-        
-        console.log('🎯 Polli Digital v9.2 - Кружок перемещен к подзаголовку!');
-        
-        // Проверка загрузки шрифтов
-        document.fonts.ready.then(() => {
-            console.log('✅ Все шрифты загружены успешно!');
-            document.fonts.forEach(font => {
-                console.log(`Шрифт ${font.family}: ${font.status}`);
-            });
-        });
-        
-        // Детект Telegram Web App
-        if (window.Telegram?.WebApp) {
-            console.log('📱 Запущено в Telegram Web App');
-            console.log('Платформа:', window.Telegram.WebApp.platform);
-        }
-    </script>
+              <div className="cta-buttons">
+                <button className="btn btn-primary">Заказать →</button>
+                <button className="btn btn-secondary">Позвонить →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    ReactDOM.render(<HeroSection />, document.getElementById('root'));
+  </script>
 </body>
 </html>
