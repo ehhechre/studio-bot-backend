@@ -43,7 +43,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Главный контейнер - как на 1-м скриншоте */
+        /* Главный контейнер */
         .hero-container {
             width: 100vw;
             height: 100vh;
@@ -53,35 +53,35 @@
             flex-direction: column;
         }
 
-        /* Фото команды - верхняя часть */
+        /* Фото команды - обрезанное снизу и опущенное */
         .team-photo {
             width: 100%;
-            height: 45%;
-            background: url('./фото.jpg') center/cover no-repeat;
+            height: 42%;
+            background: url('./фото.jpg') center top/cover no-repeat;
             position: relative;
+            margin-top: 40px; /* Опускаем фото ниже логотипа */
         }
 
-        /* Логотип поверх фото */
+        /* Логотип в левом углу - как на референсе */
         .logo {
             position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            text-align: center;
+            top: 15px;
+            left: 20px;
+            text-align: left;
             z-index: 10;
             font-family: 'Benzin', sans-serif;
-            font-size: 28px;
-            line-height: 32px;
+            font-size: 24px;
+            line-height: 26px;
             color: #181818;
             font-weight: 900;
         }
 
-        /* Белая секция с контентом - как на 1-м скриншоте */
+        /* Белая секция с контентом */
         .content-section {
             width: 100%;
-            height: 55%;
+            height: 58%;
             background: white;
-            padding: 30px 20px 20px;
+            padding: 25px 20px 20px;
             display: flex;
             flex-direction: column;
             position: relative;
@@ -89,48 +89,62 @@
 
         /* Контент по центру */
         .hero-content {
-            text-align: center;
+            text-align: left;
             flex: 1;
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
             position: relative;
+            padding: 0 10px;
         }
 
-        /* Заголовки услуг - точно как на 1-м скриншоте */
+        /* Заголовки услуг - позиционирование по желтой линии */
         .services-block {
-            margin-bottom: 20px;
+            margin-bottom: 15px; /* Сокращено расстояние */
             position: relative;
         }
 
         .service-title {
             font-family: 'Benzin', sans-serif;
-            font-size: 44px;
-            line-height: 42px;
+            font-size: 42px;
+            line-height: 40px;
             color: #181818;
             font-weight: 900;
             margin-bottom: 2px;
+            position: relative;
         }
 
-        /* Кружок с текстом - ТОЧНО как на 1-м скриншоте */
+        /* Брендинг - левее */
+        .branding-title {
+            margin-left: -10px;
+        }
+
+        /* Сайты и Маркетинг - на одном уровне */
+        .sites-title,
+        .marketing-title {
+            margin-left: 15px;
+        }
+
+        /* Маркетинг с крутящимся элементом справа */
         .marketing-line {
             position: relative;
             display: inline-block;
         }
 
+        /* Крутящийся элемент справа от Маркетинг (где красный кружок) */
         .quality-badge {
             position: absolute;
-            top: -10px;
+            top: -5px;
             right: -45px;
-            width: 50px;
-            height: 50px;
+            width: 45px;
+            height: 45px;
             background: linear-gradient(135deg, #9272e6, #7c5ce6);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 20px;
+            font-size: 18px;
             border: 2px solid white;
             box-shadow: 0 3px 15px rgba(146, 114, 230, 0.4);
             z-index: 5;
@@ -139,11 +153,11 @@
         /* Круговой текст вокруг кружка */
         .circular-text {
             position: absolute;
-            top: -25px;
+            top: -20px;
             right: -60px;
-            width: 80px;
-            height: 80px;
-            font-size: 8px;
+            width: 75px;
+            height: 75px;
+            font-size: 7px;
             color: #666;
             pointer-events: none;
         }
@@ -151,7 +165,7 @@
         .circular-text svg {
             width: 100%;
             height: 100%;
-            animation: rotate 20s linear infinite;
+            animation: rotate 15s linear infinite;
         }
 
         @keyframes rotate {
@@ -159,17 +173,19 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Подзаголовок */
+        /* Подзаголовок - сокращенное расстояние */
         .tagline {
             font-family: 'Helvetica', sans-serif;
-            font-size: 18px;
-            line-height: 22px;
+            font-size: 16px;
+            line-height: 20px;
             color: #353434;
-            margin-top: 10px;
+            margin-top: 8px;
+            margin-bottom: 15px; /* Сокращено расстояние до кнопок */
             font-weight: normal;
+            margin-left: 15px; /* Выравнивание с сайтами/маркетинг */
         }
 
-        /* Фиолетовые кнопки - ТОЧНО как на 1-м скриншоте */
+        /* Фиолетовые кнопки */
         .cta-buttons {
             margin-top: auto;
             display: flex;
@@ -217,37 +233,12 @@
             height: 20px;
         }
 
-        /* Play button - справа на фото */
+        /* Убираем Play button временно */
         .play-button {
-            position: absolute;
-            top: 50%;
-            right: 20px;
-            transform: translateY(-50%);
-            width: 70px;
-            height: 70px;
-            z-index: 5;
+            display: none;
         }
 
-        .play-bg {
-            width: 70px;
-            height: 70px;
-            background: linear-gradient(135deg, #9272e6, #7c5ce6);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 20px rgba(146, 114, 230, 0.4);
-            border: 3px solid white;
-        }
-
-        .play-icon {
-            color: white;
-            width: 28px;
-            height: 28px;
-            margin-left: 4px;
-        }
-
-        /* Дополнительные элементы */
+        /* Дополнительные декоративные элементы */
         .decorative-element {
             position: absolute;
             bottom: 20px;
@@ -266,37 +257,59 @@
         /* Адаптивность */
         @media (max-width: 350px) {
             .service-title {
-                font-size: 38px;
-                line-height: 36px;
+                font-size: 36px;
+                line-height: 34px;
             }
             
             .logo {
-                font-size: 24px;
-                line-height: 28px;
+                font-size: 20px;
+                line-height: 22px;
             }
             
             .quality-badge {
                 right: -35px;
-                width: 40px;
-                height: 40px;
-                font-size: 16px;
+                width: 35px;
+                height: 35px;
+                font-size: 14px;
             }
             
             .circular-text {
-                right: -50px;
-                width: 70px;
-                height: 70px;
+                right: -45px;
+                width: 60px;
+                height: 60px;
             }
         }
 
         @media (max-height: 700px) {
             .team-photo {
-                height: 40%;
+                height: 38%;
+                margin-top: 35px;
             }
             
             .content-section {
-                height: 60%;
+                height: 62%;
                 padding: 20px 20px 15px;
+            }
+            
+            .services-block {
+                margin-bottom: 12px;
+            }
+            
+            .tagline {
+                margin-bottom: 12px;
+            }
+        }
+
+        /* Для высоких экранов */
+        @media (min-height: 800px) {
+            .team-photo {
+                height: 45%;
+                margin-top: 45px;
+            }
+            
+            .content-section {
+                height: 55%;
+                padding: 30px 20px 25px;
             }
         }
     </style>
@@ -341,22 +354,13 @@
 
             return (
                 <div className="hero-container">
+                    {/* Логотип в левом углу */}
+                    <div className="logo">
+                        polli<br />digital
+                    </div>
+
                     {/* Секция с фото команды */}
                     <div className="team-photo">
-                        {/* Логотип поверх фото */}
-                        <div className="logo">
-                            polli<br />digital
-                        </div>
-
-                        {/* Play button справа */}
-                        <div className="play-button">
-                            <div className="play-bg">
-                                <svg className="play-icon" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M8 5v14l11-7z"/>
-                                </svg>
-                            </div>
-                        </div>
-
                         {/* Декоративный элемент */}
                         <div className="decorative-element">
                             ✨
@@ -366,15 +370,20 @@
                     {/* Белая секция с контентом */}
                     <div className="content-section">
                         <div className="hero-content">
-                            {/* Заголовки услуг */}
+                            {/* Заголовки услуг - позиционирование по желтой линии */}
                             <div className="services-block">
-                                <div className="service-title">Брендинг</div>
-                                <div className="service-title">Сайты</div>
-                                <div className="service-title">
+                                {/* Брендинг - левее */}
+                                <div className="service-title branding-title">Брендинг</div>
+                                
+                                {/* Сайты - на одном уровне с Маркетинг */}
+                                <div className="service-title sites-title">Сайты</div>
+                                
+                                {/* Маркетинг - на одном уровне с Сайты + крутящийся элемент */}
+                                <div className="service-title marketing-title">
                                     <span className="marketing-line">
                                         Маркетинг
                                         
-                                        {/* Кружок с молнией и круговым текстом */}
+                                        {/* Крутящийся элемент справа (где был красный кружок) */}
                                         <div className="quality-badge">⚡</div>
                                         <div className="circular-text">
                                             <svg viewBox="0 0 100 100">
@@ -384,9 +393,9 @@
                                                         d="M 50, 50 m -35, 0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0"
                                                     />
                                                 </defs>
-                                                <text fontSize="9" fill="#666">
+                                                <text fontSize="8" fill="#9272e6">
                                                     <textPath href="#circle">
-                                                        ВЫСОКОЕ КАЧЕСТВО ИСПОЛНЕНИЯ • СКОРОСТЬ •
+                                                        КАЧЕСТВО • СКОРОСТЬ • ЭСТЕТИКА •
                                                     </textPath>
                                                 </text>
                                             </svg>
@@ -394,7 +403,7 @@
                                     </span>
                                 </div>
 
-                                {/* Подзаголовок */}
+                                {/* Подзаголовок - сокращенное расстояние */}
                                 <div className="tagline">
                                     Скорость. Эстетика. Смысл
                                 </div>
@@ -430,7 +439,7 @@
 
         ReactDOM.render(<HeroSection />, document.getElementById('root'));
         
-        console.log('🎯 Polli Digital v7.0 - Точная копия 1-го скриншота!');
+        console.log('🎯 Polli Digital v8.0 - Все правки учтены!');
     </script>
 </body>
 </html>
