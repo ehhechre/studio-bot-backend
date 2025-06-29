@@ -37,57 +37,60 @@
       font-family: 'Helvetica', Arial, sans-serif;
       background: white;
       color: #181818;
-      overflow-x: hidden; /* Важно для мобильных устройств, чтобы не было горизонтального скролла */
-      -webkit-tap-highlight-color: transparent; /* Убираем синюю подсветку при тапе */
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    /* Общий контейнер для всего приложения, чтобы применить базовые отступы/фон */
     .main-wrapper {
         width: 100%;
         background: white;
-        padding-bottom: 40px; /* Отступ снизу для общего контента */
+        padding-bottom: 40px;
     }
 
     /* ====== HERO SECTION ====== */
     .hero-section {
-      width: 100vw; /* Занимает всю ширину */
+      width: 100vw;
       background: white;
       display: flex;
       flex-direction: column;
-      position: relative; /* Для позиционирования логотипа */
-      padding-bottom: 25px; /* Отступ снизу для всего hero-section */
+      position: relative;
+      padding-bottom: 25px;
+    }
+
+    /* Новый заголовок секции для лого */
+    .hero-header {
+        background: white;
+        padding: 15px 20px 10px; /* Отступы для логотипа */
+        width: 100%;
     }
 
     .logo {
-      position: absolute; /* Позиционируем абсолютно, чтобы не влиял на поток документа */
-      top: 15px;
-      left: 20px;
+      /* Удалены absolute-позиционирование, теперь он в потоке */
       font-family: 'Benzin', sans-serif;
       font-size: 24px;
       line-height: 26px;
       color: #181818;
       font-weight: 900;
-      z-index: 10; /* Убедимся, что логотип поверх фото */
+      z-index: 10; /* На всякий случай */
     }
 
     .team-photo {
       width: 100%;
-      height: 300px; /* Фиксированная высота для фото, можно регулировать */
-      background: url('./фото.jpg') center center/cover no-repeat; /* Убедитесь, что путь верный */
+      height: 300px;
+      background: url('./фото.jpg') center center/cover no-repeat;
       position: relative;
     }
 
-    /* Контейнер для текстового контента под фото */
     .hero-content-area {
-      padding: 25px 20px 0; /* Отступы по бокам и сверху */
+      padding: 25px 20px 0;
       display: flex;
       flex-direction: column;
-      align-items: flex-start; /* Выравнивание по левому краю */
+      align-items: flex-start;
     }
 
     .services-block {
       margin-bottom: 15px;
-      position: relative; /* Для позиционирования svg-линий, если они будут */
+      position: relative;
     }
 
     .service-title {
@@ -100,14 +103,14 @@
     }
 
     .branding-title {
-      margin-left: -10px; /* Для смещения как на макете */
+      margin-left: -10px;
     }
 
     .sites-title {
-      margin-left: 15px; /* Для смещения как на макете */
+      margin-left: 15px;
     }
     .marketing-title {
-      margin-left: 30px; /* Для смещения как на макете */
+      margin-left: 30px;
     }
 
     .tagline {
@@ -116,24 +119,24 @@
       color: #353434;
       margin-top: 8px;
       margin-bottom: 15px;
-      margin-left: 15px; /* Сохраняем смещение */
+      margin-left: 15px;
     }
 
     .badge-wrapper {
       position: relative;
-      margin: 15px auto 0; /* Центрируем и добавляем верхний отступ */
+      margin: 15px auto 0;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 70px;
-      width: 100%; /* Занимает всю доступную ширину для центрирования */
+      width: 100%;
     }
 
     .quality-badge {
       position: absolute;
       top: 50%;
       left: 50%;
-      transform: translate(-50%, -50%); /* Точное центрирование */
+      transform: translate(-50%, -50%);
       width: 40px;
       height: 40px;
       background: linear-gradient(135deg, #9272e6, #7c5ce6);
@@ -172,12 +175,12 @@
     }
 
     .cta-buttons {
-      margin-top: 25px; /* Отступ от бейджа */
+      margin-top: 25px;
       width: 100%;
       display: flex;
       flex-direction: column;
       gap: 15px;
-      padding-bottom: 20px; /* Отступ снизу, чтобы кнопки не прилипали к следующей секции */
+      padding-bottom: 20px;
     }
 
     .btn {
@@ -193,7 +196,7 @@
       align-items: center;
       justify-content: center;
       gap: 12px;
-      text-decoration: none; /* Если кнопка будет ссылкой */
+      text-decoration: none;
     }
 
     .btn-primary {
@@ -210,7 +213,7 @@
 
     /* ====== STATS SECTION ====== */
     .stats-section {
-      padding: 30px 20px; /* Отступы по бокам и сверху/снизу */
+      padding: 30px 20px;
       background: #fff;
     }
 
@@ -240,14 +243,14 @@
     .stat-icon {
       font-size: 24px;
       color: #9272e6;
-      flex-shrink: 0; /* Чтобы иконка не сжималась */
-      padding-top: 2px; /* Небольшой сдвиг для визуального выравнивания */
+      flex-shrink: 0;
+      padding-top: 2px;
     }
 
     .stat-content strong {
       font-size: 18px;
       display: block;
-      margin-bottom: 4px; /* Отступ от заголовка к тексту */
+      margin-bottom: 4px;
     }
     .stat-content {
       font-size: 16px;
@@ -257,62 +260,72 @@
 
     /* ====== REVIEWS SECTION ====== */
     .reviews-section-wrapper {
-        padding: 30px 0; /* Общий отступ для секции отзывов */
+        padding: 30px 0;
         background: #fff;
     }
 
     .reviews-header {
+        padding: 0 20px;
+        margin-bottom: 25px;
         display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        margin-bottom: 20px; /* Отступ от заголовка до скролла отзывов */
-        padding: 0 20px; /* Отступы по бокам для заголовка */
+        flex-direction: column;
+        align-items: flex-start;
     }
 
     .reviews-title {
         font-family: 'Benzin', sans-serif;
         font-size: 22px;
         font-weight: 900;
-        text-align: center;
+        text-align: left;
         line-height: 1.2;
+        margin-bottom: 10px;
     }
 
-    .reviews-badge {
-        background: linear-gradient(135deg, #9272e6, #7c5ce6);
-        color: white;
-        border-radius: 15px; /* Закругленные края */
-        padding: 4px 10px;
-        font-size: 14px;
+    .reviews-info-row {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .circle-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+    }
+
+    .reviews-header-badge {
+        background: none;
+        color: #181818;
+        font-family: 'Helvetica', Arial, sans-serif;
+        font-size: 16px;
         font-weight: bold;
-        line-height: 1;
+        padding: 0;
+        margin-left: 5px; /* Отступ от последней точки до текста 500+ */
     }
 
     .reviews-container {
       display: flex;
-      overflow-x: auto; /* Позволяет горизонтальный скролл */
-      scroll-snap-type: x mandatory; /* Отзывы будут "прилипать" к краю */
-      gap: 20px; /* Отступы между карточками */
-      padding: 0 20px; /* Отступы по бокам для скроллящегося контейнера */
-      -webkit-overflow-scrolling: touch; /* Для более плавного скролла на iOS */
-      scrollbar-width: none; /* Убираем стандартный скроллбар для Firefox */
-      -ms-overflow-style: none;  /* Убираем стандартный скроллбар для IE/Edge */
-      /* animation: scrollReviews 30s linear infinite; /* Закомментировано: отключаем авто-скролл пока */
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      gap: 20px;
+      padding: 0 20px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      /* animation: scrollReviews 30s linear infinite; /* Убеждаемся, что анимация закомментирована */
     }
 
-    /* Убираем скроллбар для Webkit-браузеров (Chrome, Safari) */
     .reviews-container::-webkit-scrollbar {
         display: none;
     }
 
     .review-card {
-      flex: 0 0 calc(100vw - 40px); /* 100% ширины экрана минус 20px паддинга с каждой стороны */
-      /* flex: 0 0 85%; /* Альтернатива: 85% ширины, если хотим, чтобы был виден кусочек следующего */
+      flex: 0 0 calc(100vw - 60px); /* 100% ширины экрана минус 20px паддинга с каждой стороны и еще 20px для показа части следующей карточки */
       background: #f5f2fd;
       border-radius: 20px;
       padding: 20px;
-      scroll-snap-align: start; /* Карточка будет прилипать к началу прокрутки */
-      min-width: 280px; /* Минимальная ширина для больших экранов */
+      scroll-snap-align: start;
+      min-width: 280px;
       display: flex;
       flex-direction: column;
     }
@@ -320,20 +333,28 @@
     .review-user-info {
         display: flex;
         align-items: center;
-        gap: 8px; /* Отступ между именем и звездами */
+        gap: 8px;
         margin-bottom: 8px;
+    }
+
+    .review-user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 10px;
     }
 
     .review-user-info strong {
         font-size: 18px;
         font-weight: bold;
-        line-height: 1; /* Чтобы не было лишнего отступа сверху/снизу */
+        line-height: 1;
     }
 
     .stars {
-        color: #FFD700; /* Золотой цвет для звезд */
-        font-size: 16px; /* Размер звезд */
-        letter-spacing: 2px; /* Отступ между звездами */
+        color: #FFD700;
+        font-size: 16px;
+        letter-spacing: 2px;
     }
 
     .review-tags {
@@ -350,11 +371,37 @@
 
     .review-button-wrapper {
         padding: 0 20px;
-        margin-top: 30px; /* Отступ от отзывов до кнопки */
+        margin-top: 30px;
+        position: relative; /* Для позиционирования пина относительно этого враппера */
     }
     .review-more-btn {
-        width: 100%; /* Кнопка на всю ширину */
+        width: 100%;
+        background: linear-gradient(135deg, #9272e6, #7c5ce6);
+        color: white;
+        box-shadow: 0px 4px 15px rgba(146, 114, 230, 0.3);
+        flex-direction: column; /* Выравниваем элементы внутри кнопки по вертикали */
+        height: 70px;
+        padding: 10px 0;
     }
+    .review-more-btn span {
+        font-size: 18px;
+        font-weight: 600;
+        line-height: 1.2;
+        display: block;
+        text-align: center; /* Центрируем текст внутри каждой строки */
+    }
+
+    /* Стиль для отдельной булавки под кнопкой */
+    .yandex-pin-icon {
+        position: absolute;
+        bottom: -15px; /* Регулируем расстояние от кнопки */
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 24px; /* Размер булавки */
+        color: #7c5ce6; /* Цвет булавки, можно настроить */
+        z-index: 2; /* Убедимся, что булавка поверх всего */
+    }
+
   </style>
 </head>
 <body>
@@ -363,27 +410,30 @@
   <script type="text/babel">
     const App = () => {
       const reviews = [
-        { name: "Оксана Л.", text: "Приятно работать с такими профессионалами! Мне очень понравилась презентация, которую они сделали для моей студии дизайна New. Ребята очень быстро схватили идею и сделали все идеально, даже выступала с ней на конференции! Очень рекомендую их услуги, они настоящие мастера своего дела!", tags: "#презентация" },
-        { name: "Григорий М.", text: "Сделали все чётко и вовремя! Отличный результат по сувенирной продукции.", tags: "#сувенирка" },
-        { name: "Мария С.", text: "Превзошли ожидания по дизайну. Каждый раз радуют своим подходом.", tags: "#дизайн" },
-        { name: "Иван Т.", text: "Лучшие на рынке, рекомендую! Брендинг получился очень сильным.", tags: "#брендинг" },
-        { name: "Светлана Р.", text: "Работаем не первый раз. Всегда качественный медиа-контент.", tags: "#медиа" },
-        { name: "Андрей Н.", text: "Приятная команда, сильный результат! Стратегия продвижения дала отличные плоды.", tags: "#стратегия" },
+        { name: "Оксана Л.", text: "Приятно работать с такими профессионалами! Мне очень понравилась презентация, которую они сделали для моей студии дизайна New. Ребята очень быстро схватили идею и сделали все идеально, даже выступала с ней на конференции! Очень рекомендую их услуги, они настоящие мастера своего дела!", tags: "#презентация", avatar: "https://via.placeholder.com/40/FF5733/FFFFFF?text=Окса" }, // Замените на реальный путь к аватару Оксаны
+        { name: "Григорий М.", text: "Сделали все чётко и вовремя! Отличный результат по сувенирной продукции.", tags: "#сувенирка", avatar: "https://via.placeholder.com/40/33FF57/FFFFFF?text=Григ" },
+        { name: "Мария С.", text: "Превзошли ожидания по дизайну. Каждый раз радуют своим подходом.", tags: "#дизайн", avatar: "https://via.placeholder.com/40/3357FF/FFFFFF?text=Мари" },
+        { name: "Иван Т.", text: "Лучшие на рынке, рекомендую! Брендинг получился очень сильным.", tags: "#брендинг", avatar: "https://via.placeholder.com/40/FF33E0/FFFFFF?text=Иван" },
+        { name: "Светлана Р.", text: "Работаем не первый раз. Всегда качественный медиа-контент.", tags: "#медиа", avatar: "https://via.placeholder.com/40/57FF33/FFFFFF?text=Свет" },
+        { name: "Андрей Н.", text: "Приятная команда, сильный результат! Стратегия продвижения дала отличные плоды.", tags: "#стратегия", avatar: "https://via.placeholder.com/40/E0FF33/FFFFFF?text=Андр" },
       ];
 
-      // Функция для генерации звезд
       const renderStars = (count) => {
+        // На макете звезды обведенные, не залитые. Для этого лучше использовать SVG или иконочный шрифт.
+        // Пока оставим залитые, т.к. Unicode не позволяет делать обведенные.
         return '⭐'.repeat(count);
       };
 
       return (
-        <div className="main-wrapper"> {/* Новый общий контейнер */}
-          <div className="hero-section"> {/* Переименованный контейнер */}
-            <div className="logo">polli<br />digital</div>
-
+        <div className="main-wrapper">
+          <div className="hero-section">
+            <div className="hero-header"> {/* Новый враппер для лого */}
+                <div className="logo">polli<br />digital</div>
+            </div>
+            
             <div className="team-photo"></div>
 
-            <div className="hero-content-area"> {/* Новый контейнер для текстового контента под фото */}
+            <div className="hero-content-area">
               <div className="services-block">
                 <div className="service-title branding-title">Брендинг</div>
                 <div className="service-title sites-title">Сайты</div>
@@ -437,18 +487,25 @@
             </div>
           </div>
 
-          <div className="reviews-section-wrapper"> {/* Новый wrapper для секции отзывов */}
+          <div className="reviews-section-wrapper">
             <div className="reviews-header">
               <div className="reviews-title">Нас рекомендуют</div>
-              <div className="reviews-badge">500+</div> {/* Бейдж "500+" */}
+              <div className="reviews-info-row">
+                  {/* Три шарика с разными цветами */}
+                  <div className="circle-dot" style={{ backgroundColor: '#B8A4ED' }}></div>
+                  <div className="circle-dot" style={{ backgroundColor: '#C8B9F5' }}></div>
+                  <div className="circle-dot" style={{ backgroundColor: '#D8CEFC' }}></div>
+                  <div className="reviews-header-badge">500+</div>
+              </div>
             </div>
             <div className="reviews-container">
               {reviews.map((review, index) => (
                 <div className="review-card" key={index}>
                   <div className="review-user-info">
+                      {review.avatar && <img src={review.avatar} alt={review.name} className="review-user-avatar" />}
                       <strong>{review.name}</strong>
                       <div className="stars">
-                          {renderStars(5)} {/* Выводим 5 звезд */}
+                          {renderStars(5)}
                       </div>
                   </div>
                   <div className="review-tags">{review.tags}</div>
@@ -457,7 +514,11 @@
               ))}
             </div>
             <div className="review-button-wrapper">
-                <button className="btn btn-secondary review-more-btn">Смотреть на Яндекс.Картах 📍</button>
+                <button className="btn review-more-btn">
+                    <span>Смотреть на</span>
+                    <span>Яндекс.Картах</span>
+                </button>
+                <div className="yandex-pin-icon">📍</div> {/* Отдельный элемент для булавки */}
             </div>
           </div>
         </div>
