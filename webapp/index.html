@@ -274,21 +274,17 @@
             }
             
             .quality-badge {
-                right: -40px;
-                width: 32px;
-                height: 32px;
+                right: -45px;
+                width: 35px;
+                height: 35px;
                 font-size: 14px;
             }
             
             .circular-text {
-                right: -50px;
-                width: 52px;
-                height: 52px;
+                right: -55px;
+                width: 55px;
+                height: 55px;
                 font-size: 5px;
-            }
-            
-            .services-wrapper {
-                padding-right: 40px;
             }
         }
 
@@ -382,44 +378,38 @@
                     {/* Белая секция с контентом */}
                     <div className="content-section">
                         <div className="hero-content">
-                            {/* Заголовки услуг - позиционирование по желтой линии */}
+                            {/* Заголовки услуг */}
                             <div className="services-block">
-                                <div className="services-wrapper">
-                                    {/* Брендинг - левее */}
-                                    <div className="service-title branding-title">Брендинг</div>
-                                    
-                                    {/* Сайты - на одном уровне с Маркетинг */}
-                                    <div className="service-title sites-title">Сайты</div>
-                                    
-                                    {/* Маркетинг - на одном уровне с Сайты + крутящийся элемент */}
-                                    <div className="service-title marketing-title">
-                                        <span className="marketing-line">
-                                            Маркетинг
-                                            
-                                            {/* Крутящийся элемент справа (для Telegram Web App) */}
-                                            <div className="quality-badge">⚡</div>
-                                            <div className="circular-text">
-                                                <svg viewBox="0 0 100 100">
-                                                    <defs>
-                                                        <path
-                                                            id="circle"
-                                                            d="M 50, 50 m -35, 0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0"
-                                                        />
-                                                    </defs>
-                                                    <text fontSize="8" fill="#9272e6">
-                                                        <textPath href="#circle">
-                                                            КАЧЕСТВО • СКОРОСТЬ • ЭСТЕТИКА •
-                                                        </textPath>
-                                                    </text>
-                                                </svg>
-                                            </div>
-                                        </span>
-                                    </div>
-                                </div>
+                                {/* Брендинг - левее */}
+                                <div className="service-title branding-title">Брендинг</div>
+                                
+                                {/* Сайты - на одном уровне с Маркетинг */}
+                                <div className="service-title sites-title">Сайты</div>
+                                
+                                {/* Маркетинг */}
+                                <div className="service-title marketing-title">Маркетинг</div>
 
-                                {/* Подзаголовок - сокращенное расстояние */}
+                                {/* Подзаголовок с крутящимся элементом */}
                                 <div className="tagline">
                                     Скорость. Эстетика. Смысл
+                                    
+                                    {/* Крутящийся элемент справа от подзаголовка */}
+                                    <div className="quality-badge">⚡</div>
+                                    <div className="circular-text">
+                                        <svg viewBox="0 0 100 100">
+                                            <defs>
+                                                <path
+                                                    id="circle"
+                                                    d="M 50, 50 m -35, 0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0"
+                                                />
+                                            </defs>
+                                            <text fontSize="8" fill="#9272e6">
+                                                <textPath href="#circle">
+                                                    КАЧЕСТВО • СКОРОСТЬ • ЭСТЕТИКА •
+                                                </textPath>
+                                            </text>
+                                        </svg>
+                                    </div>
                                 </div>
                             </div>
 
@@ -453,7 +443,7 @@
 
         ReactDOM.render(<HeroSection />, document.getElementById('root'));
         
-        console.log('🎯 Polli Digital v9.1 - Фикс для Telegram Web App на Samsung!');
+        console.log('🎯 Polli Digital v9.2 - Кружок перемещен к подзаголовку!');
         
         // Проверка загрузки шрифтов
         document.fonts.ready.then(() => {
