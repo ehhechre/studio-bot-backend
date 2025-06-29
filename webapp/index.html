@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -15,9 +15,6 @@
     
     <!-- Telegram Web App -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Кастомные шрифты -->
     <style>
@@ -35,94 +32,276 @@
             font-display: swap;
         }
 
-        /* Точные CSS переменные из Figma */
-        :root {
-            --u-3kc-1t: rgba(24, 24, 24, 1);
+        /* Сброс стилей и базовые настройки */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        /* Кастомные классы для точного соответствия Figma */
-        .font-benzin {
-            font-family: 'Benzin-Medium', Helvetica, sans-serif;
-        }
-        
-        .font-helvetica {
-            font-family: 'Helvetica-Regular', Helvetica, sans-serif;
-        }
-
-        .text-u-3kc-1t {
-            color: var(--u-3kc-1t);
-        }
-
-        /* Антикэш стили */
         body {
+            font-family: 'Helvetica-Regular', Helvetica, Arial, sans-serif;
+            background: white;
+            color: #181818;
+            overflow-x: hidden;
             -webkit-user-select: none;
             -webkit-touch-callout: none;
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Фиксированные размеры для мобильных */
-        .hero-container {
-            width: 100vw;
-            max-width: 1080px;
-            margin: 0 auto;
-            position: relative;
-            overflow: hidden;
+        /* Антикэш стили */
+        .anti-cache {
+            animation: fadeIn 0.5s ease-in;
         }
 
-        /* Backdrop blur эффект */
-        .backdrop-blur-custom {
-            backdrop-filter: blur(2px);
-            -webkit-backdrop-filter: blur(2px);
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
-    </style>
-    
-    <script>
-        // Конфигурация Tailwind
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        'benzin': ['Benzin-Medium', 'Helvetica', 'sans-serif'],
-                        'helvetica': ['Helvetica-Regular', 'Helvetica', 'Arial', 'sans-serif'],
-                    },
-                    colors: {
-                        'u-3kc-1t': 'var(--u-3kc-1t)',
-                    },
-                    fontSize: {
-                        '100px': '100px',
-                        '76px': '76px',
-                        '64px': '64px',
-                        '46px': '46px',
-                    },
-                    spacing: {
-                        '37px': '37px',
-                        '78px': '78px',
-                        '80px': '80px',
-                        '107px': '107px',
-                        '214px': '214px',
-                        '217px': '217px',
-                        '219px': '219px',
-                        '241px': '241px',
-                        '309px': '309px',
-                        '572px': '572px',
-                        '762px': '762px',
-                    }
-                }
+
+        /* Мобильные размеры на основе Figma пропорций */
+        .mobile-container {
+            width: 100vw;
+            max-width: 100%;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* Масштабированные размеры: 1080px → 375px = коэффициент 0.347 */
+        .hero-section-mobile {
+            width: 100%;
+            height: 100vh;
+            min-height: 600px;
+            position: relative;
+            background: url('./фото.jpg') center/cover;
+        }
+
+        /* Оверлей градиент - сохраняем пропорции */
+        .hero-overlay-mobile {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60%;
+            background: linear-gradient(to top, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.7) 40%, rgba(255,255,255,0) 100%);
+        }
+
+        /* Логотип - пропорционально уменьшенный */
+        .logo-mobile {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 10;
+        }
+
+        .logo-text-mobile {
+            font-family: 'Benzin-Medium', sans-serif;
+            font-size: 24px;
+            line-height: 26px;
+            color: #181818;
+            font-weight: normal;
+        }
+
+        /* Главный контент - центрированный */
+        .hero-content-mobile {
+            position: absolute;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 350px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        /* Заголовки услуг - масштабированные */
+        .service-title-mobile {
+            font-family: 'Benzin-Medium', sans-serif;
+            font-size: 36px;
+            line-height: 32px;
+            color: #181818;
+            font-weight: normal;
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        /* Кружок с молнией для "Маркетинг" */
+        .quality-badge-mobile {
+            position: absolute;
+            top: -8px;
+            right: -25px;
+            width: 20px;
+            height: 20px;
+            background: rgba(146, 114, 230, 0.8);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            border: 1px solid white;
+            backdrop-filter: blur(2px);
+            box-shadow: 0 2px 8px rgba(146, 114, 230, 0.3);
+        }
+
+        /* Подзаголовок */
+        .tagline-mobile {
+            font-family: 'Helvetica-Regular', sans-serif;
+            font-size: 16px;
+            line-height: 22px;
+            color: #353434;
+            margin-top: 16px;
+            font-weight: normal;
+        }
+
+        /* Кнопки CTA - адаптированные размеры */
+        .cta-section-mobile {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 10;
+        }
+
+        .btn-mobile {
+            width: 100%;
+            height: 50px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary-mobile {
+            background: #181818;
+            color: white;
+            box-shadow: 0px 2px 8px rgba(11, 0, 30, 0.25);
+        }
+
+        .btn-secondary-mobile {
+            background: transparent;
+            color: #181818;
+            border: 2px solid #181818;
+        }
+
+        .btn-mobile:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(146, 114, 230, 0.3);
+        }
+
+        .btn-mobile:active {
+            transform: translateY(0);
+        }
+
+        /* Play button - масштабированный */
+        .play-button-mobile {
+            position: absolute;
+            bottom: 200px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            z-index: 5;
+        }
+
+        .play-bg-mobile {
+            width: 50px;
+            height: 50px;
+            background: rgba(146, 114, 230, 0.8);
+            border-radius: 25px;
+            backdrop-filter: blur(2px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 5px;
+        }
+
+        .play-icon-mobile {
+            color: white;
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Декоративные элементы внизу */
+        .bottom-group-mobile {
+            position: absolute;
+            bottom: 30px;
+            left: 20px;
+            width: 45px;
+            height: 50px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #666;
+            z-index: 5;
+        }
+
+        /* Адаптивные стили для очень маленьких экранов */
+        @media (max-width: 320px) {
+            .service-title-mobile {
+                font-size: 32px;
+                line-height: 28px;
+            }
+            
+            .tagline-mobile {
+                font-size: 14px;
+                line-height: 18px;
+            }
+            
+            .btn-mobile {
+                height: 45px;
+                font-size: 14px;
             }
         }
-    </script>
+
+        /* Для больших экранов - показываем предупреждение */
+        @media (min-width: 768px) {
+            .desktop-warning {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0,0,0,0.9);
+                color: white;
+                padding: 20px;
+                border-radius: 10px;
+                text-align: center;
+                z-index: 1000;
+            }
+        }
+    </style>
 </head>
-<body class="bg-white">
+<body>
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // Точный компонент героя из Figma
-        const HeroSection = () => {
+        // Компонент мобильного героя - точные пропорции из Figma
+        const MobileHeroSection = () => {
             const [tg, setTg] = useState(null);
+            const [isDesktop, setIsDesktop] = useState(false);
 
             useEffect(() => {
+                // Проверяем размер экрана
+                setIsDesktop(window.innerWidth >= 768);
+
                 // Telegram Web App инициализация
                 if (window.Telegram?.WebApp) {
                     const telegram = window.Telegram.WebApp;
@@ -133,13 +312,6 @@
                     setTg(telegram);
                 }
             }, []);
-
-            // Данные для основных секций - точно как в Figma коде
-            const mainServices = [
-                { text: "Брендинг", className: "w-[642px]" },
-                { text: "Сайты", className: "w-[464px]" },
-                { text: "Маркетинг", className: "w-[736px]" },
-            ];
 
             const handleOrderClick = () => {
                 if (tg) {
@@ -159,155 +331,101 @@
                 }
             };
 
+            // Показываем предупреждение на десктопе
+            if (isDesktop) {
+                return (
+                    <div className="desktop-warning">
+                        <h2>⚠️ Это мобильная версия</h2>
+                        <p>Откройте в Telegram на телефоне<br/>для корректного отображения</p>
+                    </div>
+                );
+            }
+
             return (
-                <div className="hero-container">
-                    {/* Точная копия Hero Section из Figma */}
-                    <div className="relative w-full h-[1131px] bg-white">
+                <div className="mobile-container anti-cache">
+                    {/* Hero Section - мобильная версия */}
+                    <div className="hero-section-mobile">
                         
-                        {/* Главное изображение - точные размеры из Figma */}
-                        <div 
-                            className="absolute w-full h-[706px] top-[78px] left-0 bg-cover bg-center"
-                            style={{backgroundImage: `url('./фото.jpg')`}}
-                        />
+                        {/* Оверлей градиент */}
+                        <div className="hero-overlay-mobile" />
 
-                        {/* Градиент оверлей - точно как в Figma */}
-                        <div 
-                            className="absolute w-full h-[431px] top-[572px] left-0"
-                            style={{
-                                background: 'linear-gradient(to top, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.7) 50%, rgba(255,255,255,0) 100%)'
-                            }}
-                        />
-
-                        {/* Логотип - точное позиционирование */}
-                        <div className="absolute w-[234px] h-[150px] top-0 left-20">
-                            <div className="font-benzin font-normal text-u-3kc-1t text-[48px] leading-[50px] tracking-[0]">
+                        {/* Логотип */}
+                        <div className="logo-mobile">
+                            <div className="logo-text-mobile">
                                 polli<br />digital
                             </div>
                         </div>
 
-                        {/* Контент Hero - точные размеры и позиции из Figma */}
-                        <div className="absolute w-[961px] h-[369px] top-[762px] left-[68px]">
+                        {/* Основной контент по центру */}
+                        <div className="hero-content-mobile">
                             
-                            {/* Основные услуги - точное позиционирование каждой */}
-                            <div className="w-[642px] h-[82px] top-0 left-0 font-benzin font-normal text-u-3kc-1t text-100px text-center leading-[82px] absolute tracking-[0]">
-                                Брендинг
-                            </div>
-                            
-                            <div className="w-[464px] h-[82px] top-[107px] left-[219px] font-benzin font-normal text-u-3kc-1t text-100px text-center leading-[82px] absolute tracking-[0]">
-                                Сайты
-                            </div>
-                            
-                            <div className="w-[736px] h-[82px] top-[214px] left-[217px] font-benzin font-normal text-u-3kc-1t text-100px text-center leading-[82px] absolute tracking-[0] relative">
+                            {/* Заголовки услуг */}
+                            <div className="service-title-mobile">Брендинг</div>
+                            <div className="service-title-mobile">Сайты</div>
+                            <div className="service-title-mobile">
                                 Маркетинг
-                                
-                                {/* Кружок с молнией - точно как в Figma */}
-                                <div className="absolute w-[50px] h-[50px] -top-[10px] -right-[60px] bg-[#9272e6cc] rounded-[25px] backdrop-blur-custom flex items-center justify-center border-2 border-white shadow-lg">
-                                    <span className="text-white text-[24px]">⚡</span>
-                                </div>
+                                <div className="quality-badge-mobile">⚡</div>
                             </div>
 
-                            {/* Подзаголовок - точные размеры */}
-                            <div className="w-[628px] h-[60px] top-[309px] left-[241px] font-helvetica font-normal text-[#353434] text-46px text-center leading-[60px] absolute tracking-[0]">
+                            {/* Подзаголовок */}
+                            <div className="tagline-mobile">
                                 Скорость. Эстетика. Смысл
                             </div>
                         </div>
 
-                        {/* Группа изображений снизу слева - точная позиция */}
-                        <div className="absolute w-[127px] h-[133px] top-[979px] left-20 bg-gray-200 rounded-lg flex items-center justify-center">
-                            <span className="text-gray-500 text-sm">Группа</span>
-                        </div>
-
-                        {/* Play button справа - точные размеры и позиция */}
-                        <div className="absolute w-[246px] h-[246px] top-[718px] left-[743px]">
-                            <div className="relative w-[231px] h-[225px] top-[11px] left-2">
-                                {/* Фон кнопки */}
-                                <div className="absolute w-[142px] h-[142px] top-[42px] left-11 bg-[#9272e6cc] rounded-[71px] backdrop-blur-custom" />
-                                
-                                {/* Стрелка Play */}
-                                <div className="absolute w-24 h-24 top-[65px] left-[67px] text-white flex items-center justify-center">
-                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M8 5v14l11-7z"/>
-                                    </svg>
-                                </div>
-                                
-                                {/* Декоративные точки */}
-                                <div className="absolute w-[5px] h-[5px] top-[110px] left-[7px] bg-black rounded-[2.5px]" />
-                                <div className="absolute w-[5px] h-[5px] top-[110px] left-[217px] bg-black rounded-[2.5px]" />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* CTA Кнопки - точные размеры из Figma */}
-                    <div className="relative w-full">
-                        
-                        {/* Кнопка Заказать - точные размеры и позиция */}
-                        <button 
-                            onClick={handleOrderClick}
-                            className="absolute w-[840px] h-[200px] top-[1288px] left-[113px] rounded-[90px] shadow-[0px_4px_15px_#0b001e40] bg-black text-white flex items-center justify-center hover:bg-gray-800 transition-all"
-                        >
-                            <div className="relative w-[389px] h-[100px] flex items-center justify-center">
-                                <div className="w-[289px] h-[87px] font-helvetica font-normal text-white text-64px text-center leading-normal">
-                                    Заказать
-                                </div>
-                                <svg className="w-[85px] h-[85px] ml-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                        {/* Play button справа */}
+                        <div className="play-button-mobile">
+                            <div className="play-bg-mobile">
+                                <svg className="play-icon-mobile" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z"/>
                                 </svg>
                             </div>
-                        </button>
+                        </div>
 
-                        {/* Кнопка Позвонить - точные размеры и позиция */}
-                        <button 
-                            onClick={handleCallClick}
-                            className="absolute w-[840px] h-[200px] top-[1518px] left-[120px] rounded-[90px] border-2 border-gray-300 bg-white text-black flex items-center justify-center hover:bg-gray-50 transition-all"
-                        >
-                            <div className="relative w-[447px] h-[98px] flex items-center justify-center">
-                                <div className="w-[346px] h-[87px] font-helvetica font-bold text-[#181818] text-64px text-center leading-normal">
-                                    Позвонить
-                                </div>
-                                <svg className="w-[85px] h-[85px] ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        {/* Декоративная группа внизу слева */}
+                        <div className="bottom-group-mobile">
+                            Группа
+                        </div>
+
+                        {/* CTA Кнопки */}
+                        <div className="cta-section-mobile">
+                            <button 
+                                onClick={handleOrderClick}
+                                className="btn-mobile btn-primary-mobile"
+                            >
+                                Заказать
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                                 </svg>
-                            </div>
-                        </button>
-                    </div>
+                            </button>
 
-                    {/* Адаптивные стили для мобильных */}
-                    <style jsx>{`
-                        @media (max-width: 768px) {
-                            .hero-container {
-                                transform: scale(0.5);
-                                transform-origin: top center;
-                                height: 900px;
-                            }
-                        }
-                        
-                        @media (max-width: 480px) {
-                            .hero-container {
-                                transform: scale(0.4);
-                                transform-origin: top center;
-                                height: 720px;
-                            }
-                        }
-                    `}</style>
+                            <button 
+                                onClick={handleCallClick}
+                                className="btn-mobile btn-secondary-mobile"
+                            >
+                                Позвонить
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             );
         };
 
-        // Рендер приложения
+        // Основное приложение
         const App = () => {
-            return (
-                <div className="min-h-screen bg-white">
-                    <HeroSection />
-                </div>
-            );
+            return <MobileHeroSection />;
         };
 
         // Монтирование React приложения
         ReactDOM.render(<App />, document.getElementById('root'));
 
         // Логирование для отладки
-        console.log('Polli Digital v4.0 - React Figma Edition');
-        console.log('Hero блок создан с точными размерами из Figma!');
+        console.log('🚀 Polli Digital v5.0 - Mobile Optimized Edition');
+        console.log('📱 Мобильная версия создана на основе пропорций Figma');
+        console.log('✅ Готово для Telegram Mini App');
     </script>
 </body>
 </html>
