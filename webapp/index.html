@@ -43,132 +43,145 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Главный контейнер - ТОЧНО как на скриншоте */
+        /* Главный контейнер - как на 1-м скриншоте */
         .hero-container {
             width: 100vw;
             height: 100vh;
             position: relative;
-            background: url('./фото.jpg') center/cover no-repeat;
+            background: white;
             display: flex;
             flex-direction: column;
         }
 
-        /* Логотип сверху по центру - ТОЧНО как на скриншоте */
+        /* Фото команды - верхняя часть */
+        .team-photo {
+            width: 100%;
+            height: 45%;
+            background: url('./фото.jpg') center/cover no-repeat;
+            position: relative;
+        }
+
+        /* Логотип поверх фото */
         .logo {
             position: absolute;
-            top: 60px;
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
             text-align: center;
             z-index: 10;
             font-family: 'Benzin', sans-serif;
-            font-size: 32px;
-            line-height: 36px;
+            font-size: 28px;
+            line-height: 32px;
             color: #181818;
             font-weight: 900;
         }
 
-        /* Контент поверх фото внизу - ТОЧНО как на скриншоте */
-        .hero-content {
-            position: absolute;
-            bottom: 180px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 350px;
-            text-align: left;
-            z-index: 10;
-        }
-
-        /* Заголовки услуг - КРУПНЫЕ как на скриншоте */
-        .service-title {
-            font-family: 'Benzin', sans-serif;
-            font-size: 48px;
-            line-height: 44px;
-            color: #181818;
-            font-weight: 900;
-            margin-bottom: 4px;
+        /* Белая секция с контентом - как на 1-м скриншоте */
+        .content-section {
+            width: 100%;
+            height: 55%;
+            background: white;
+            padding: 30px 20px 20px;
+            display: flex;
+            flex-direction: column;
             position: relative;
         }
 
-        /* Кружок с молнией ТОЧНО как на скриншоте */
-        .marketing-title {
+        /* Контент по центру */
+        .hero-content {
+            text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            position: relative;
+        }
+
+        /* Заголовки услуг - точно как на 1-м скриншоте */
+        .services-block {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .service-title {
+            font-family: 'Benzin', sans-serif;
+            font-size: 44px;
+            line-height: 42px;
+            color: #181818;
+            font-weight: 900;
+            margin-bottom: 2px;
+        }
+
+        /* Кружок с текстом - ТОЧНО как на 1-м скриншоте */
+        .marketing-line {
             position: relative;
             display: inline-block;
         }
 
         .quality-badge {
             position: absolute;
-            top: -8px;
-            right: -35px;
-            width: 28px;
-            height: 28px;
-            background: rgba(146, 114, 230, 0.9);
+            top: -10px;
+            right: -45px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #9272e6, #7c5ce6);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 16px;
+            font-size: 20px;
             border: 2px solid white;
-            box-shadow: 0 2px 8px rgba(146, 114, 230, 0.4);
+            box-shadow: 0 3px 15px rgba(146, 114, 230, 0.4);
+            z-index: 5;
+        }
+
+        /* Круговой текст вокруг кружка */
+        .circular-text {
+            position: absolute;
+            top: -25px;
+            right: -60px;
+            width: 80px;
+            height: 80px;
+            font-size: 8px;
+            color: #666;
+            pointer-events: none;
+        }
+
+        .circular-text svg {
+            width: 100%;
+            height: 100%;
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
         /* Подзаголовок */
         .tagline {
             font-family: 'Helvetica', sans-serif;
-            font-size: 16px;
-            line-height: 20px;
+            font-size: 18px;
+            line-height: 22px;
             color: #353434;
-            margin-top: 16px;
+            margin-top: 10px;
             font-weight: normal;
         }
 
-        /* Play button справа - ТОЧНО как на скриншоте */
-        .play-button {
-            position: absolute;
-            bottom: 280px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            z-index: 5;
-        }
-
-        .play-bg {
-            width: 60px;
-            height: 60px;
-            background: rgba(146, 114, 230, 0.8);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(146, 114, 230, 0.3);
-        }
-
-        .play-icon {
-            color: white;
-            width: 24px;
-            height: 24px;
-        }
-
-        /* Кнопки внизу - ТОЧНО как на скриншоте */
+        /* Фиолетовые кнопки - ТОЧНО как на 1-м скриншоте */
         .cta-buttons {
-            position: absolute;
-            bottom: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 350px;
+            margin-top: auto;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            z-index: 10;
+            gap: 15px;
+            padding-bottom: 20px;
         }
 
         .btn {
             width: 100%;
-            height: 55px;
-            border-radius: 28px;
+            height: 60px;
+            border-radius: 30px;
             font-family: 'Helvetica', sans-serif;
             font-size: 18px;
             font-weight: 600;
@@ -178,20 +191,21 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
         }
 
         .btn-primary {
-            background: #181818;
+            background: linear-gradient(135deg, #9272e6, #7c5ce6);
             color: white;
-            box-shadow: 0px 3px 12px rgba(24, 24, 24, 0.3);
+            box-shadow: 0px 4px 15px rgba(146, 114, 230, 0.3);
         }
 
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.95);
-            color: #181818;
-            border: 2px solid #181818;
-            backdrop-filter: blur(10px);
+            background: white;
+            color: #9272e6;
+            border: 2px solid #9272e6;
         }
 
         .btn:active {
@@ -199,68 +213,90 @@
         }
 
         .arrow-icon {
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
         }
 
-        /* Декоративная группа слева внизу */
-        .bottom-group {
+        /* Play button - справа на фото */
+        .play-button {
             position: absolute;
-            bottom: 40px;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            width: 70px;
+            height: 70px;
+            z-index: 5;
+        }
+
+        .play-bg {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #9272e6, #7c5ce6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(146, 114, 230, 0.4);
+            border: 3px solid white;
+        }
+
+        .play-icon {
+            color: white;
+            width: 28px;
+            height: 28px;
+            margin-left: 4px;
+        }
+
+        /* Дополнительные элементы */
+        .decorative-element {
+            position: absolute;
+            bottom: 20px;
             left: 20px;
-            width: 45px;
-            height: 50px;
-            background: rgba(240, 240, 240, 0.8);
-            border-radius: 8px;
+            width: 40px;
+            height: 30px;
+            background: rgba(146, 114, 230, 0.1);
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 10px;
-            color: #666;
-            z-index: 5;
-            backdrop-filter: blur(5px);
+            color: #9272e6;
         }
 
-        /* Градиентный оверлей для лучшей читаемости */
-        .overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 50%;
-            background: linear-gradient(to top, 
-                rgba(255,255,255,0.1) 0%, 
-                rgba(255,255,255,0.05) 30%, 
-                rgba(255,255,255,0) 100%);
-            z-index: 1;
-        }
-
-        /* Адаптивность для маленьких экранов */
+        /* Адаптивность */
         @media (max-width: 350px) {
             .service-title {
-                font-size: 42px;
-                line-height: 38px;
+                font-size: 38px;
+                line-height: 36px;
             }
             
             .logo {
-                font-size: 28px;
-                line-height: 32px;
+                font-size: 24px;
+                line-height: 28px;
             }
             
-            .btn {
-                height: 50px;
+            .quality-badge {
+                right: -35px;
+                width: 40px;
+                height: 40px;
                 font-size: 16px;
+            }
+            
+            .circular-text {
+                right: -50px;
+                width: 70px;
+                height: 70px;
             }
         }
 
-        /* Для очень высоких экранов */
-        @media (min-height: 800px) {
-            .hero-content {
-                bottom: 220px;
+        @media (max-height: 700px) {
+            .team-photo {
+                height: 40%;
             }
             
-            .play-button {
-                bottom: 320px;
+            .content-section {
+                height: 60%;
+                padding: 20px 20px 15px;
             }
         }
     </style>
@@ -305,65 +341,88 @@
 
             return (
                 <div className="hero-container">
-                    {/* Градиентный оверлей */}
-                    <div className="overlay" />
-                    
-                    {/* Логотип сверху по центру */}
-                    <div className="logo">
-                        polli<br />digital
-                    </div>
-
-                    {/* Основной контент поверх фото */}
-                    <div className="hero-content">
-                        <div className="service-title">Брендинг</div>
-                        <div className="service-title">Сайты</div>
-                        <div className="service-title">
-                            <span className="marketing-title">
-                                Маркетинг
-                                <div className="quality-badge">⚡</div>
-                            </span>
+                    {/* Секция с фото команды */}
+                    <div className="team-photo">
+                        {/* Логотип поверх фото */}
+                        <div className="logo">
+                            polli<br />digital
                         </div>
 
-                        <div className="tagline">
-                            Скорость. Эстетика. Смысл
+                        {/* Play button справа */}
+                        <div className="play-button">
+                            <div className="play-bg">
+                                <svg className="play-icon" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z"/>
+                                </svg>
+                            </div>
+                        </div>
+
+                        {/* Декоративный элемент */}
+                        <div className="decorative-element">
+                            ✨
                         </div>
                     </div>
 
-                    {/* Play button справа */}
-                    <div className="play-button">
-                        <div className="play-bg">
-                            <svg className="play-icon" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M8 5v14l11-7z"/>
-                            </svg>
+                    {/* Белая секция с контентом */}
+                    <div className="content-section">
+                        <div className="hero-content">
+                            {/* Заголовки услуг */}
+                            <div className="services-block">
+                                <div className="service-title">Брендинг</div>
+                                <div className="service-title">Сайты</div>
+                                <div className="service-title">
+                                    <span className="marketing-line">
+                                        Маркетинг
+                                        
+                                        {/* Кружок с молнией и круговым текстом */}
+                                        <div className="quality-badge">⚡</div>
+                                        <div className="circular-text">
+                                            <svg viewBox="0 0 100 100">
+                                                <defs>
+                                                    <path
+                                                        id="circle"
+                                                        d="M 50, 50 m -35, 0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0"
+                                                    />
+                                                </defs>
+                                                <text fontSize="9" fill="#666">
+                                                    <textPath href="#circle">
+                                                        ВЫСОКОЕ КАЧЕСТВО ИСПОЛНЕНИЯ • СКОРОСТЬ •
+                                                    </textPath>
+                                                </text>
+                                            </svg>
+                                        </div>
+                                    </span>
+                                </div>
+
+                                {/* Подзаголовок */}
+                                <div className="tagline">
+                                    Скорость. Эстетика. Смысл
+                                </div>
+                            </div>
+
+                            {/* Фиолетовые кнопки */}
+                            <div className="cta-buttons">
+                                <button 
+                                    onClick={handleOrderClick}
+                                    className="btn btn-primary"
+                                >
+                                    Заказать
+                                    <svg className="arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                    </svg>
+                                </button>
+
+                                <button 
+                                    onClick={handleCallClick}
+                                    className="btn btn-secondary"
+                                >
+                                    Позвонить
+                                    <svg className="arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
-                    </div>
-
-                    {/* Декоративная группа слева внизу */}
-                    <div className="bottom-group">
-                        Группа
-                    </div>
-
-                    {/* CTA кнопки внизу */}
-                    <div className="cta-buttons">
-                        <button 
-                            onClick={handleOrderClick}
-                            className="btn btn-primary"
-                        >
-                            Заказать
-                            <svg className="arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                            </svg>
-                        </button>
-
-                        <button 
-                            onClick={handleCallClick}
-                            className="btn btn-secondary"
-                        >
-                            Позвонить
-                            <svg className="arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                            </svg>
-                        </button>
                     </div>
                 </div>
             );
@@ -371,7 +430,7 @@
 
         ReactDOM.render(<HeroSection />, document.getElementById('root'));
         
-        console.log('🎯 Polli Digital v6.0 - Точная копия скриншота!');
+        console.log('🎯 Polli Digital v7.0 - Точная копия 1-го скриншота!');
     </script>
 </body>
 </html>
