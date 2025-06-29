@@ -833,6 +833,8 @@
     const { useState, useEffect } = React;
 
     const App = () => {
+      const [isMainButtonActive, setIsMainButtonActive] = useState(false);
+
       const reviews = [
         { 
           name: "Оксана Л.", 
@@ -870,6 +872,24 @@
           tags: "#стратегия", 
           initial: "А" 
         },
+      ];
+
+      const stats = [
+        { 
+          icon: '⭐', 
+          title: '500+ успешных клиентов', 
+          text: 'Мы работали с крупными компаниями и личными брендами.' 
+        },
+        { 
+          icon: '📅', 
+          title: '15+ лет опыта', 
+          text: 'Команда дизайнеров, маркетологов и разработчиков.' 
+        },
+        { 
+          icon: '💜', 
+          title: 'Партнерство с фондами', 
+          text: 'Поддержка инициатив и детских фондов.' 
+        }
       ];
 
       const projects = [
@@ -938,14 +958,38 @@
           tg.ready();
           tg.expand();
           tg.setHeaderColor('#FFFFFF');
+          
+          // Настроим MainButton
+          tg.MainButton.setText("Рассчитать стоимость проекта");
+          tg.MainButton.color = "#9272e6";
+          tg.MainButton.textColor = "#FFFFFF";
+          tg.MainButton.show();
+          
+          // Обработчик MainButton
+          const handleMainButtonClick = () => {
+            tg.HapticFeedback.impactOccurred('medium');
+            tg.sendData(JSON.stringify({
+              action: 'start_quiz',
+              source: 'main_button'
+            }));
+          };
+          
+          tg.MainButton.onClick(handleMainButtonClick);
+          setIsMainButtonActive(true);
+          
+          // Cleanup
+          return () => {
+            tg.MainButton.offClick(handleMainButtonClick);
+          };
         }
       }, []);
 
       const handleOrderClick = () => {
         if (window.Telegram && window.Telegram.WebApp) {
+          window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
           window.Telegram.WebApp.sendData(JSON.stringify({
             action: 'start_quiz',
-            source: 'landing'
+            source: 'landing_button'
           }));
         } else {
           alert('Начинаем квиз для расчета стоимости!');
@@ -954,18 +998,33 @@
 
       const handleCallClick = () => {
         if (window.Telegram && window.Telegram.WebApp) {
-          window.Telegram.WebApp.openLink('tel:+79111848008');
+          const tg = window.Telegram.WebApp;
+          tg.HapticFeedback.impactOccurred('light');
+          tg.showConfirm(
+            'Позвонить в Polli Digital?',
+            (confirmed) => {
+              if (confirmed) {
+                tg.HapticFeedback.impactOccurred('medium');
+                tg.openLink('tel:+79111848008');
+              }
+            }
+          );
         } else {
           window.location.href = 'tel:+79111848008';
         }
       };
 
       const handleProjectClick = (projectId) => {
+        if (window.Telegram && window.Telegram.WebApp) {
+          window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+        }
+        
         const projectUrls = {
           'ugg': 'https://apps.apple.com/app/ugg/id12345',
           'education': 'https://example.com/education-center',
           'realestate': 'https://example.com/repair-service',
-          'construction': 'https://example.com/construction-company'
+          'construction': 'https://example.com/construction-company',
+          'all': 'https://polli.digital/projects'
         };
         
         const projectUrl = projectUrls[projectId] || 'https://polli.digital/projects';
@@ -978,6 +1037,10 @@
       };
 
       const handleYandexMapsClick = () => {
+        if (window.Telegram && window.Telegram.WebApp) {
+          window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+        }
+        
         const mapsUrl = 'https://yandex.ru/maps/213/moscow/?ll=37.625000%2C55.755000&z=15';
         if (window.Telegram && window.Telegram.WebApp) {
           window.Telegram.WebApp.openLink(mapsUrl);
@@ -1017,9 +1080,11 @@
                 </div>
               </div>
               <div className="cta-buttons">
-                <button className="btn btn-primary" onClick={handleOrderClick}>
-                  Заказать →
-                </button>
+                {!isMainButtonActive && (
+                  <button className="btn btn-primary" onClick={handleOrderClick}>
+                    Заказать →
+                  </button>
+                )}
                 <button className="btn btn-secondary" onClick={handleCallClick}>
                   Позвонить →
                 </button>
@@ -1031,27 +1096,15 @@
           <div className="stats-section">
             <div className="stats-title">Мы любим свое дело и дорожим репутацией</div>
             <div className="stats-grid">
-              <div className="stat-card">
-                <div className="stat-icon">⭐</div>
-                <div className="stat-content">
-                  <strong>500+ успешных клиентов</strong>
-                  Мы работали с крупными компаниями и личными брендами.
+              {stats.map((stat, index) => (
+                <div className="stat-card" key={index}>
+                  <div className="stat-icon">{stat.icon}</div>
+                  <div className="stat-content">
+                    <strong>{stat.title}</strong>
+                    {stat.text}
+                  </div>
                 </div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-icon">📅</div>
-                <div className="stat-content">
-                  <strong>15+ лет опыта</strong>
-                  Команда дизайнеров, маркетологов и разработчиков.
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-icon">💜</div>
-                <div className="stat-content">
-                  <strong>Партнерство с фондами</strong>
-                  Поддержка инициатив и детских фондов.
-                </div>
-              </div>
+              ))}
             </div>
           </div>
 
@@ -1139,9 +1192,11 @@
             <div className="contact-title">Связаться<br />с нами</div>
             
             <div className="contact-buttons">
-              <button className="btn btn-primary" onClick={handleOrderClick}>
-                Оставить заявку →
-              </button>
+              {!isMainButtonActive && (
+                <button className="btn btn-primary" onClick={handleOrderClick}>
+                  Оставить заявку →
+                </button>
+              )}
               <button className="btn btn-secondary" onClick={handleCallClick}>
                 Позвонить →
               </button>
