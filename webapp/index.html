@@ -4,35 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <title>Polli Digital</title>
     
     <!-- React через CDN -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <!-- Telegram Web App -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
-    <!-- Кастомные шрифты -->
     <style>
         @font-face {
-            font-family: 'Benzin-Medium';
+            font-family: 'Benzin';
             src: url('./fonts/Benzin-Bold.woff2') format('woff2');
             font-weight: normal;
             font-display: swap;
         }
 
         @font-face {
-            font-family: 'Helvetica-Regular';
+            font-family: 'Helvetica';
             src: url('./fonts/HelveticaRegular.woff') format('woff');
             font-weight: normal;
             font-display: swap;
         }
 
-        /* Сброс стилей и базовые настройки */
         * {
             margin: 0;
             padding: 0;
@@ -40,7 +34,7 @@
         }
 
         body {
-            font-family: 'Helvetica-Regular', Helvetica, Arial, sans-serif;
+            font-family: 'Helvetica', Arial, sans-serif;
             background: white;
             color: #181818;
             overflow-x: hidden;
@@ -49,132 +43,134 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Антикэш стили */
-        .anti-cache {
-            animation: fadeIn 0.5s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        /* Мобильные размеры на основе Figma пропорций */
-        .mobile-container {
+        /* Главный контейнер - ТОЧНО как на скриншоте */
+        .hero-container {
             width: 100vw;
-            max-width: 100%;
-            margin: 0 auto;
-            position: relative;
-        }
-
-        /* Масштабированные размеры: 1080px → 375px = коэффициент 0.347 */
-        .hero-section-mobile {
-            width: 100%;
             height: 100vh;
-            min-height: 600px;
             position: relative;
-            background: url('./фото.jpg') center/cover;
+            background: url('./фото.jpg') center/cover no-repeat;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* Оверлей градиент - сохраняем пропорции */
-        .hero-overlay-mobile {
+        /* Логотип сверху по центру - ТОЧНО как на скриншоте */
+        .logo {
             position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 60%;
-            background: linear-gradient(to top, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.7) 40%, rgba(255,255,255,0) 100%);
-        }
-
-        /* Логотип - пропорционально уменьшенный */
-        .logo-mobile {
-            position: absolute;
-            top: 20px;
+            top: 60px;
             left: 50%;
             transform: translateX(-50%);
             text-align: center;
             z-index: 10;
-        }
-
-        .logo-text-mobile {
-            font-family: 'Benzin-Medium', sans-serif;
-            font-size: 24px;
-            line-height: 26px;
+            font-family: 'Benzin', sans-serif;
+            font-size: 32px;
+            line-height: 36px;
             color: #181818;
-            font-weight: normal;
+            font-weight: 900;
         }
 
-        /* Главный контент - центрированный */
-        .hero-content-mobile {
+        /* Контент поверх фото внизу - ТОЧНО как на скриншоте */
+        .hero-content {
             position: absolute;
-            bottom: 120px;
+            bottom: 180px;
             left: 50%;
             transform: translateX(-50%);
             width: 90%;
             max-width: 350px;
-            text-align: center;
+            text-align: left;
             z-index: 10;
         }
 
-        /* Заголовки услуг - масштабированные */
-        .service-title-mobile {
-            font-family: 'Benzin-Medium', sans-serif;
-            font-size: 36px;
-            line-height: 32px;
+        /* Заголовки услуг - КРУПНЫЕ как на скриншоте */
+        .service-title {
+            font-family: 'Benzin', sans-serif;
+            font-size: 48px;
+            line-height: 44px;
             color: #181818;
-            font-weight: normal;
-            margin-bottom: 8px;
+            font-weight: 900;
+            margin-bottom: 4px;
             position: relative;
         }
 
-        /* Кружок с молнией для "Маркетинг" */
-        .quality-badge-mobile {
+        /* Кружок с молнией ТОЧНО как на скриншоте */
+        .marketing-title {
+            position: relative;
+            display: inline-block;
+        }
+
+        .quality-badge {
             position: absolute;
             top: -8px;
-            right: -25px;
-            width: 20px;
-            height: 20px;
-            background: rgba(146, 114, 230, 0.8);
-            border-radius: 10px;
+            right: -35px;
+            width: 28px;
+            height: 28px;
+            background: rgba(146, 114, 230, 0.9);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 12px;
-            border: 1px solid white;
-            backdrop-filter: blur(2px);
-            box-shadow: 0 2px 8px rgba(146, 114, 230, 0.3);
+            font-size: 16px;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(146, 114, 230, 0.4);
         }
 
         /* Подзаголовок */
-        .tagline-mobile {
-            font-family: 'Helvetica-Regular', sans-serif;
+        .tagline {
+            font-family: 'Helvetica', sans-serif;
             font-size: 16px;
-            line-height: 22px;
+            line-height: 20px;
             color: #353434;
             margin-top: 16px;
             font-weight: normal;
         }
 
-        /* Кнопки CTA - адаптированные размеры */
-        .cta-section-mobile {
+        /* Play button справа - ТОЧНО как на скриншоте */
+        .play-button {
             position: absolute;
-            bottom: 20px;
+            bottom: 280px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            z-index: 5;
+        }
+
+        .play-bg {
+            width: 60px;
+            height: 60px;
+            background: rgba(146, 114, 230, 0.8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(146, 114, 230, 0.3);
+        }
+
+        .play-icon {
+            color: white;
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Кнопки внизу - ТОЧНО как на скриншоте */
+        .cta-buttons {
+            position: absolute;
+            bottom: 40px;
             left: 50%;
             transform: translateX(-50%);
             width: 90%;
-            max-width: 320px;
+            max-width: 350px;
             display: flex;
             flex-direction: column;
             gap: 12px;
             z-index: 10;
         }
 
-        .btn-mobile {
+        .btn {
             width: 100%;
-            height: 50px;
-            border-radius: 25px;
-            font-size: 16px;
+            height: 55px;
+            border-radius: 28px;
+            font-family: 'Helvetica', sans-serif;
+            font-size: 18px;
             font-weight: 600;
             border: none;
             cursor: pointer;
@@ -182,67 +178,39 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            text-decoration: none;
+            gap: 10px;
         }
 
-        .btn-primary-mobile {
+        .btn-primary {
             background: #181818;
             color: white;
-            box-shadow: 0px 2px 8px rgba(11, 0, 30, 0.25);
+            box-shadow: 0px 3px 12px rgba(24, 24, 24, 0.3);
         }
 
-        .btn-secondary-mobile {
-            background: transparent;
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.95);
             color: #181818;
             border: 2px solid #181818;
+            backdrop-filter: blur(10px);
         }
 
-        .btn-mobile:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(146, 114, 230, 0.3);
+        .btn:active {
+            transform: scale(0.98);
         }
 
-        .btn-mobile:active {
-            transform: translateY(0);
+        .arrow-icon {
+            width: 18px;
+            height: 18px;
         }
 
-        /* Play button - масштабированный */
-        .play-button-mobile {
+        /* Декоративная группа слева внизу */
+        .bottom-group {
             position: absolute;
-            bottom: 200px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            z-index: 5;
-        }
-
-        .play-bg-mobile {
-            width: 50px;
-            height: 50px;
-            background: rgba(146, 114, 230, 0.8);
-            border-radius: 25px;
-            backdrop-filter: blur(2px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 5px;
-        }
-
-        .play-icon-mobile {
-            color: white;
-            width: 20px;
-            height: 20px;
-        }
-
-        /* Декоративные элементы внизу */
-        .bottom-group-mobile {
-            position: absolute;
-            bottom: 30px;
+            bottom: 40px;
             left: 20px;
             width: 45px;
             height: 50px;
-            background: #f0f0f0;
+            background: rgba(240, 240, 240, 0.8);
             border-radius: 8px;
             display: flex;
             align-items: center;
@@ -250,39 +218,49 @@
             font-size: 10px;
             color: #666;
             z-index: 5;
+            backdrop-filter: blur(5px);
         }
 
-        /* Адаптивные стили для очень маленьких экранов */
-        @media (max-width: 320px) {
-            .service-title-mobile {
-                font-size: 32px;
-                line-height: 28px;
+        /* Градиентный оверлей для лучшей читаемости */
+        .overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(to top, 
+                rgba(255,255,255,0.1) 0%, 
+                rgba(255,255,255,0.05) 30%, 
+                rgba(255,255,255,0) 100%);
+            z-index: 1;
+        }
+
+        /* Адаптивность для маленьких экранов */
+        @media (max-width: 350px) {
+            .service-title {
+                font-size: 42px;
+                line-height: 38px;
             }
             
-            .tagline-mobile {
-                font-size: 14px;
-                line-height: 18px;
+            .logo {
+                font-size: 28px;
+                line-height: 32px;
             }
             
-            .btn-mobile {
-                height: 45px;
-                font-size: 14px;
+            .btn {
+                height: 50px;
+                font-size: 16px;
             }
         }
 
-        /* Для больших экранов - показываем предупреждение */
-        @media (min-width: 768px) {
-            .desktop-warning {
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: rgba(0,0,0,0.9);
-                color: white;
-                padding: 20px;
-                border-radius: 10px;
-                text-align: center;
-                z-index: 1000;
+        /* Для очень высоких экранов */
+        @media (min-height: 800px) {
+            .hero-content {
+                bottom: 220px;
+            }
+            
+            .play-button {
+                bottom: 320px;
             }
         }
     </style>
@@ -293,16 +271,10 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // Компонент мобильного героя - точные пропорции из Figma
-        const MobileHeroSection = () => {
+        const HeroSection = () => {
             const [tg, setTg] = useState(null);
-            const [isDesktop, setIsDesktop] = useState(false);
 
             useEffect(() => {
-                // Проверяем размер экрана
-                setIsDesktop(window.innerWidth >= 768);
-
-                // Telegram Web App инициализация
                 if (window.Telegram?.WebApp) {
                     const telegram = window.Telegram.WebApp;
                     telegram.ready();
@@ -331,101 +303,75 @@
                 }
             };
 
-            // Показываем предупреждение на десктопе
-            if (isDesktop) {
-                return (
-                    <div className="desktop-warning">
-                        <h2>⚠️ Это мобильная версия</h2>
-                        <p>Откройте в Telegram на телефоне<br/>для корректного отображения</p>
-                    </div>
-                );
-            }
-
             return (
-                <div className="mobile-container anti-cache">
-                    {/* Hero Section - мобильная версия */}
-                    <div className="hero-section-mobile">
-                        
-                        {/* Оверлей градиент */}
-                        <div className="hero-overlay-mobile" />
+                <div className="hero-container">
+                    {/* Градиентный оверлей */}
+                    <div className="overlay" />
+                    
+                    {/* Логотип сверху по центру */}
+                    <div className="logo">
+                        polli<br />digital
+                    </div>
 
-                        {/* Логотип */}
-                        <div className="logo-mobile">
-                            <div className="logo-text-mobile">
-                                polli<br />digital
-                            </div>
-                        </div>
-
-                        {/* Основной контент по центру */}
-                        <div className="hero-content-mobile">
-                            
-                            {/* Заголовки услуг */}
-                            <div className="service-title-mobile">Брендинг</div>
-                            <div className="service-title-mobile">Сайты</div>
-                            <div className="service-title-mobile">
+                    {/* Основной контент поверх фото */}
+                    <div className="hero-content">
+                        <div className="service-title">Брендинг</div>
+                        <div className="service-title">Сайты</div>
+                        <div className="service-title">
+                            <span className="marketing-title">
                                 Маркетинг
-                                <div className="quality-badge-mobile">⚡</div>
-                            </div>
-
-                            {/* Подзаголовок */}
-                            <div className="tagline-mobile">
-                                Скорость. Эстетика. Смысл
-                            </div>
+                                <div className="quality-badge">⚡</div>
+                            </span>
                         </div>
 
-                        {/* Play button справа */}
-                        <div className="play-button-mobile">
-                            <div className="play-bg-mobile">
-                                <svg className="play-icon-mobile" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M8 5v14l11-7z"/>
-                                </svg>
-                            </div>
+                        <div className="tagline">
+                            Скорость. Эстетика. Смысл
                         </div>
+                    </div>
 
-                        {/* Декоративная группа внизу слева */}
-                        <div className="bottom-group-mobile">
-                            Группа
+                    {/* Play button справа */}
+                    <div className="play-button">
+                        <div className="play-bg">
+                            <svg className="play-icon" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
                         </div>
+                    </div>
 
-                        {/* CTA Кнопки */}
-                        <div className="cta-section-mobile">
-                            <button 
-                                onClick={handleOrderClick}
-                                className="btn-mobile btn-primary-mobile"
-                            >
-                                Заказать
-                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                                </svg>
-                            </button>
+                    {/* Декоративная группа слева внизу */}
+                    <div className="bottom-group">
+                        Группа
+                    </div>
 
-                            <button 
-                                onClick={handleCallClick}
-                                className="btn-mobile btn-secondary-mobile"
-                            >
-                                Позвонить
-                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                                </svg>
-                            </button>
-                        </div>
+                    {/* CTA кнопки внизу */}
+                    <div className="cta-buttons">
+                        <button 
+                            onClick={handleOrderClick}
+                            className="btn btn-primary"
+                        >
+                            Заказать
+                            <svg className="arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                            </svg>
+                        </button>
+
+                        <button 
+                            onClick={handleCallClick}
+                            className="btn btn-secondary"
+                        >
+                            Позвонить
+                            <svg className="arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                            </svg>
+                        </button>
                     </div>
                 </div>
             );
         };
 
-        // Основное приложение
-        const App = () => {
-            return <MobileHeroSection />;
-        };
-
-        // Монтирование React приложения
-        ReactDOM.render(<App />, document.getElementById('root'));
-
-        // Логирование для отладки
-        console.log('🚀 Polli Digital v5.0 - Mobile Optimized Edition');
-        console.log('📱 Мобильная версия создана на основе пропорций Figma');
-        console.log('✅ Готово для Telegram Mini App');
+        ReactDOM.render(<HeroSection />, document.getElementById('root'));
+        
+        console.log('🎯 Polli Digital v6.0 - Точная копия скриншота!');
     </script>
 </body>
 </html>
