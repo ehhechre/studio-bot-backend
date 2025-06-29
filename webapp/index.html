@@ -129,13 +129,14 @@
         .marketing-line {
             position: relative;
             display: inline-block;
+            padding-right: 55px; /* Добавляем место для кружка */
         }
 
-        /* Крутящийся элемент справа от Маркетинг (где красный кружок) */
+        /* Крутящийся элемент справа от Маркетинг (исправленная позиция) */
         .quality-badge {
             position: absolute;
-            top: -5px;
-            right: -45px;
+            top: 5px;
+            right: -15px;
             width: 45px;
             height: 45px;
             background: linear-gradient(135deg, #9272e6, #7c5ce6);
@@ -153,8 +154,8 @@
         /* Круговой текст вокруг кружка */
         .circular-text {
             position: absolute;
-            top: -20px;
-            right: -60px;
+            top: -10px;
+            right: -30px;
             width: 75px;
             height: 75px;
             font-size: 7px;
@@ -267,16 +268,21 @@
             }
             
             .quality-badge {
-                right: -35px;
+                right: -10px;
                 width: 35px;
                 height: 35px;
                 font-size: 14px;
             }
             
             .circular-text {
-                right: -45px;
+                right: -20px;
                 width: 60px;
                 height: 60px;
+                font-size: 6px;
+            }
+            
+            .marketing-line {
+                padding-right: 45px;
             }
         }
 
@@ -383,7 +389,7 @@
                                     <span className="marketing-line">
                                         Маркетинг
                                         
-                                        {/* Крутящийся элемент справа (где был красный кружок) */}
+                                        {/* Крутящийся элемент справа (исправленная позиция) */}
                                         <div className="quality-badge">⚡</div>
                                         <div className="circular-text">
                                             <svg viewBox="0 0 100 100">
@@ -439,7 +445,15 @@
 
         ReactDOM.render(<HeroSection />, document.getElementById('root'));
         
-        console.log('🎯 Polli Digital v8.0 - Все правки учтены!');
+        console.log('🎯 Polli Digital v9.0 - Фиолетовый кружок исправлен!');
+        
+        // Проверка загрузки шрифтов
+        document.fonts.ready.then(() => {
+            console.log('✅ Все шрифты загружены успешно!');
+            document.fonts.forEach(font => {
+                console.log(`Шрифт ${font.family}: ${font.status}`);
+            });
+        });
     </script>
 </body>
 </html>
