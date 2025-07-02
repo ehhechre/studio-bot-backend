@@ -35,16 +35,26 @@
         /* Логотип - не меняем */
         .logo-block {
             margin-bottom: 10px;
+            margin-top: -28px;
         }
 
         .logo {
-            font-size: 24px;
-            font-weight: 900;
-            line-height: 1.2;
-        }
+                /* Уберите или оставьте следующие свойства в зависимости от потребностей */
+                /* font-size: 24px; */
+                /* font-weight: 900; */
+                /* line-height: 1.2; */
+            }
+
+            .logo-image {
+                max-width: 100%; /* Логотип не будет шире контейнера */
+                height: auto;     /* Сохраняет пропорции */
+                max-height: 110px; /* Максимальная высота логотипа, настройте по необходимости */
+                display: block;   /* Убирает лишние отступы снизу изображения */
+            }
 
         /* Фото команды - не меняем */
         .team-photo-block {
+            margin-top: -40px;
             margin-bottom: 10px;
         }
 
@@ -180,7 +190,9 @@
     <div class="container">
         <!-- Логотип -->
         <div class="logo-block">
-            <div class="logo">polli <br> digital</div>
+            <div class="logo">
+                <img src="logo.png" alt="Polli Digital Logo" class="logo-image">
+            </div>
         </div>
         
         <!-- Фото команды -->
