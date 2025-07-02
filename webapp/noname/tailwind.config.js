@@ -7,7 +7,7 @@ module.exports = {
     theme: {
       extend: {
         colors: {
-          "u-3kc-1t": "var(--u-3kc-1t)",
+          "cb-7-ehy": "var(--cb-7-ehy)",
           border: "hsl(var(--border))",
           input: "hsl(var(--input))",
           ring: "hsl(var(--ring))",

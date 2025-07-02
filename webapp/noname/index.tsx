@@ -1,387 +1,341 @@
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, Mail, MapPin, Phone, Star } from "lucide-react";
 import React from "react";
 
-export default function PropertyDefault(): JSX.Element {
-  // Data for the main sections
-  const mainServices = [
-    { text: "Брендинг", className: "w-[642px]" },
-    { text: "Сайты", className: "w-[464px]" },
-    { text: "Маркетинг", className: "w-[736px]" },
-  ];
-
-  // Data for the achievement cards
-  const achievements = [
+const Screen = (): JSX.Element => {
+  const statsData = [
     {
-      title: "500+",
-      subtitle: "успешных клиентов",
+      number: "500+",
+      label: "успешных клиентов",
       description:
         "Мы работали с крупными компаниями и личными брендами, создавая решения, которые приносят результат.",
-      icon: "group2",
+      icon: "👥",
     },
     {
-      title: "15+",
-      subtitle: "лет опыта",
+      number: "15+",
+      label: "лет опыта",
       description:
         "Команда дизайнеров, маркетологов и разработчиков с проверенным опытом",
-      icon: "layer-93",
+      icon: "⏰",
     },
     {
-      title: "",
-      subtitle: "Партнерство\nс фондами",
+      number: "",
+      label: "Партнерство с фондами",
       description:
         "Мы поддерживаем благотворительные инициативы: Фонд защиты детей и «СЕМЕЙНАЯ СКАЗКА»",
-      icon: "group3",
+      icon: "🤝",
     },
   ];
 
-  // Data for contact information
-  const contactInfo = [
+  const testimonialData = {
+    name: "Оксана Л.",
+    tag: "#презентация",
+    text: "Приехала в студию дизайна New, чтобы они мне оформили презентацию на тему трендов моды (так как я шью премиум одежду на заказ и выступаю на конференциях). Ребята с первого раза все сделали идеально и мое выступление на конференции прошло отлично! Буду к ним и дальше обращаться, ребята молодцы)",
+    rating: 5,
+  };
+
+  const contactData = [
     {
-      icon: <Phone className="w-[52px] h-[52px]" />,
+      icon: Phone,
       text: "+7 (911) 184-80-08",
-      className: "w-[549px]",
     },
     {
-      icon: <Mail className="w-[52px] h-9 mt-[5px]" />,
+      icon: Mail,
       text: "info@newdigital.moscow",
-      className: "w-[668px]",
     },
     {
-      icon: <MapPin className="w-[52px] h-[52px]" />,
+      icon: MapPin,
       text: "Москва, Армянский переулок, 11/2А, 101000",
-      className: "w-[914px]",
     },
   ];
 
-  // Social media icons
-  const socialMedia = [
-    { color: "bg-[#00a9e0]", icon: "vector3" },
-    { color: "bg-[#62e200]", icon: "vector4" },
-  ];
-
-  // Footer links
-  const footerLinks = [
-    { text: "Договор-офферты", className: "left-[338px]" },
-    { text: "Политика конфиденциальности", className: "left-[191px]" },
+  const socialLinks = [
+    {
+      name: "Telegram",
+      bgColor: "bg-[#00a9e0]",
+      icon: "📱",
+    },
+    {
+      name: "WhatsApp",
+      bgColor: "bg-[#62e200]",
+      icon: "💬",
+    },
   ];
 
   return (
-    <div className="relative w-[1080px] h-[10055px] bg-white">
-      {/* Hero Section */}
-      <div className="absolute w-[1080px] h-[1131px] top-[37px] left-0">
-        <img
-          className="absolute w-[1080px] h-[706px] top-[78px] left-0"
-          alt="Image"
-          src=""
-        />
+    <div className="bg-white flex flex-row justify-center w-full">
+      <div className="bg-white overflow-hidden w-[375px] min-h-screen relative">
+        {/* Hero Section */}
+        <section className="relative w-full h-[419px] mt-3.5">
+          <img
+            className="absolute w-[375px] h-[257px] top-[34px] left-0"
+            alt="Hero background"
+            src=""
+          />
 
-        <div className="absolute w-[1080px] h-[431px] top-[572px] left-0 bg-[url(/subtract.svg)] bg-[100%_100%]" />
-
-        <img
-          className="absolute w-[234px] h-[150px] top-0 left-20 object-cover"
-          alt="Element"
-          src=""
-        />
-
-        <div className="absolute w-[961px] h-[369px] top-[762px] left-[68px]">
-          {mainServices.map((service, index) => (
-            <div
-              key={`service-${index}`}
-              className={`${service.className} h-[82px] ${index === 0 ? "top-0 left-0" : index === 1 ? "top-[107px] left-[219px]" : "top-[214px] left-[217px]"} [font-family:'Benzin-Medium-☞',Helvetica] font-normal text-u-3kc-1t text-[100px] text-center leading-[82px] absolute tracking-[0]`}
-            >
-              {service.text}
-            </div>
-          ))}
-
-          <div className="w-[628px] h-[60px] top-[309px] left-[241px] [font-family:'Helvetica-Regular',Helvetica] font-normal text-[#353434] text-[46px] text-center leading-[60px] absolute tracking-[0]">
-            Скорость. Эстетика. Смысл
-          </div>
-        </div>
-
-        <img
-          className="absolute w-[127px] h-[133px] top-[979px] left-20"
-          alt="Group"
-          src=""
-        />
-
-        <div className="absolute w-[246px] h-[246px] top-[718px] left-[743px]">
-          <div className="relative w-[231px] h-[225px] top-[11px] left-2">
-            <div className="absolute w-[142px] h-[142px] top-[42px] left-11 bg-[#9272e6cc] rounded-[71px] backdrop-blur-[2px] backdrop-brightness-[100%] [-webkit-backdrop-filter:blur(2px)_brightness(100%)]" />
-
-            <img
-              className="absolute w-[231px] h-[225px] top-0 left-0"
-              alt="Image"
-              src=""
-            />
-
-            <ArrowRight className="absolute w-24 h-24 top-[65px] left-[67px]" />
-
-            <div className="absolute w-[5px] h-[5px] top-[110px] left-[7px] bg-black rounded-[2.5px]" />
-            <div className="absolute w-[5px] h-[5px] top-[110px] left-[217px] bg-black rounded-[2.5px]" />
-          </div>
-        </div>
-      </div>
-
-      {/* Main Heading */}
-      <div className="w-[873px] h-[246px] top-[1834px] left-[100px] [font-family:'Benzin-Medium-☞',Helvetica] font-normal text-u-3kc-1t text-[76px] text-center leading-[82px] absolute tracking-[0]">
-        Мы любим свое дело и дорожим репутацией
-      </div>
-
-      {/* Recommendations Heading */}
-      <div className="absolute w-[873px] h-[228px] top-[3746px] left-[104px]">
-        <div className="w-[873px] h-[164px] top-16 left-0 [font-family:'Benzin-Medium-☞',Helvetica] font-normal text-u-3kc-1t text-[76px] text-center leading-[82px] absolute tracking-[0]">
-          Нас рекомендуют
-        </div>
-
-        <img
-          className="absolute w-[132px] h-[130px] top-0 left-[629px]"
-          alt="Group"
-          src=""
-        />
-      </div>
-
-      {/* Projects Heading */}
-      <div className="w-[873px] h-[82px] top-[5491px] left-[104px] [font-family:'Benzin-Medium-☞',Helvetica] font-normal text-u-3kc-1t text-[76px] text-center leading-[82px] absolute tracking-[0]">
-        Наши проекты
-      </div>
-
-      {/* Contact Us Heading */}
-      <div className="w-[587px] h-[164px] top-[7271px] left-[246px] [font-family:'Benzin-Medium-☞',Helvetica] font-normal text-u-3kc-1t text-[76px] text-center leading-[82px] absolute tracking-[0]">
-        Связаться с нами
-      </div>
-
-      {/* Order Button */}
-      <Button className="absolute w-[840px] h-[200px] top-[1288px] left-[113px] rounded-[90px] shadow-[0px_4px_15px_#0b001e40] bg-black text-white h-auto">
-        <div className="relative w-[389px] h-[100px] flex items-center justify-center">
-          <div className="w-[289px] h-[87px] [font-family:'Helvetica-Regular',Helvetica] font-normal text-white text-[64px] text-center leading-[normal]">
-            Заказать
-          </div>
-          <ArrowRight className="w-[85px] h-[85px] ml-5" />
-        </div>
-      </Button>
-
-      {/* Achievement Cards */}
-      {achievements.map((achievement, index) => (
-        <Card
-          key={`achievement-${index}`}
-          className="absolute w-[1020px] h-[470px] top-[${2161 + index * 530}px] left-[${index === 2 ? 31 : 30}px] border-0 shadow-none"
-        >
-          <CardContent className="relative h-[470px] p-0">
-            <div className="absolute w-[162px] h-[162px] top-0 left-12 bg-[#9272e6cc] rounded-[81px] backdrop-blur-[2px] backdrop-brightness-[100%] [-webkit-backdrop-filter:blur(2px)_brightness(100%)]" />
-
-            <img
-              className="absolute w-[1020px] h-[470px] top-0 left-0"
-              alt="Subtract"
-              src=""
-            />
-
-            <div className="absolute w-[895px] h-[339px] top-[57px] left-[50px]">
-              {achievement.subtitle && (
-                <div className="h-[46px] top-[74px] left-[248px] [font-family:'Benzin-Medium-☞',Helvetica] font-normal text-u-3kc-1t text-[46px] leading-[46px] whitespace-nowrap absolute tracking-[0]">
-                  {achievement.subtitle}
-                </div>
-              )}
-
-              {achievement.title && (
-                <div className="h-[60px] top-0 left-[248px] [font-family:'Benzin-Medium-☞',Helvetica] font-normal text-black text-6xl leading-[60px] whitespace-nowrap absolute tracking-[0]">
-                  {achievement.title}
-                </div>
-              )}
-
-              <div
-                className={`${index === 0 ? "w-[889px] h-[180px] top-[159px]" : index === 1 ? "w-[889px] h-[120px] top-[171px]" : "w-[920px] h-[180px] top-[161px]"} left-0 [font-family:'Helvetica-Regular',Helvetica] font-normal text-[#353434] text-[46px] leading-[60px] absolute tracking-[0]`}
-              >
-                {achievement.description}
-              </div>
-            </div>
-
-            <img
-              className={`absolute ${index === 0 ? "w-[52px] h-[50px] top-14 left-[103px]" : index === 1 ? "w-[43px] h-[43px] top-[59px] left-[107px]" : "w-[53px] h-[46px] top-[58px] left-[103px]"}`}
-              alt="Group"
-              src=""
-            />
-          </CardContent>
-        </Card>
-      ))}
-
-      {/* Call Button */}
-      <Button
-        variant="outline"
-        className="absolute w-[840px] h-[200px] top-[1518px] left-[120px] rounded-[90px] border-0 h-auto"
-      >
-        <div className="relative w-[447px] h-[98px] flex items-center justify-center">
-          <div className="w-[346px] h-[87px] [font-family:'Helvetica-Bold',Helvetica] font-bold text-[#181818] text-[64px] text-center leading-[normal]">
-            Позвонить
-          </div>
-          <ArrowRight className="w-[85px] h-[85px] ml-3" />
-        </div>
-      </Button>
-
-      {/* Second Call Button */}
-      <Button
-        variant="outline"
-        className="absolute w-[840px] h-[200px] top-[7746px] left-[120px] rounded-[90px] border-0 h-auto"
-      >
-        <div className="relative w-[447px] h-[98px] flex items-center justify-center">
-          <div className="w-[346px] h-[87px] [font-family:'Helvetica-Bold',Helvetica] font-bold text-[#181818] text-[64px] text-center leading-[normal]">
-            Позвонить
-          </div>
-          <ArrowRight className="w-[85px] h-[85px] ml-3" />
-        </div>
-      </Button>
-
-      <img
-        className="absolute w-[127px] h-[133px] top-[7303px] left-[107px]"
-        alt="Group"
-        src=""
-      />
-
-      {/* Rating Indicator */}
-      <div className="absolute w-[349px] h-[77px] top-[4005px] left-[367px]">
-        <div className="absolute w-[193px] h-[77px] top-0 left-0 flex">
-          <div className="absolute w-[77px] h-[77px] top-0 left-0 bg-[#9272e6] rounded-[38.5px]" />
-          <div className="absolute w-[77px] h-[77px] top-0 left-14 bg-[#c1aafb] rounded-[38.5px]" />
-          <div className="absolute w-[77px] h-[77px] top-0 left-[116px] bg-[#eceaf4] rounded-[38.5px]" />
-        </div>
-
-        <div className="h-[60px] top-3 left-[212px] [font-family:'Benzin-Medium-☞',Helvetica] font-normal text-black text-[40px] leading-[60px] whitespace-nowrap absolute tracking-[0]">
-          500+
-        </div>
-      </div>
-
-      {/* Yandex Maps Button */}
-      <Button className="absolute w-[840px] h-[200px] top-[5172px] left-[120px] rounded-[90px] shadow-[0px_4px_15px_#0b001e40] bg-black text-white h-auto">
-        <div className="relative w-[521px] h-[125px] flex items-center justify-center">
-          <div className="w-[461px] h-[119px] [font-family:'Helvetica-Regular',Helvetica] font-normal text-white text-[64px] text-center leading-[70.4px]">
-            &nbsp;&nbsp; Смотреть на Яндекс.Картах
-          </div>
-          <img className="w-[46px] h-[57px] ml-3" alt="Logo yamaps" src="" />
-        </div>
-      </Button>
-
-      {/* Testimonial Card */}
-      <Card className="absolute w-[920px] h-[960px] top-[4142px] left-[31px] border-0 shadow-none">
-        <CardContent className="relative h-[960px] p-0">
-          <div className="absolute w-[920px] h-[960px] top-0 left-0 bg-[url(/union.svg)] bg-[100%_100%]">
-            <div className="relative w-[826px] h-[721px] top-[181px] left-[50px]">
-              <div className="h-[60px] top-0 left-[267px] [font-family:'Benzin-Medium-☞',Helvetica] font-normal text-u-3kc-1t text-[46px] leading-[60px] whitespace-nowrap absolute tracking-[0]">
-                Оксана Л.
-              </div>
-
-              <div className="absolute w-[820px] h-[448px] top-[140px] left-0 [font-family:'Helvetica-Regular',Helvetica] font-normal text-[#353434] text-4xl text-center tracking-[0] leading-[56px]">
-                Приехала в студию дизайна New, чтобы они мне оформили
-                презентацию на тему трендов моды (так как я шью премиум одежду
-                на заказ и выступаю на конференциях).&nbsp;&nbsp;Ребята с
-                первого раза все сделали идеально и мое выступление на
-                конференции прошло отлично! Буду к ним и дальше обращаться,
-                ребята молодцы)
-              </div>
-
-              <Badge className="w-[275px] h-14 top-[67px] left-[272px] [font-family:'Helvetica-Bold',Helvetica] font-bold text-[#353535] text-4xl text-center leading-[56px] absolute tracking-[0] bg-transparent">
-                #презентация
-              </Badge>
-
-              <div className="absolute w-[406px] h-[72px] top-[649px] left-[207px] flex">
-                {[1, 2, 3, 4, 5].map((_, index) => (
-                  <Star
-                    key={`star-${index}`}
-                    className={`left-[${index * 84 + 4}px] absolute w-16 h-[61px] top-0.5 fill-current text-yellow-400`}
-                  />
-                ))}
-              </div>
-            </div>
+          <div className="absolute w-full h-[157px] top-[214px] left-0">
+            <div className="w-[375px] h-[157px] bg-gradient-to-b from-transparent to-purple-100 rounded-b-3xl" />
           </div>
 
           <img
-            className="absolute w-[142px] h-[142px] top-5 left-[389px] rounded-full"
-            alt="Mask group"
+            className="absolute w-[85px] h-[55px] top-0 left-[31px] object-cover"
+            alt="Logo"
             src=""
           />
-        </CardContent>
-      </Card>
 
-      {/* Submit Application Button */}
-      <Button className="absolute w-[840px] h-[200px] top-[7516px] left-[120px] rounded-[90px] shadow-[0px_4px_15px_#0b001e40] bg-black text-white h-auto">
-        <div className="relative w-[611px] h-[99px] flex items-center justify-center">
-          <div className="w-[512px] h-[87px] [font-family:'Helvetica-Regular',Helvetica] font-normal text-white text-[64px] text-center leading-[normal]">
-            Оставить заявку
+          <div className="absolute w-[356px] h-[135px] top-[284px] left-[25px] text-center">
+            <h1 className="w-[234px] h-[30px] mx-auto [font-family:'Benzin-Medium-☞',Helvetica] font-normal text-cb-7-ehy text-4xl leading-[29.9px] mb-2">
+              Брендинг
+            </h1>
+            <h2 className="w-[156px] h-[30px] mx-auto [font-family:'Benzin-Medium-☞',Helvetica] font-normal text-cb-7-ehy text-4xl leading-[29.9px] mb-2">
+              Сайты
+            </h2>
+            <h3 className="w-[268px] h-[30px] mx-auto [font-family:'Benzin-Medium-☞',Helvetica] font-normal text-cb-7-ehy text-4xl leading-[29.9px] mb-4">
+              Маркетинг
+            </h3>
+            <p className="w-[229px] h-[22px] mx-auto [font-family:'Helvetica-Regular',Helvetica] font-normal text-[#353434] text-[17px] text-center leading-[21.9px]">
+              Скорость. Эстетика. Смысл
+            </p>
           </div>
-          <ArrowRight className="w-[85px] h-[85px] ml-3" />
-        </div>
-      </Button>
 
-      {/* View Button */}
-      <Button
-        variant="outline"
-        className="absolute w-[642px] h-[153px] top-[6999px] left-20 rounded-[68.79px] border-0 h-auto"
-      >
-        <div className="relative w-[319px] h-[75px] flex items-center justify-center">
-          <div className="w-[239px] h-[67px] [font-family:'Helvetica-Bold',Helvetica] font-bold text-[#181818] text-[49px] text-center leading-[normal]">
-            Смотреть
+          <div className="absolute w-[93px] h-[93px] top-[265px] right-[12px]">
+            <div className="relative w-[87px] h-[85px] top-1 left-[3px]">
+              <div className="absolute w-[55px] h-[55px] top-[15px] left-4 bg-[#9272e6cc] rounded-[27.5px] backdrop-blur-[0.73px]" />
+              <Button
+                size="icon"
+                className="absolute w-[87px] h-[85px] top-0 left-0 rounded-full bg-transparent hover:bg-transparent p-0"
+              >
+                <ArrowRight className="w-[34px] h-[34px] text-white" />
+              </Button>
+            </div>
           </div>
-          <ArrowRight className="w-[65px] h-[65px] ml-3" />
-        </div>
-      </Button>
+        </section>
 
-      {/* Project Image */}
-      <img
-        className="absolute w-[664px] h-[1340px] top-[5635px] left-[70px]"
-        alt="Element"
-        src=""
-      />
+        {/* CTA Buttons */}
+        <div className="flex flex-col gap-4 px-[33px] mt-8">
+          <Button className="w-full h-auto py-4 rounded-[32.79px] bg-gradient-to-r from-purple-600 to-purple-400 text-white shadow-[0px_1.46px_5.47px_#0b001e40]">
+            <span className="text-[23px] mr-2">Заказать</span>
+            <ArrowRight className="w-[30px] h-[30px]" />
+          </Button>
 
-      {/* Map Image */}
-      <img
-        className="absolute w-[920px] h-[800px] top-[8323px] left-20 object-cover"
-        alt="Rectangle"
-        src=""
-      />
-
-      {/* Contact Information */}
-      {contactInfo.map((contact, index) => (
-        <div
-          key={`contact-${index}`}
-          className={`absolute ${contact.className} h-[60px] top-[${index === 0 ? 8076 : index === 1 ? 8183 : 9178}px] left-[${index === 2 ? 78 : 81}px] flex items-center`}
-        >
-          <div className="absolute left-0">{contact.icon}</div>
-          <div
-            className={`absolute ${index === 2 ? "w-[840px]" : index === 1 ? "w-[594px]" : "w-[474px]"} h-[60px] top-0 left-[${index === 1 ? 72 : index === 2 ? 72 : 73}px] [font-family:'Benzin-Medium-☞',Helvetica] font-normal text-u-3kc-1t text-[40px] tracking-[0] leading-[60px]`}
+          <Button
+            variant="outline"
+            className="w-full h-auto py-4 rounded-[32.79px] border-gray-300"
           >
-            {contact.text}
+            <span className="text-[23px] text-[#181818] mr-2">Позвонить</span>
+            <ArrowRight className="w-[30px] h-[30px] text-[#181818]" />
+          </Button>
+        </div>
+
+        {/* Main Heading */}
+        <div className="px-[27px] mt-12">
+          <h2 className="[font-family:'Benzin-Medium-☞',Helvetica] font-normal text-[28px] leading-[29.9px] text-cb-7-ehy text-center">
+            Мы любим свое дело и дорожим репутацией
+          </h2>
+        </div>
+
+        {/* Stats Section */}
+        <section className="px-2 mt-12 space-y-4">
+          {statsData.map((stat, index) => (
+            <Card
+              key={index}
+              className="mx-auto w-[372px] h-[171px] bg-gradient-to-r from-purple-50 to-purple-100 border-0 rounded-3xl"
+            >
+              <CardContent className="p-0 relative h-full">
+                <div className="absolute w-[60px] h-[60px] top-0 left-[18px] bg-[#9272e6cc] rounded-[30px] backdrop-blur-[0.73px] flex items-center justify-center">
+                  <span className="text-2xl">{stat.icon}</span>
+                </div>
+
+                <div className="absolute w-[330px] h-[124px] top-[21px] left-[18px]">
+                  {stat.number && (
+                    <div className="h-[22px] left-[90px] [font-family:'Benzin-Medium-☞',Helvetica] font-normal text-black text-[22px] leading-[21.9px] absolute">
+                      {stat.number}
+                    </div>
+                  )}
+                  <div className="h-[17px] top-[27px] left-[90px] [font-family:'Benzin-Medium-☞',Helvetica] font-normal text-cb-7-ehy text-[17px] leading-[16.8px] absolute">
+                    {stat.label}
+                  </div>
+                  <p className="w-[324px] top-[58px] left-0 [font-family:'Helvetica-Regular',Helvetica] font-normal text-[#353434] text-base leading-[21.9px] absolute">
+                    {stat.description}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </section>
+
+        {/* Recommendations Section */}
+        <div className="px-[29px] mt-12">
+          <div className="flex items-center justify-center gap-4">
+            <h2 className="[font-family:'Benzin-Medium-☞',Helvetica] font-normal text-cb-7-ehy text-[28px] text-center leading-[29.9px]">
+              Нас рекомендуют
+            </h2>
+            <div className="w-[49px] h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+              <span className="text-2xl">👥</span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-center mt-4 gap-2">
+            <div className="flex gap-1">
+              <div className="w-7 h-7 bg-[#9272e6] rounded-[14px]" />
+              <div className="w-7 h-7 bg-[#c1aafb] rounded-[14px]" />
+              <div className="w-7 h-7 bg-[#eceaf4] rounded-[14px]" />
+            </div>
+            <span className="[font-family:'Benzin-Medium-☞',Helvetica] font-normal text-black text-sm leading-[21.9px] ml-2">
+              500+
+            </span>
           </div>
         </div>
-      ))}
 
-      {/* Social Media Icons */}
-      <div className="absolute w-[364px] h-[162px] top-[9418px] left-[358px] flex space-x-10">
-        {socialMedia.map((social, index) => (
-          <div
-            key={`social-${index}`}
-            className={`absolute w-[162px] h-[162px] top-0 left-[${index * 202}px] ${social.color} rounded-[81px] flex items-center justify-center`}
-          >
+        {/* Testimonial Section */}
+        <section className="px-2 mt-12">
+          <Card className="w-[306px] h-[321px] mx-auto bg-gradient-to-b from-purple-50 to-white border-0 rounded-3xl relative">
+            <CardContent className="p-0 relative h-full">
+              <Avatar className="absolute w-[47px] h-[47px] top-[7px] left-1/2 transform -translate-x-1/2">
+                <AvatarImage src="" alt="Оксана Л." />
+                <AvatarFallback>ОЛ</AvatarFallback>
+              </Avatar>
+
+              <div className="w-[266px] h-[241px] absolute top-[61px] left-[23px] text-center">
+                <h3 className="[font-family:'Benzin-Medium-☞',Helvetica] font-normal text-cb-7-ehy text-base leading-[20.1px] mb-1">
+                  {testimonialData.name}
+                </h3>
+
+                <Badge
+                  variant="secondary"
+                  className="[font-family:'Helvetica-Bold',Helvetica] font-bold text-[#353535] text-xs mb-6"
+                >
+                  {testimonialData.tag}
+                </Badge>
+
+                <p className="w-[260px] h-[150px] [font-family:'Helvetica-Regular',Helvetica] font-normal text-[#353434] text-xs text-center leading-[18.7px] mb-4">
+                  {testimonialData.text}
+                </p>
+
+                <div className="flex justify-center gap-1">
+                  {[...Array(testimonialData.rating)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className="w-[21px] h-5 fill-yellow-400 text-yellow-400"
+                    />
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Yandex Maps Button */}
+        <div className="px-[34px] mt-8">
+          <Button className="w-full h-auto py-4 rounded-[32.79px] bg-gradient-to-r from-purple-600 to-purple-400 text-white shadow-[0px_1.46px_5.47px_#0b001e40]">
+            <span className="text-[23px] mr-2">Смотреть на Яндекс.Картах</span>
+            <img className="w-[17px] h-[21px]" alt="Yandex Maps" src="" />
+          </Button>
+        </div>
+
+        {/* Projects Section */}
+        <section className="px-[29px] mt-12">
+          <h2 className="[font-family:'Benzin-Medium-☞',Helvetica] font-normal text-cb-7-ehy text-[28px] text-center leading-[29.9px] mb-8">
+            Наши проекты
+          </h2>
+
+          <div className="relative">
             <img
-              className={`w-[81px] h-[${index === 0 ? 69 : 81}px]`}
-              alt="Vector"
+              className="w-60 h-[484px] mx-auto object-cover rounded-lg"
+              alt="Project showcase"
               src=""
             />
-          </div>
-        ))}
-      </div>
 
-      {/* Footer */}
-      <div className="absolute w-[1080px] h-[375px] top-[9680px] left-0 bg-black flex flex-col items-center justify-center">
-        {footerLinks.map((link, index) => (
-          <div
-            key={`footer-${index}`}
-            className={`h-[60px] top-[${index === 0 ? 79 : 203}px] ${link.className} [font-family:'Helvetica-Regular',Helvetica] font-normal text-[#ffffffcc] text-[46px] leading-[60px] underline whitespace-nowrap absolute tracking-[0] cursor-pointer`}
-          >
-            {link.text}
+            <Button
+              variant="outline"
+              className="absolute bottom-4 left-1/2 transform -translate-x-1/2 rounded-[24.87px] h-auto py-3 px-6"
+            >
+              <span className="text-lg text-[#181818] mr-2">Смотреть</span>
+              <ArrowRight className="w-6 h-6 text-[#181818]" />
+            </Button>
           </div>
-        ))}
+        </section>
+
+        {/* Contact Section */}
+        <section className="px-5 mt-12">
+          <div className="flex items-center gap-4 mb-8">
+            <div className="w-[47px] h-[49px] bg-gray-200 rounded-lg flex items-center justify-center">
+              <span className="text-2xl">📞</span>
+            </div>
+            <h2 className="[font-family:'Benzin-Medium-☞',Helvetica] font-normal text-cb-7-ehy text-[28px] text-center leading-[29.9px]">
+              Связаться с нами
+            </h2>
+          </div>
+
+          <div className="flex flex-col gap-4 mb-8">
+            <Button
+              variant="outline"
+              className="w-full h-auto py-4 rounded-[32.79px] border-gray-300"
+            >
+              <span className="text-[23px] text-[#181818] mr-2">Позвонить</span>
+              <ArrowRight className="w-[30px] h-[30px] text-[#181818]" />
+            </Button>
+
+            <Button className="w-full h-auto py-4 rounded-[32.79px] bg-gradient-to-r from-purple-600 to-purple-400 text-white shadow-[0px_1.46px_5.47px_#0b001e40]">
+              <span className="text-[23px] mr-2">Оставить заявку</span>
+              <ArrowRight className="w-[30px] h-[30px]" />
+            </Button>
+          </div>
+
+          {/* Contact Info */}
+          <div className="space-y-4 mb-8">
+            {contactData.map((contact, index) => (
+              <div key={index} className="flex items-center gap-4">
+                <contact.icon className="w-[19px] h-[19px] text-cb-7-ehy" />
+                <span className="[font-family:'Benzin-Medium-☞',Helvetica] font-normal text-cb-7-ehy text-[15px] leading-[21.9px]">
+                  {contact.text}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Map Image */}
+          <img
+            className="w-[335px] h-[291px] mx-auto object-cover rounded-lg mb-8"
+            alt="Location map"
+            src=""
+          />
+
+          {/* Social Links */}
+          <div className="flex justify-center gap-4 mb-8">
+            {socialLinks.map((social, index) => (
+              <Button
+                key={index}
+                size="icon"
+                className={`w-[60px] h-[60px] ${social.bgColor} rounded-[30px] hover:opacity-80`}
+              >
+                <span className="text-2xl">{social.icon}</span>
+              </Button>
+            ))}
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer className="w-full h-[137px] bg-black flex flex-col items-center justify-center gap-4">
+          <a
+            href="#"
+            className="[font-family:'Helvetica-Regular',Helvetica] font-normal text-[#ffffffcc] text-base leading-[21.9px] underline"
+          >
+            Договор-офферты
+          </a>
+          <a
+            href="#"
+            className="[font-family:'Helvetica-Regular',Helvetica] font-normal text-[#ffffffcc] text-base leading-[21.9px] underline"
+          >
+            Политика конфиденциальности
+          </a>
+        </footer>
       </div>
     </div>
   );
-}
+};
+
+export default Screen;
