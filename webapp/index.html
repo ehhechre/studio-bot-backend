@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Подключение Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    
     <title>Polli Digital</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -139,51 +142,83 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Кнопки - не меняем */
-        .buttons-block {
-            margin-top: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            padding-bottom: 20px;
-        }
+        /* Кнопки - изменения */
+/* Кнопки */
+/* Кнопки */
+.buttons-block {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding-bottom: 20px;
+}
 
-        .button {
-            width: 100%;
-            height: 60px;
-            border-radius: 30px;
-            font-size: 18px;
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
+.button {
+    width: 100%;
+    height: 60px;
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    gap: 15px; /* Отступ между текстом и стрелкой */
+}
 
-        .button::after {
-            content: "→";
-            position: absolute;
-            right: 25px;
-            font-size: 20px;
-        }
+/* Стрелка */
+/* Стрелка */
+.button i {
+    font-size: 20px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px; /* Добавляем отступы для стрелки */
+    border-radius: 50%; /* Сделаем стрелку круглой */
+    border: 2px solid #000000; /* Обводка стрелки */
+    background: none; /* Убираем белый фон */
+    transition: none; /* Убираем анимацию */
+}
 
-        .primary-button {
-            background: linear-gradient(90deg, #9272e6, #B777FF 52%, #9272e6);
-            color: white;
-            box-shadow: 0px 4px 15px rgba(146, 114, 230, 0.3);
-        }
+/* Кнопка с фоном (Градиент) */
+.primary-button {
+    background: linear-gradient(90deg, #9272e6, #B777FF 52%, #9272e6);
+    color: white;
+    box-shadow: 0px 4px 15px rgba(146, 114, 230, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: none;
+}
 
-        .primary-button:hover {
-            box-shadow: 0px 6px 20px rgba(146, 114, 230, 0.4);
-        }
+/* Кнопка с белым фоном */
+.secondary-button {
+    background: white;
+    border: 2px solid #9272e6;
+    color: #181818;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: none;
+}
 
-        .secondary-button {
-            background: white;
-            border: 2px solid #9272e6;
-            color: #181818;
-        }
+/* Стрелка для кнопки с градиентом (белая) */
+.primary-button i {
+    color: white; /* Стрелка белая */
+    border-color: #ffffff; /* Черная обводка */
+}
+
+/* Стрелка для кнопки с белым фоном (черная) */
+.secondary-button i {
+    color: black; /* Стрелка черная */
+    border-color: #000000; /* Черная обводка */
+}
+
+
+
+
     </style>
 </head>
 <body>
@@ -222,11 +257,18 @@
         </div>
         
         <!-- Кнопки -->
-        <div class="buttons-block">
-            <button class="button primary-button" id="orderButton">Заказать</button>
-            <button class="button secondary-button" id="callButton">Позвонить</button>
-        </div>
-    </div>
+        <!-- Кнопки -->
+<!-- Кнопки -->
+<div class="buttons-block">
+    <button class="button primary-button" id="orderButton">
+        Заказать <i class="fas fa-arrow-right"></i>
+    </button>
+    <button class="button secondary-button" id="callButton">
+        Позвонить <i class="fas fa-arrow-right"></i>
+    </button>
+</div>
+
+
     
     <script>
         // Инициализация Telegram Web App
