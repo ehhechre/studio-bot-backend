@@ -310,54 +310,42 @@
 
         /* ====== REVIEWS SECTION ====== */
         .reviews-section-wrapper {
-            padding: 35px 0;
+            padding: 40px 20px;
             background: #fff;
         }
 
         .reviews-header {
-            padding: 0 20px;
-            margin-bottom: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            position: relative;
+            margin-bottom: 30px;
+            text-align: center;
         }
 
-        .reviews-title-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 8px;
-            position: relative;
+        .reviews-title-wrapper {
+            display: block;
+            text-align: center;
+            margin-bottom: 15px;
         }
 
         .reviews-title {
-            font-family: 'Benzin', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-size: 24px;
-            font-weight: 900;
-            text-align: left;
-            line-height: 1.3;
-            color: #181818;
-            letter-spacing: -0.3px;
-        }
+    font-family: 'Benzin', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 32px;
+    font-weight: 500;
+    color: #181818;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+    text-align: center;
+    display: inline-block;
+    position: relative;
+}
 
-        .reviews-pin-icon {
-            font-size: 20px;
-            color: #7c5ce6;
-            transform: rotate(15deg);
-        }
-
-        .reviews-arrow-decoration {
+        .reviews-arrow-icon {
+            width: 24px;
+            height: 24px;
             position: absolute;
-            right: -30px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 40px;
-            height: 30px;
-            z-index: 1;
+            top: -5px;
+            right: -35px;
         }
 
-        .reviews-arrow-decoration img {
+        .reviews-arrow-icon img {
             width: 100%;
             height: 100%;
             object-fit: contain;
@@ -366,26 +354,44 @@
         .reviews-info-row {
             display: flex;
             align-items: center;
-            gap: 6px;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .scroll-indicator-dots {
+            display: flex;
+            gap: 4px;
+            margin-right: 8px;
         }
 
         .circle-dot {
-            width: 12px;
-            height: 12px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
         }
 
+        .circle-dot:nth-child(1) {
+            background-color: #B8A4ED;
+        }
+
+        .circle-dot:nth-child(2) {
+            background-color: #C8B9F5;
+        }
+
+        .circle-dot:nth-child(3) {
+            background-color: #D8CEFC;
+        }
+
         .reviews-header-badge {
-            background: none;
             color: #181818;
             font-family: inherit;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 700;
-            padding: 0;
-            margin-left: 6px;
+            margin-left: 8px;
         }
 
         .reviews-container {
+            margin-bottom: 30px;
             display: flex;
             overflow-x: auto;
             scroll-snap-type: x mandatory;
@@ -400,93 +406,96 @@
             display: none;
         }
 
-        .review-card {
+        .review-image {
             flex: 0 0 calc(100vw - 60px);
+            max-width: 400px;
+            min-width: 300px;
+            height: auto;
+            border-radius: 24px;
+            box-shadow: 0 4px 20px rgba(146, 114, 230, 0.1);
+            scroll-snap-align: start;
+        }
+
+        .review-card {
             background: linear-gradient(135deg, #f8f6ff, #f0ebff);
             border-radius: 24px;
-            padding: 22px;
-            scroll-snap-align: start;
-            min-width: 280px;
-            display: flex;
-            flex-direction: column;
+            padding: 24px;
+            max-width: 400px;
+            width: 100%;
             border: 1px solid rgba(146, 114, 230, 0.1);
-            box-shadow: 0 2px 12px rgba(146, 114, 230, 0.08);
+            box-shadow: 0 4px 20px rgba(146, 114, 230, 0.1);
+            text-align: left;
         }
 
         .review-user-info {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
         .review-user-avatar {
-            width: 44px;
-            height: 44px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             object-fit: cover;
             flex-shrink: 0;
-            border: 2px solid white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 3px solid white;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+            margin-right: 12px;
         }
 
-        .review-user-info strong {
-            font-size: 17px;
+        .review-user-details {
+            flex: 1;
+        }
+
+        .review-user-name {
+            font-size: 18px;
             font-weight: 700;
-            line-height: 1;
             color: #181818;
-        }
-
-        .stars {
-            color: #FFD700;
-            font-size: 14px;
-            letter-spacing: 1px;
-            margin-left: auto;
+            margin-bottom: 2px;
         }
 
         .review-tags {
             font-size: 13px;
             color: #9272e6;
-            margin-bottom: 10px;
             font-weight: 600;
+            margin-bottom: 15px;
         }
 
         .review-text {
             font-size: 15px;
             line-height: 1.5;
             color: #333;
+            margin-bottom: 15px;
+        }
+
+        .stars {
+            color: #FFD700;
+            font-size: 16px;
+            letter-spacing: 2px;
+            text-align: center;
         }
 
         .review-button-wrapper {
-            padding: 0 20px;
             margin-top: 25px;
-            position: relative;
+            display: flex;
+            justify-content: center;
         }
 
         .review-more-btn {
-            width: 100%;
-            background: linear-gradient(135deg, #9272e6, #7c5ce6);
+            background: linear-gradient(90deg, #9272e6, #B777FF 52%, #9272e6);
             color: white;
             box-shadow: 0px 4px 15px rgba(146, 114, 230, 0.3);
-            flex-direction: column;
-            height: 64px;
-            padding: 12px 0;
-            border-radius: 32px;
+            height: 48px;
+            border-radius: 24px;
             font-weight: 600;
             border: none;
             cursor: pointer;
             transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .review-more-btn span {
-            font-size: 17px;
-            font-weight: 600;
+            font-size: 25px;
             line-height: 1.2;
-            display: block;
-            text-align: center;
+            padding: 0 24px;
+            white-space: nowrap;
         }
 
         .review-more-btn:hover {
@@ -497,7 +506,7 @@
         /* Медиа-запросы для адаптивности */
         @media (max-width: 480px) {
             .stats-title, .reviews-title {
-                font-size: 24px;
+                font-size: 32px;
                 padding: 0 10px;
             }
             
@@ -609,101 +618,37 @@
     <!-- REVIEWS SECTION -->
     <div class="reviews-section-wrapper">
         <div class="reviews-header">
-            <div class="reviews-title-row">
-                <div class="reviews-title">Нас рекомендуют</div>
-                <div class="reviews-pin-icon">📍</div>
-                <div class="reviews-arrow-decoration">
-                    <img src="arrow.svg" alt="Декоративная стрелка">
+            <div class="reviews-title-wrapper">
+                <div class="reviews-title">
+                    Нас<br>рекомендуют
+                    <div class="reviews-arrow-icon">
+                        <img src="arrow.svg" alt="Декоративная стрелка">
+                    </div>
                 </div>
             </div>
             <div class="reviews-info-row">
-                <div class="circle-dot" style="background-color: #B8A4ED;"></div>
-                <div class="circle-dot" style="background-color: #C8B9F5;"></div>
-                <div class="circle-dot" style="background-color: #D8CEFC;"></div>
+                <div class="scroll-indicator-dots">
+                    <div class="circle-dot"></div>
+                    <div class="circle-dot"></div>
+                    <div class="circle-dot"></div>
+                </div>
                 <div class="reviews-header-badge">500+</div>
             </div>
         </div>
-        <div class="reviews-container" id="reviewsContainer">
-            <!-- Отзывы будут добавлены JavaScript -->
+        <div class="reviews-container">
+            <img src="client (1).png" alt="Отзыв Оксаны Л." class="review-image">
+            <img src="client (2).png" alt="Отзыв Григория М." class="review-image">
+            <img src="client (3).png" alt="Отзыв Ирины Тищенко" class="review-image">
+            <img src="client (4).png" alt="Отзыв Yana" class="review-image">
+            <img src="client (5).png" alt="Отзыв ООО Никойл" class="review-image">
+            <img src="client (6).png" alt="Отзыв Петра Маркова" class="review-image">
         </div>
         <div class="review-button-wrapper">
-            <button class="review-more-btn" id="yandexMapsButton">
-                <span>Смотреть на</span>
-                <span>Яндекс.Картах</span>
-            </button>
+            <img src="knopka.svg" alt="Смотреть на Яндекс.Картах" id="yandexMapsButton" style="cursor: pointer; max-width: 100%; height: auto;">
         </div>
     </div>
     
     <script>
-        // Данные отзывов
-        const reviews = [
-            { 
-                name: "Оксана Л.", 
-                text: "Приехала в студию дизайна New, чтобы они мне оформили презентацию на тему трендов моды. Ребята с первого раза все сделали идеально и мое выступление на конференции прошло отлично! Буду к ним и дальше обращаться, ребята молодцы!",
-                tags: "#презентация", 
-                avatar: "client (1).png"
-            },
-            { 
-                name: "Григорий М.", 
-                text: "Заказывал у ребят полиграфическую продукцию для нашей компании по производству и реализации товаров. Учли все наши пожелания, качество на высшем уровне. Очень благодарен за профессиональную работу!",
-                tags: "#полиграфия", 
-                avatar: "client (2).png"
-            },
-            { 
-                name: "Ирина Тищенко", 
-                text: "Лучшая компания с которой я сотрудничала! Обратилась к вам за созданием фирменного стиля для моего бизнеса и получила больше, чем ожидала. Вы так хорошо воплотили мою идею в жизнь!",
-                tags: "#брендбук", 
-                avatar: "client (3).png"
-            },
-            { 
-                name: "Yana ❤", 
-                text: "Благодарна за отличную работу! Заказывала создание сайта и маркетинговое продвижение. Результат превзошел все ожидания. Профессионалы своего дела!",
-                tags: "#маркетинговое продвижение", 
-                avatar: "client (4).png"
-            },
-            { 
-                name: "ООО \"Никойл\"", 
-                text: "Хочу поблагодарить студию NEW и ее сотрудников! Заказывали полный комплекс услуг: логотип, фирменный стиль, печать бланков. Все выполнено качественно и в срок. Планируем долгосрочное сотрудничество!",
-                tags: "#печать рекламных материалов", 
-                avatar: "client (5).png"
-            },
-            { 
-                name: "Пётр Марков", 
-                text: "Пользовался услугами по созданию сайта для своего бизнеса. Отмечу внимание к деталям команды и их профессионализм. Работой доволен, рекомендую!",
-                tags: "#веб-разработка", 
-                avatar: "client (6).png"
-            }
-        ];
-
-        // Функция для создания звездочек
-        function createStars(count) {
-            return '⭐'.repeat(count);
-        }
-
-        // Функция для создания отзыва
-        function createReviewCard(review) {
-            return `
-                <div class="review-card">
-                    <div class="review-user-info">
-                        <img src="${review.avatar}" alt="${review.name}" class="review-user-avatar" onerror="this.style.display='none'">
-                        <strong>${review.name}</strong>
-                        <div class="stars">
-                            ${createStars(5)}
-                        </div>
-                    </div>
-                    <div class="review-tags">${review.tags}</div>
-                    <p class="review-text">${review.text}</p>
-                </div>
-            `;
-        }
-
-        // Функция для отображения отзывов
-        function renderReviews() {
-            const container = document.getElementById('reviewsContainer');
-            const reviewsHTML = reviews.map(review => createReviewCard(review)).join('');
-            container.innerHTML = reviewsHTML;
-        }
-
         // Инициализация Telegram Web App
         let tg = window.Telegram.WebApp;
         tg.expand();
@@ -720,11 +665,6 @@
         document.getElementById('yandexMapsButton').addEventListener('click', function() {
             const mapsUrl = 'https://yandex.ru/maps/213/moscow/?ll=37.625000%2C55.755000&z=15';
             window.open(mapsUrl, '_blank');
-        });
-
-        // Инициализация отзывов при загрузке страницы
-        document.addEventListener('DOMContentLoaded', function() {
-            renderReviews();
         });
     </script>
 </body>
