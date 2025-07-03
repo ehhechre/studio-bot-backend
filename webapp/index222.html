@@ -1,1111 +1,731 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <title>Polli Digital</title>
-
-  <!-- React через CDN -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-  <style>
-    /* Подключение Google Fonts как backup */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
-
-    @font-face {
-      font-family: 'Benzin';
-      src: url('./fonts/Benzin-Bold.woff2') format('woff2');
-      font-weight: 900;
-      font-display: swap;
-    }
-
-    @font-face {
-      font-family: 'Helvetica';
-      src: url('./fonts/HelveticaRegular.woff') format('woff');
-      font-weight: normal;
-      font-display: swap;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Helvetica', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-      background: white;
-      color: #181818;
-      overflow-x: hidden;
-      -webkit-tap-highlight-color: transparent;
-      line-height: 1.4;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-
-    .main-wrapper {
-        width: 100%;
-        background: white;
-        min-height: 100vh;
-        position: relative;
-    }
-
-    /* Добавляем загрузочные состояния */
-    .loading-shimmer {
-      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-      background-size: 200% 100%;
-      animation: shimmer 2s infinite;
-    }
-
-    @keyframes shimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
-    }
-
-    /* Улучшенные тени и глубина */
-    .elevated-1 {
-      box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-    }
-
-    .elevated-2 {
-      box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
-    }
-
-    .elevated-3 {
-      box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
-    }
-
-    /* Улучшенная типографика */
-    h1, h2, h3, h4, h5, h6 {
-      font-family: 'Benzin', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      font-weight: 900;
-      line-height: 1.2;
-      letter-spacing: -0.025em;
-    }
-
-    p {
-      line-height: 1.6;
-      margin-bottom: 1em;
-    }
-
-    /* Микро-анимации */
-    .smooth-hover {
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .smooth-hover:hover {
-      transform: translateY(-1px);
-    }
-
-    /* ====== HERO SECTION ====== */
-    .hero-section {
-      width: 100%;
-      background: white;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      padding-bottom: 30px;
-      border-bottom-left-radius: 0;
-      border-bottom-right-radius: 0;
-    }
-
-    .hero-header {
-        background: white;
-        padding: 10px 20px 5px;
-        width: 100%;
-    }
-
-    .logo {
-      font-family: 'Benzin', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      font-size: 24px;
-      line-height: 26px;
-      color: #181818;
-      font-weight: 900;
-      z-index: 10;
-    }
-
-    .team-photo {
-      width: 100%;
-      height: 250px;
-      background: url('./фото.jpg') center center/cover no-repeat;
-      position: relative;
-      background-color: #f5f2fd;
-    }
-
-    .hero-content-area {
-      padding: 15px 20px 0;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .services-block {
-      margin-bottom: 8px;
-      position: relative;
-    }
-
-    .service-title {
-      font-family: 'Benzin', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      font-size: 38px;
-      line-height: 36px;
-      color: #181818;
-      font-weight: 900;
-      margin-bottom: 2px;
-    }
-
-    .branding-title {
-      margin-left: -8px;
-    }
-
-    .sites-title {
-      margin-left: 12px;
-    }
-    .marketing-title {
-      margin-left: 25px;
-    }
-
-    .tagline {
-      font-size: 16px;
-      line-height: 20px;
-      color: #353434;
-      margin-top: 5px;
-      margin-bottom: 10px;
-      margin-left: 12px;
-    }
-
-    .badge-wrapper {
-      position: relative;
-      margin: 10px auto 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 60px;
-      width: 100%;
-    }
-
-    .quality-badge {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, #9272e6, #7c5ce6);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 16px;
-      border: 2px solid white;
-      box-shadow: 0 3px 15px rgba(146, 114, 230, 0.4);
-      z-index: 2;
-    }
-
-    .circular-text {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 66px;
-      height: 66px;
-      font-size: 6px;
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    .badge-wrapper svg {
-      width: 100%;
-      height: 100%;
-      animation: rotate 15s linear infinite;
-    }
-
-    @keyframes rotate {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
-    .cta-buttons {
-      margin-top: 15px;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      padding-bottom: 15px;
-    }
-
-    .btn {
-      width: 100%;
-      height: 60px;
-      border-radius: 30px;
-      font-size: 18px;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      text-decoration: none;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #9272e6, #7c5ce6);
-      color: white;
-      box-shadow: 0px 4px 15px rgba(146, 114, 230, 0.3);
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0px 6px 20px rgba(146, 114, 230, 0.4);
-    }
-
-    .btn-secondary {
-      background: white;
-      color: #9272e6;
-      border: 2px solid #9272e6;
-    }
-
-    .btn-secondary:hover {
-      background: #f5f2fd;
-    }
-
-    /* ====== STATS SECTION ====== */
-    .stats-section {
-      padding: 40px 20px;
-      background: #fff;
-      margin-top: 0;
-    }
-
-    .stats-title {
-      font-family: 'Benzin', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      font-size: 24px;
-      font-weight: 900;
-      text-align: center;
-      margin-bottom: 25px;
-      line-height: 1.3;
-      color: #181818;
-      letter-spacing: -0.3px;
-    }
-
-    .stats-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .stat-card {
-      background: linear-gradient(135deg, #f8f6ff, #f0ebff);
-      padding: 18px;
-      border-radius: 24px;
-      display: flex;
-      gap: 16px;
-      align-items: flex-start;
-      border: 1px solid rgba(146, 114, 230, 0.1);
-    }
-
-    .stat-icon {
-      font-size: 26px;
-      color: #9272e6;
-      flex-shrink: 0;
-      padding-top: 3px;
-      background: white;
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 2px 8px rgba(146, 114, 230, 0.15);
-    }
-
-    .stat-content strong {
-      font-size: 18px;
-      display: block;
-      margin-bottom: 5px;
-      color: #181818;
-      font-weight: 700;
-    }
-    .stat-content {
-      font-size: 15px;
-      line-height: 1.5;
-      color: #555;
-    }
-
-    /* ====== REVIEWS SECTION ====== */
-    .reviews-section-wrapper {
-        padding: 35px 0;
-        background: #fff;
-    }
-
-    .reviews-header {
-        padding: 0 20px;
-        margin-bottom: 20px;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .reviews-title {
-        font-family: 'Benzin', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        font-size: 24px;
-        font-weight: 900;
-        text-align: left;
-        line-height: 1.3;
-        margin-bottom: 8px;
-        color: #181818;
-        letter-spacing: -0.3px;
-    }
-
-    .reviews-info-row {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .circle-dot {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-    }
-
-    .reviews-header-badge {
-        background: none;
-        color: #181818;
-        font-family: inherit;
-        font-size: 16px;
-        font-weight: 700;
-        padding: 0;
-        margin-left: 6px;
-    }
-
-    .reviews-container {
-      display: flex;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      gap: 20px;
-      padding: 0 20px;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-    }
-
-    .reviews-container::-webkit-scrollbar {
-        display: none;
-    }
-
-    .review-card {
-      flex: 0 0 calc(100vw - 60px);
-      background: linear-gradient(135deg, #f8f6ff, #f0ebff);
-      border-radius: 24px;
-      padding: 22px;
-      scroll-snap-align: start;
-      min-width: 280px;
-      display: flex;
-      flex-direction: column;
-      border: 1px solid rgba(146, 114, 230, 0.1);
-      box-shadow: 0 2px 12px rgba(146, 114, 230, 0.08);
-    }
-
-    .review-user-info {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 10px;
-    }
-
-    .review-user-avatar {
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        object-fit: cover;
-        flex-shrink: 0;
-        border: 2px solid white;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .review-user-info strong {
-        font-size: 17px;
-        font-weight: 700;
-        line-height: 1;
-        color: #181818;
-    }
-
-    .stars {
-        color: #FFD700;
-        font-size: 14px;
-        letter-spacing: 1px;
-        margin-left: auto;
-    }
-
-    .review-tags {
-        font-size: 13px;
-        color: #9272e6;
-        margin-bottom: 10px;
-        font-weight: 600;
-    }
-
-    .review-text {
-        font-size: 15px;
-        line-height: 1.5;
-        color: #333;
-    }
-
-    .review-button-wrapper {
-        padding: 0 20px;
-        margin-top: 25px;
-        position: relative;
-    }
-    .review-more-btn {
-        width: 100%;
-        background: linear-gradient(135deg, #9272e6, #7c5ce6);
-        color: white;
-        box-shadow: 0px 4px 15px rgba(146, 114, 230, 0.3);
-        flex-direction: column;
-        height: 64px;
-        padding: 12px 0;
-        border-radius: 32px;
-        font-weight: 600;
-    }
-    .review-more-btn span {
-        font-size: 17px;
-        font-weight: 600;
-        line-height: 1.2;
-        display: block;
-        text-align: center;
-    }
-
-    .yandex-pin-icon {
-        position: absolute;
-        bottom: -18px;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 28px;
-        color: #7c5ce6;
-        z-index: 2;
-        background: white;
-        border-radius: 50%;
-        width: 36px;
-        height: 36px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    }
-
-    /* ====== PROJECTS SECTION ====== */
-    .projects-section {
-      padding: 35px 20px;
-      background: #fff;
-    }
-
-    .projects-title {
-      font-family: 'Benzin', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      font-size: 24px;
-      font-weight: 900;
-      text-align: left;
-      line-height: 1.3;
-      margin-bottom: 25px;
-      color: #181818;
-      letter-spacing: -0.3px;
-    }
-
-    .projects-carousel {
-      display: flex;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      gap: 20px;
-      padding: 0 0 20px 0;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-    }
-
-    .projects-carousel::-webkit-scrollbar {
-      display: none;
-    }
-
-    .project-showcase {
-      flex: 0 0 300px;
-      background: linear-gradient(135deg, #f8f6ff, #f0ebff);
-      border-radius: 24px;
-      padding: 24px;
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      scroll-snap-align: start;
-      border: 1px solid rgba(146, 114, 230, 0.1);
-      box-shadow: 0 4px 16px rgba(146, 114, 230, 0.1);
-    }
-
-    .project-phone {
-      width: 180px;
-      height: 360px;
-      background: linear-gradient(145deg, #1a1a1a, #000);
-      border-radius: 28px;
-      margin: 0 auto 20px;
-      position: relative;
-      overflow: hidden;
-      border: 3px solid #333;
-      box-shadow: 
-        0 15px 35px rgba(0,0,0,0.3),
-        0 5px 15px rgba(0,0,0,0.2),
-        inset 0 1px 0 rgba(255,255,255,0.1);
-    }
-
-    .phone-screen {
-      width: 100%;
-      height: 100%;
-      background: white;
-      border-radius: 25px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .phone-header {
-      height: 28px;
-      background: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 9px;
-      color: #000;
-      border-bottom: 1px solid #f0f0f0;
-      font-weight: 600;
-    }
-
-    .phone-content {
-      padding: 10px;
-      height: calc(100% - 28px);
-      overflow: hidden;
-    }
-
-    .app-logo {
-      font-family: 'Benzin', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      font-size: 13px;
-      font-weight: 900;
-      color: #000;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .app-search-bar {
-      width: 100%;
-      background: #f8f8f8;
-      border-radius: 8px;
-      padding: 5px 8px;
-      font-size: 9px;
-      color: #666;
-      margin-bottom: 8px;
-      border: none;
-      box-sizing: border-box;
-    }
-
-    .app-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-
-    .app-card {
-      border-radius: 8px;
-      padding: 8px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      min-height: 70px;
-    }
-
-    .app-image {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      margin-bottom: 4px;
-      background-size: cover;
-      background-position: center;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-
-    .app-label {
-      font-size: 7px;
-      font-weight: bold;
-      text-align: center;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-
-    /* Разные стили для разных проектов */
-    .project-ugg .app-card {
-      background: #f0e6d2;
-    }
-    .project-ugg .app-label {
-      color: #8b4513;
-    }
-    .project-ugg .app-image.women {
-      background: linear-gradient(45deg, #d4a574, #b8956f) url('https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80') center/cover;
-    }
-    .project-ugg .app-image.men {
-      background: linear-gradient(45deg, #a67c52, #8b6239) url('https://images.unsplash.com/photo-1603808033192-082d6919d3e1?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80') center/cover;
-    }
-    .project-ugg .app-image.kids {
-      background: linear-gradient(45deg, #e6c49f, #d4a574) url('https://images.unsplash.com/photo-1514090458221-65bb69cf63e6?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80') center/cover;
-    }
-    .project-ugg .app-image.accessories {
-      background: linear-gradient(45deg, #c49b7a, #a67c52) url('https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80') center/cover;
-    }
-
-    .project-education .app-card {
-      background: #e8f4fd;
-    }
-    .project-education .app-label {
-      color: #1976d2;
-    }
-    .project-education .app-image {
-      background: linear-gradient(45deg, #42a5f5, #1976d2);
-    }
-
-    .project-real-estate .app-card {
-      background: #f3f4f6;
-    }
-    .project-real-estate .app-label {
-      color: #374151;
-    }
-    .project-real-estate .app-image {
-      background: linear-gradient(45deg, #9ca3af, #374151);
-    }
-
-    .project-construction .app-card {
-      background: #e8f5e8;
-    }
-    .project-construction .app-label {
-      color: #2e7d32;
-    }
-    .project-construction .app-image {
-      background: linear-gradient(45deg, #66bb6a, #2e7d32);
-    }
-
-    .project-info {
-      text-align: center;
-      width: 100%;
-      margin-top: 12px;
-    }
-
-    .project-subtitle {
-      font-size: 13px;
-      color: #666;
-      margin-bottom: 6px;
-      font-weight: 500;
-    }
-
-    .project-description {
-      font-size: 15px;
-      line-height: 1.4;
-      color: #333;
-      margin-bottom: 15px;
-    }
-
-    .project-btn {
-      background: white;
-      color: #9272e6;
-      border: 2px solid #9272e6;
-      width: 100%;
-      height: 44px;
-      border-radius: 22px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .project-btn:hover {
-      background: #f5f2fd;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(146, 114, 230, 0.15);
-    }
-
-    .projects-view-all {
-      text-align: center;
-      margin-top: 20px;
-    }
-
-    .view-all-btn {
-      background: white;
-      color: #9272e6;
-      border: 2px solid #9272e6;
-      padding: 14px 32px;
-      border-radius: 28px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .view-all-btn:hover {
-      background: #f5f2fd;
-      transform: translateY(-1px);
-    }
-
-    /* ====== CONTACT SECTION ====== */
-    .contact-section {
-      padding: 35px 20px 25px;
-      background: #fff;
-    }
-
-    .contact-title {
-      font-family: 'Benzin', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      font-size: 24px;
-      font-weight: 900;
-      text-align: left;
-      line-height: 1.3;
-      margin-bottom: 25px;
-      color: #181818;
-      letter-spacing: -0.3px;
-    }
-
-    .contact-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 30px;
-    }
-
-    .contact-info {
-      margin-bottom: 25px;
-    }
-
-    .contact-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
-      font-size: 16px;
-      color: #181818;
-      font-weight: 500;
-    }
-
-    .contact-icon {
-      font-size: 20px;
-      color: #9272e6;
-      width: 28px;
-      text-align: center;
-      background: #f5f2fd;
-      border-radius: 50%;
-      width: 36px;
-      height: 36px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .map-container {
-      width: 100%;
-      height: 220px;
-      border-radius: 20px;
-      margin-bottom: 18px;
-      position: relative;
-      overflow: hidden;
-      background: url('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80') center/cover;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-    }
-
-    .map-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(146, 114, 230, 0.15);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .map-pin {
-      font-size: 28px;
-      color: #9272e6;
-      background: white;
-      border-radius: 50%;
-      width: 48px;
-      height: 48px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      border: 2px solid #9272e6;
-    }
-
-    .address-info {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      margin-bottom: 25px;
-    }
-
-    .address-text {
-      font-size: 15px;
-      color: #555;
-      line-height: 1.5;
-      font-weight: 500;
-    }
-
-    .social-buttons {
-      display: flex;
-      gap: 18px;
-      justify-content: center;
-      margin-bottom: 35px;
-    }
-
-    .social-btn {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 26px;
-      color: white;
-      text-decoration: none;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-
-    .social-btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-    }
-
-    .telegram-btn {
-      background: linear-gradient(135deg, #0088cc, #006aa3);
-    }
-
-    .whatsapp-btn {
-      background: linear-gradient(135deg, #25d366, #1da851);
-    }
-
-    /* ====== FOOTER ====== */
-    .footer {
-      background: linear-gradient(135deg, #1a1a1a, #000);
-      color: white;
-      padding: 25px 20px;
-      text-align: center;
-      border-top: 1px solid rgba(146, 114, 230, 0.2);
-    }
-
-    .footer-links {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-      margin-bottom: 25px;
-    }
-
-    .footer-link {
-      color: #ccc;
-      text-decoration: none;
-      font-size: 15px;
-      font-weight: 500;
-      transition: all 0.3s ease;
-      padding: 8px 0;
-    }
-
-    .footer-link:hover {
-      color: #9272e6;
-      text-decoration: underline;
-    }
-
-    .footer-copyright {
-      font-size: 13px;
-      color: #777;
-      border-top: 1px solid #333;
-      padding-top: 18px;
-      line-height: 1.4;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Подключение Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    
+    <title>Polli Digital</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* Подключение шрифтов */
+        @font-face {
+            font-family: 'Benzin';
+            src: url('./fonts/Benzin-Medium.woff2') format('woff2');
+            font-weight: 500;
+            font-display: swap;
+        }
+
+        /* Базовые стили */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: white;
+            color: #181818;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+            line-height: 1.4;
+        }
+
+        /* Контейнер */
+        .container {
+            width: 100%;
+            max-width: 100%;
+            padding: 10px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Логотип */
+        .logo-block {
+            margin-bottom: 10px;
+            margin-top: -26px;
+        }
+
+        .logo-image {
+            max-width: 100%;
+            height: auto;
+            max-height: 110px;
+            display: block;
+        }
+
+        /* Фото команды */
+        .team-photo-block {
+            margin-top: -40px;
+            margin-bottom: 10px;
+        }
+
+        .team-photo {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        /* Блок с услугами и декоративными элементами */
+        .services-wrapper {
+            position: relative;
+            margin-bottom: 30px;
+            min-height: 180px;
+        }
+
+        /* Левый декоративный элемент */
+        .left-decoration {
+            position: absolute;
+            left: 0;
+            top: 40px;
+            width: 60px;
+            height: 180px;
+            z-index: 1;
+            background: url('arrow.svg') no-repeat center center;
+            background-size: contain;
+        }
+
+        /* Центральный блок с текстом */
+        .services-block {
+            position: relative;
+            z-index: 2;
+            padding-right: 70px;
+        }
+
+        /* Общие стили для заголовков */
+        .main-title {
+            font-size: 38px;
+            font-weight: 900;
+            line-height: 1.2;
+            position: relative;
+        }
+
+        /* Индивидуальные стили для каждого заголовка */
+        .branding-title {
+            margin-left: 1px;
+        }
+
+        .sites-title {
+            margin-left: 105px;
+        }
+
+        .marketing-title {
+            margin-left: 105px;
+        }
+
+        .subtitle {
+            font-size: 17px;
+            color: #353434;
+            margin-top: 5px;
+            margin-left: 105px;
+        }
+
+        /* Правый декоративный элемент */
+        .right-decoration {
+            position: absolute;
+            right: 28px;
+            top: -15px;
+            width: 83px;
+            height: 83px;
+            z-index: 1;
+        }
+
+        .circle-badge-svg {
+            width: 110%;
+            height: 130%;
+            animation: rotate 35s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Кнопки */
+        .buttons-block {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding-bottom: 20px;
+        }
+
+        .button {
+            width: 100%;
+            height: 60px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            gap: 15px;
+        }
+
+        .button i {
+            font-size: 20px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            padding: 8px;
+            border-radius: 50%;
+            border: 2px solid #000000;
+            background: none;
+            transition: none;
+        }
+
+        .primary-button {
+            background: linear-gradient(90deg, #9272e6, #B777FF 52%, #9272e6);
+            color: white;
+            box-shadow: 0px 4px 15px rgba(146, 114, 230, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: none;
+        }
+
+        .secondary-button {
+            background: white;
+            border: 2px solid #9272e6;
+            color: #181818;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: none;
+        }
+
+        .primary-button i {
+            color: white;
+            border-color: #ffffff;
+        }
+
+        .secondary-button i {
+            color: black;
+            border-color: #000000;
+        }
+
+        /* ====== STATS SECTION ====== */
+        .stats-section {
+            padding: 40px 20px;
+            background: #fff;
+        }
+
+        .stats-title {
+            font-family: 'Benzin', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 28px;
+            font-weight: 500;
+            text-align: center;
+            margin-bottom: 25px;
+            line-height: 1.2;
+            color: #181818;
+            padding: 0 15px;
+            letter-spacing: -0.5px;
+        }
+
+        .stats-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f8f6ff, #f0ebff);
+            padding: 18px;
+            border-radius: 20px;
+            border: 1px solid rgba(146, 114, 230, 0.1);
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .stat-icon {
+            font-size: 26px;
+            color: white;
+            background: linear-gradient(135deg, #9272e6, #7c5ce6);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(146, 114, 230, 0.3);
+            flex-shrink: 0;
+        }
+
+        .stat-content {
+            flex: 1;
+        }
+
+        .stat-content strong {
+            font-size: 18px;
+            display: block;
+            margin-bottom: 5px;
+            color: #181818;
+            font-weight: 700;
+        }
+
+        .stat-content p {
+            font-size: 15px;
+            line-height: 1.5;
+            color: #555;
+            margin: 0;
+        }
+
+        /* Стили для изображения карточки */
+        .stat-card-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 20px;
+            margin-bottom: 2px;
+        }
+
+        /* Контейнер для картинки с иконкой */
+        .stat-card-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        /* Фиолетовая иконка поверх картинки */
+        .stat-overlay-icon {
+            position: absolute;
+            left: 36px;
+            top: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 33px;
+            color: white;
+            box-shadow: 0 4px 12px rgba(146, 114, 230, 0.3);
+            z-index: 2;
+            font-weight: bold;
+        }
+
+        /* ====== REVIEWS SECTION ====== */
+        .reviews-section-wrapper {
+            padding: 35px 0;
+            background: #fff;
+        }
+
+        .reviews-header {
+            padding: 0 20px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            position: relative;
+        }
+
+        .reviews-title-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .reviews-title {
+            font-family: 'Benzin', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 24px;
+            font-weight: 900;
+            text-align: left;
+            line-height: 1.3;
+            color: #181818;
+            letter-spacing: -0.3px;
+        }
+
+        .reviews-pin-icon {
+            font-size: 20px;
+            color: #7c5ce6;
+            transform: rotate(15deg);
+        }
+
+        .reviews-arrow-decoration {
+            position: absolute;
+            right: -30px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 30px;
+            z-index: 1;
+        }
+
+        .reviews-arrow-decoration img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .reviews-info-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .circle-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .reviews-header-badge {
+            background: none;
+            color: #181818;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 700;
+            padding: 0;
+            margin-left: 6px;
+        }
+
+        .reviews-container {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            gap: 20px;
+            padding: 0 20px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .reviews-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .review-card {
+            flex: 0 0 calc(100vw - 60px);
+            background: linear-gradient(135deg, #f8f6ff, #f0ebff);
+            border-radius: 24px;
+            padding: 22px;
+            scroll-snap-align: start;
+            min-width: 280px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(146, 114, 230, 0.1);
+            box-shadow: 0 2px 12px rgba(146, 114, 230, 0.08);
+        }
+
+        .review-user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .review-user-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .review-user-info strong {
+            font-size: 17px;
+            font-weight: 700;
+            line-height: 1;
+            color: #181818;
+        }
+
+        .stars {
+            color: #FFD700;
+            font-size: 14px;
+            letter-spacing: 1px;
+            margin-left: auto;
+        }
+
+        .review-tags {
+            font-size: 13px;
+            color: #9272e6;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .review-text {
+            font-size: 15px;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        .review-button-wrapper {
+            padding: 0 20px;
+            margin-top: 25px;
+            position: relative;
+        }
+
+        .review-more-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #9272e6, #7c5ce6);
+            color: white;
+            box-shadow: 0px 4px 15px rgba(146, 114, 230, 0.3);
+            flex-direction: column;
+            height: 64px;
+            padding: 12px 0;
+            border-radius: 32px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .review-more-btn span {
+            font-size: 17px;
+            font-weight: 600;
+            line-height: 1.2;
+            display: block;
+            text-align: center;
+        }
+
+        .review-more-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0px 6px 20px rgba(146, 114, 230, 0.4);
+        }
+
+        /* Медиа-запросы для адаптивности */
+        @media (max-width: 480px) {
+            .stats-title, .reviews-title {
+                font-size: 24px;
+                padding: 0 10px;
+            }
+            
+            .container {
+                padding: 8px;
+            }
+            
+            .main-title {
+                font-size: 32px;
+            }
+            
+            .button {
+                height: 56px;
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 320px) {
+            .stats-title, .reviews-title {
+                font-size: 22px;
+            }
+            
+            .main-title {
+                font-size: 28px;
+            }
+            
+            .stat-overlay-icon {
+                width: 38px;
+                height: 38px;
+                font-size: 18px;
+                left: 12px;
+                top: 15px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div id="root"></div>
+    <div class="container">
+        <!-- Логотип -->
+        <div class="logo-block">
+            <div class="logo">
+                <img src="logo.png" alt="Polli Digital Logo" class="logo-image">
+            </div>
+        </div>
+        
+        <!-- Фото команды -->
+        <div class="team-photo-block">
+            <img src="фото.jpg" alt="Команда Polli Digital" class="team-photo">
+        </div>
+        
+        <!-- Блок с заголовками и декоративными элементами -->
+        <div class="services-wrapper">
+            <!-- Левый декоративный элемент -->
+            <div class="left-decoration">
+                <img src="arrow.svg" alt="Декоративная линия" width="100%" height="100%">
+            </div>
+            
+            <!-- Центральный блок с текстом -->
+            <div class="services-block">
+                <div class="main-title branding-title">Брендинг</div>
+                <div class="main-title sites-title">Сайты</div>
+                <div class="main-title marketing-title">Маркетинг</div>
+                <div class="subtitle">Скорость.&nbsp;Эстетика.&nbsp;Смысл</div>
+            </div>
+            
+            <!-- Правый декоративный элемент -->
+            <div class="right-decoration">
+                <img src="circle-badge.svg" alt="Создаем цифровую репутацию" class="circle-badge-svg">
+            </div>
+        </div>
+        
+        <!-- Кнопки -->
+        <div class="buttons-block">
+            <button class="button primary-button" id="orderButton">
+                Заказать <i class="fas fa-arrow-right"></i>
+            </button>
+            <button class="button secondary-button" id="callButton">
+                Позвонить <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
 
-  <script type="text/babel">
-    const { useState, useEffect } = React;
+    <!-- STATS SECTION -->
+    <div class="stats-section">
+        <div class="stats-title">Мы любим свое дело и дорожим репутацией</div>
+        <div class="stats-grid">
+            <!-- Картинка для 500+ клиентов с иконкой -->
+            <div class="stat-card-wrapper">
+                <img src="500_case.png" alt="500+ успешных клиентов" class="stat-card-image">
+                <div class="stat-overlay-icon" style="margin-left: 1px;margin-top: 2px; font-size: 28px;">★</div>
+            </div>
+            
+            <!-- Картинка для 15+ лет опыта с иконкой -->
+            <div class="stat-card-wrapper">
+                <img src="15age_2.png" alt="15+ лет опыта" class="stat-card-image">
+                <div class="stat-overlay-icon">
+                    <img src="icon_15age.png" alt="Иконка портфеля" style="width: 28px;margin-top: 8px; height: 28px;">
+                </div>
+            </div>
+            
+            <!-- Картинка для партнерства с фондами с иконкой -->
+            <div class="stat-card-wrapper">
+                <img src="partners_2.png" alt="Партнерство с фондами" class="stat-card-image">
+                <div class="stat-overlay-icon">♥</div>
+            </div>
+        </div>
+    </div>
 
-    const App = () => {
-      const reviews = [
-        { 
-          name: "Оксана Л.", 
-          text: "Приехала в студию дизайна New, чтобы они мне оформили презентацию на тему трендов моды (как и в шоу премиум одежду на заказ и выступала на конференции и вообще Ребята в первого раза все сделали идеально и мой выступление на конференции прошло отлично! Буду к ним и дальше обращаться, ребята молодцы!",
-          tags: "#презентация", 
-          initial: "О",
-          avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b17c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80"
-        },
-        { 
-          name: "Григорий М.", 
-          text: "отлил Журналисты продукции каталоги! У нас логистики по производству и реализации основных товаров. нашей запросу учтут статистики, перед нашей тропой хочу выручить и поднять эффективность товары каждого оборотов до всех полнота тегов NEW, со этом наш меню становился благодарности, что всё главное. когда данной список высшего качества, за что им очень благодарю!",
-          tags: "#сувенирка", 
-          initial: "Г",
-          avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80"
-        },
-        { 
-          name: "Ирина Тищенко", 
-          text: "Вы лучшая компания теперь с которой я сотрудничала. Я обратилась к вам на проектах креста имиджа для партнеров как консультант и получила все мои изложения. Вы так хорошо возгласили мою идею, что ее тепер думать, что зане выльюские этт пети были изложенияи и учебник, а так же половной самых классных клиентов",
-          tags: "#брендбук", 
-          initial: "И",
-          avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80"
-        },
-        { 
-          name: "Yana ❤", 
-          text: "Благодарна стоьной и проектной ярусность Отличной компании отмечены на проституток работы: круговая брифуду и сайта, тейлор созданием ресурсов в сайта (навых очень как в части тема нужно). Во всех задачи все профессиональная!",
-          tags: "#маркетинговое продвижение", 
-          initial: "Y",
-          avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80"
-        },
-        { 
-          name: "ООО \"Никойл\"", 
-          text: "Хочу поблагодарить студию магазин NEW и ее сотрудников - Дмитрия и Полину! Заказывали у ребят виразховадок с фирмой клиентскими полную комплексную по проблемы мага до практик: логотип и нейчаре и достойно! Потом закажем дизайн и печать бланков и всей документе этого хорошо. Планируем долгосрочное сотрудничество, благодарны за Вашу труд!",
-          tags: "#печать рекламных наклейки", 
-          initial: "Н",
-          avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80"
-        },
-        { 
-          name: "Пётр Марков", 
-          text: "Пользуюсь услуги офтали создает сайта для своего бизнеса. Отмечанно отсудили деталь услуги команды Polli.eu их проверенность и отработанность с стилевом и пяло в юрок. Работал довольны, рекомендую!",
-          tags: "#брендбук", 
-          initial: "П",
-          avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80"
-        }
-      ];
-
-      const stats = [
-        { 
-          icon: '⭐', 
-          title: '500+ успешных клиентов', 
-          text: 'Мы работали с крупными компаниями и личными брендами.' 
-        },
-        { 
-          icon: '📅', 
-          title: '15+ лет опыта', 
-          text: 'Команда дизайнеров, маркетологов и разработчиков.' 
-        },
-        { 
-          icon: '💜', 
-          title: 'Партнерство с фондами', 
-          text: 'Поддержка инициатив и детских фондов.' 
-        },
-        { 
-          icon: '📈', 
-          title: '30% роста', 
-          text: 'Увеличение клиентской базы за последние 5 лет.' 
-        }
-      ];
-
-      const projects = [
-        {
-          id: 'ugg',
-          title: 'UGG',
-          subtitle: 'Мобильное приложение',
-          description: 'Приложение для онлайн-магазина обуви',
-          className: 'project-ugg',
-          items: [
-            { label: 'ЖЕНСКИЕ', imageClass: 'women' },
-            { label: 'МУЖСКИЕ', imageClass: 'men' },
-            { label: 'ДЕТСКИЕ', imageClass: 'kids' },
-            { label: 'АКСЕССУАРЫ', imageClass: 'accessories' }
-          ]
-        },
-        {
-          id: 'education',
-          title: 'ОБРАЗОВАТЕЛЬНЫЙ ЦЕНТР',
-          subtitle: 'Лендинг для обучения',
-          description: 'Современная платформа онлайн обучения',
-          className: 'project-education',
-          items: [
-            { label: 'КУРСЫ', imageClass: 'courses' },
-            { label: 'ТЕСТЫ', imageClass: 'tests' },
-            { label: 'СЕРТИФИКАТЫ', imageClass: 'certificates' },
-            { label: 'ПРОФИЛЬ', imageClass: 'profile' }
-          ]
-        },
-        {
-          id: 'realestate',
-          title: 'РЕМОНТ КВАРТИР',
-          subtitle: 'Сайт строительной компании',
-          description: 'Портфолио и калькулятор ремонта',
-          className: 'project-real-estate',
-          items: [
-            { label: 'ПОРТФОЛИО', imageClass: 'portfolio' },
-            { label: 'УСЛУГИ', imageClass: 'services' },
-            { label: 'РАСЧЕТ', imageClass: 'calculator' },
-            { label: 'КОНТАКТЫ', imageClass: 'contacts' }
-          ]
-        },
-        {
-          id: 'construction',
-          title: 'СТРОИТЕЛЬСТВО',
-          subtitle: 'Корпоративный сайт',
-          description: 'Презентация строительной компании',
-          className: 'project-construction',
-          items: [
-            { label: 'ПРОЕКТЫ', imageClass: 'projects' },
-            { label: 'КОМАНДА', imageClass: 'team' },
-            { label: 'ОТЗЫВЫ', imageClass: 'reviews' },
-            { label: 'ЗАЯВКА', imageClass: 'request' }
-          ]
-        }
-      ];
-
-      const renderStars = (count) => {
-        return '⭐'.repeat(count);
-      };
-
-      // Инициализация Telegram Web App
-      useEffect(() => {
-        if (window.Telegram && window.Telegram.WebApp) {
-          const tg = window.Telegram.WebApp;
-          tg.ready();
-          tg.expand();
-          tg.setHeaderColor('#FFFFFF');
-        }
-      }, []);
-
-      const handleOrderClick = () => {
-        if (window.Telegram && window.Telegram.WebApp) {
-          window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
-          window.Telegram.WebApp.sendData(JSON.stringify({
-            action: 'start_quiz',
-            source: 'landing_button'
-          }));
-        } else {
-          alert('Начинаем квиз для расчета стоимости!');
-        }
-      };
-
-      const handleCallClick = () => {
-        if (window.Telegram && window.Telegram.WebApp) {
-          const tg = window.Telegram.WebApp;
-          tg.HapticFeedback.impactOccurred('light');
-          tg.showConfirm(
-            'Позвонить в Polli Digital?',
-            (confirmed) => {
-              if (confirmed) {
-                tg.HapticFeedback.impactOccurred('medium');
-                tg.openLink('tel:+79111848008');
-              }
+    <!-- REVIEWS SECTION -->
+    <div class="reviews-section-wrapper">
+        <div class="reviews-header">
+            <div class="reviews-title-row">
+                <div class="reviews-title">Нас рекомендуют</div>
+                <div class="reviews-pin-icon">📍</div>
+                <div class="reviews-arrow-decoration">
+                    <img src="arrow.svg" alt="Декоративная стрелка">
+                </div>
+            </div>
+            <div class="reviews-info-row">
+                <div class="circle-dot" style="background-color: #B8A4ED;"></div>
+                <div class="circle-dot" style="background-color: #C8B9F5;"></div>
+                <div class="circle-dot" style="background-color: #D8CEFC;"></div>
+                <div class="reviews-header-badge">500+</div>
+            </div>
+        </div>
+        <div class="reviews-container" id="reviewsContainer">
+            <!-- Отзывы будут добавлены JavaScript -->
+        </div>
+        <div class="review-button-wrapper">
+            <button class="review-more-btn" id="yandexMapsButton">
+                <span>Смотреть на</span>
+                <span>Яндекс.Картах</span>
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        // Данные отзывов
+        const reviews = [
+            { 
+                name: "Оксана Л.", 
+                text: "Приехала в студию дизайна New, чтобы они мне оформили презентацию на тему трендов моды. Ребята с первого раза все сделали идеально и мое выступление на конференции прошло отлично! Буду к ним и дальше обращаться, ребята молодцы!",
+                tags: "#презентация", 
+                avatar: "client (1).png"
+            },
+            { 
+                name: "Григорий М.", 
+                text: "Заказывал у ребят полиграфическую продукцию для нашей компании по производству и реализации товаров. Учли все наши пожелания, качество на высшем уровне. Очень благодарен за профессиональную работу!",
+                tags: "#полиграфия", 
+                avatar: "client (2).png"
+            },
+            { 
+                name: "Ирина Тищенко", 
+                text: "Лучшая компания с которой я сотрудничала! Обратилась к вам за созданием фирменного стиля для моего бизнеса и получила больше, чем ожидала. Вы так хорошо воплотили мою идею в жизнь!",
+                tags: "#брендбук", 
+                avatar: "client (3).png"
+            },
+            { 
+                name: "Yana ❤", 
+                text: "Благодарна за отличную работу! Заказывала создание сайта и маркетинговое продвижение. Результат превзошел все ожидания. Профессионалы своего дела!",
+                tags: "#маркетинговое продвижение", 
+                avatar: "client (4).png"
+            },
+            { 
+                name: "ООО \"Никойл\"", 
+                text: "Хочу поблагодарить студию NEW и ее сотрудников! Заказывали полный комплекс услуг: логотип, фирменный стиль, печать бланков. Все выполнено качественно и в срок. Планируем долгосрочное сотрудничество!",
+                tags: "#печать рекламных материалов", 
+                avatar: "client (5).png"
+            },
+            { 
+                name: "Пётр Марков", 
+                text: "Пользовался услугами по созданию сайта для своего бизнеса. Отмечу внимание к деталям команды и их профессионализм. Работой доволен, рекомендую!",
+                tags: "#веб-разработка", 
+                avatar: "client (6).png"
             }
-          );
-        } else {
-          window.location.href = 'tel:+79111848008';
+        ];
+
+        // Функция для создания звездочек
+        function createStars(count) {
+            return '⭐'.repeat(count);
         }
-      };
+
+        // Функция для создания отзыва
+        function createReviewCard(review) {
+            return `
+                <div class="review-card">
+                    <div class="review-user-info">
+                        <img src="${review.avatar}" alt="${review.name}" class="review-user-avatar" onerror="this.style.display='none'">
+                        <strong>${review.name}</strong>
+                        <div class="stars">
+                            ${createStars(5)}
+                        </div>
+                    </div>
+                    <div class="review-tags">${review.tags}</div>
+                    <p class="review-text">${review.text}</p>
+                </div>
+            `;
+        }
+
+        // Функция для отображения отзывов
+        function renderReviews() {
+            const container = document.getElementById('reviewsContainer');
+            const reviewsHTML = reviews.map(review => createReviewCard(review)).join('');
+            container.innerHTML = reviewsHTML;
+        }
+
+        // Инициализация Telegram Web App
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        
+        // Обработчики для кнопок
+        document.getElementById('orderButton').addEventListener('click', function() {
+            alert('Нажата кнопка Заказать');
+        });
+        
+        document.getElementById('callButton').addEventListener('click', function() {
+            window.location.href = 'tel:+79111848008';
+        });
+
+        document.getElementById('yandexMapsButton').addEventListener('click', function() {
+            const mapsUrl = 'https://yandex.ru/maps/213/moscow/?ll=37.625000%2C55.755000&z=15';
+            window.open(mapsUrl, '_blank');
+        });
+
+        // Инициализация отзывов при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            renderReviews();
+        });
+    </script>
+</body>
+</html>
