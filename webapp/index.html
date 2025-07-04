@@ -11,9 +11,16 @@
     <style>
         /* Подключение шрифтов */
         @font-face {
-            font-family: 'Benzin';
-            src: url('./fonts/Benzin-Medium.woff2') format('woff2');
-            font-weight: 500;
+    font-family: 'Benzin';
+    src: url('fonts/Benzin-Medium.woff2') format('woff2');  /* ← Убрать ./ */
+    font-weight: 500;
+    font-display: swap;
+}
+        
+        @font-face {
+            font-family: 'Helvetica';
+            src: url('fonts/HelveticaRegular.woff') format('woff');
+            font-weight: 400;
             font-display: swap;
         }
 
@@ -295,22 +302,31 @@
         /* Фиолетовая иконка поверх картинки */
         .stat-overlay-icon {
             position: absolute;
-            left: 36px;
-            top: 8px;
+            left: 50px;
+            top: 50px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 33px;
+            font-size: 24px;
             color: white;
             box-shadow: 0 4px 12px rgba(146, 114, 230, 0.3);
             z-index: 2;
             font-weight: bold;
+            transform: translate(-60%, -98%);
+        }
+
+        .stat-overlay-icon img {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
         }
 
         /* ====== REVIEWS SECTION ====== */
         .reviews-section-wrapper {
-            padding: 40px 20px;
+            padding: 12px 20px;
             background: #fff;
         }
 
@@ -326,24 +342,25 @@
         }
 
         .reviews-title {
-    font-family: 'Benzin', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 32px;
-    font-weight: 500;
-    color: #181818;
-    letter-spacing: -0.5px;
-    line-height: 1.1;
-    text-align: center;
-    display: inline-block;
-    position: relative;
-}
+            font-family: 'Benzin', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 32px;
+            font-weight: 500;
+            color: #181818;
+            letter-spacing: -0.5px;
+            line-height: 1.1;
+            text-align: center;
+            display: inline-block;
+            position: relative;
+        }
 
         .reviews-arrow-icon {
-            width: 24px;
-            height: 24px;
-            position: absolute;
-            top: -5px;
-            right: -35px;
-        }
+    width: 38px;
+    height: 38px;
+    position: absolute;
+    top: -18px;
+    right: 10px;
+    transform: scale(-1, -1) rotate(90deg);  /* ← Объединить в одну строку */
+}
 
         .reviews-arrow-icon img {
             width: 100%;
@@ -483,30 +500,110 @@
         }
 
         .review-more-btn {
-            background: linear-gradient(90deg, #9272e6, #B777FF 52%, #9272e6);
-            color: white;
-            box-shadow: 0px 4px 15px rgba(146, 114, 230, 0.3);
-            height: 48px;
-            border-radius: 24px;
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 25px;
-            line-height: 1.2;
-            padding: 0 24px;
-            white-space: nowrap;
-        }
+    font-family: 'Helvetica', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;  /* ← Добавить эту строку */
+    background: linear-gradient(90deg, #9272e6, #B777FF 52%, #9272e6);
+    color: white;
+    box-shadow: 0px 4px 15px rgba(146, 114, 230, 0.3);
+    height: 48px;
+    border-radius: 24px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 21px;
+    line-height: 1.2;
+    padding: 0 24px;
+    white-space: nowrap;
+}
 
         .review-more-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0px 6px 20px rgba(146, 114, 230, 0.4);
         }
 
+        /* ====== PROJECTS SECTION ====== */
+        .projects-section {
+            padding: 40px 20px;
+            background: #fff;
+            text-align: center;
+        }
+
+        .projects-title {
+            font-family: 'Benzin', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 32px;
+            font-weight: 500;
+            color: #181818;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .projects-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .project-phone-mockup {
+            max-width: 400px;
+            width: 80%;
+        }
+
+        .project-image {
+            width: 100%;
+            height: auto;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        }
+
+        .projects-button-wrapper {
+            display: flex;
+            justify-content: center;
+        }
+        .projects-view-btn {
+    background: white;
+    border: 2px solid #9272e6;
+    color: #181818;
+    height: 60px;
+    width: 300px;
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;  /* Центрируем текст */
+    padding: 0;
+    pointer-events: none;
+    position: relative;  /* Для абсолютного позиционирования стрелки */
+    
+    
+}
+.projects-view-btn::after {
+    content: '';
+    width: 20px;  /* Создает "пустое место" слева */
+}
+
+.projects-view-btn i {
+    position: absolute;
+    right: 70px;  /* Ближе к краю (было 75px) */
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 8px;  /* Нормальный размер (было 3px) */
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 25px;   /* Фиксированная ширина круга */
+    height: 25px;  /* Фиксированная высота круга */
+    border-radius: 50%;
+    border: 2px solid #000000;  /* Фиолетовая рамка как кнопка */
+    background: white;  /* Белый фон */
+    color: #000000;     /* Фиолетовая стрелка */
+}
         /* Медиа-запросы для адаптивности */
         @media (max-width: 480px) {
             .stats-title, .reviews-title {
-                font-size: 32px;
+                font-size: 24px;
                 padding: 0 10px;
             }
             
@@ -525,8 +622,8 @@
         }
 
         @media (max-width: 320px) {
-            .stats-title, .reviews-title {
-                font-size: 22px;
+            .stats-title, .reviews-title, .projects-title {
+                font-size: 24px;
             }
             
             .main-title {
@@ -539,6 +636,11 @@
                 font-size: 18px;
                 left: 12px;
                 top: 15px;
+            }
+
+            .projects-view-btn {
+                padding: 0 24px;
+                font-size: 16px;
             }
         }
     </style>
@@ -596,14 +698,14 @@
             <!-- Картинка для 500+ клиентов с иконкой -->
             <div class="stat-card-wrapper">
                 <img src="500_case.png" alt="500+ успешных клиентов" class="stat-card-image">
-                <div class="stat-overlay-icon" style="margin-left: 1px;margin-top: 2px; font-size: 28px;">★</div>
+                <div class="stat-overlay-icon">★</div>
             </div>
             
             <!-- Картинка для 15+ лет опыта с иконкой -->
             <div class="stat-card-wrapper">
                 <img src="15age_2.png" alt="15+ лет опыта" class="stat-card-image">
                 <div class="stat-overlay-icon">
-                    <img src="icon_15age.png" alt="Иконка портфеля" style="width: 28px;margin-top: 8px; height: 28px;">
+                    <img src="icon_15age.png" alt="Иконка портфеля">
                 </div>
             </div>
             
@@ -645,6 +747,23 @@
         </div>
         <div class="review-button-wrapper">
             <img src="knopka.svg" alt="Смотреть на Яндекс.Картах" id="yandexMapsButton" style="cursor: pointer; max-width: 100%; height: auto;">
+        </div>
+    </div>
+
+    <!-- PROJECTS SECTION -->
+    <div class="projects-section">
+        <div class="projects-title">Наши проекты</div>
+        
+        <div class="projects-container">
+            <div class="project-phone-mockup">
+                <img src="project_1.png" alt="Проект UGG приложение" class="project-image">
+            </div>
+        </div>
+        
+        <div class="projects-button-wrapper">
+            <button class="projects-view-btn">
+                Смотреть <i class="fas fa-arrow-right"></i>
+            </button>
         </div>
     </div>
     
