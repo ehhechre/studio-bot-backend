@@ -41,6 +41,7 @@
         /* CSS переменные */
         :root {
             --main-text-color: #181818;
+            --container-padding: 1px; /* ОДНА переменная для всех устройств */
         }
 
         /* Базовые стили как в Figma */
@@ -56,12 +57,15 @@
             flex-direction: row;
             justify-content: center;
             width: 100%;
+            padding: 0 var(--container-padding);
+            box-sizing: border-box;
         }
 
         .screen .div {
             background-color: #ffffff;
             overflow: hidden;
-            width: 375px;
+            width: calc(375px - (var(--container-padding) * 2));
+            max-width: calc(100vw - (var(--container-padding) * 2));
             height: 3670px;
             position: relative;
         }
@@ -98,7 +102,7 @@
             position: absolute;
             width: 356px;
             height: 135px;
-            top: 284px;
+            top: 323px;
             left: 25px;
         }
 
@@ -169,9 +173,9 @@
         /* Декоративные элементы */
         .img {
             position: absolute;
-            width: 47px;
-            height: 49px;
-            top: 362px;
+            width: 52px;
+            height: 54px;
+            top: 399px;
             left: 29px;
         }
 
@@ -179,11 +183,13 @@
             position: absolute;
             width: 93px;
             height: 93px;
-            top: 265px;
+            top: 299px;
             left: 277px;
         }
 
-        /* Кнопки */
+        /* ===== КНОПКИ - ФИНАЛЬНАЯ ВЕРСИЯ ===== */
+        
+        /* Главные кнопки на первом экране */
         .view {
             position: absolute;
             width: 306px;
@@ -192,6 +198,15 @@
             left: 33px;
         }
 
+        .view-secondary {
+            position: absolute;
+            width: 306px;
+            height: 72px;
+            top: 643px; /* отступ 15px от первой кнопки */
+            left: 33px;
+        }
+
+        /* Стили кнопок */
         .div-wrapper {
             width: 100%;
             height: 72px;
@@ -202,39 +217,6 @@
             justify-content: center;
             position: relative;
             cursor: pointer;
-        }
-
-        .group-6 {
-            position: relative;
-            width: 162px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        .text-wrapper-8 {
-            font-family: "HelveticaNeueCyr-Medium", Helvetica;
-            font-weight: 500;
-            color: #ffffff;
-            font-size: 23px;
-            text-align: center;
-            line-height: normal;
-            letter-spacing: 0;
-        }
-
-        .ei-arrow-left {
-            width: 30px;
-            height: 30px;
-        }
-
-        .view-secondary {
-            position: absolute;
-            width: 306px;
-            height: 72px;
-            top: 642px;
-            left: 33px;
         }
 
         .div-wrapper-secondary {
@@ -250,6 +232,24 @@
             cursor: pointer;
         }
 
+        .group-6 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        /* Тексты кнопок */
+        .text-wrapper-8 {
+            font-family: "HelveticaNeueCyr-Medium", Helvetica;
+            font-weight: 500;
+            color: #ffffff;
+            font-size: 23px;
+            text-align: center;
+            line-height: normal;
+            letter-spacing: 0;
+        }
+
         .text-wrapper-8-secondary {
             font-family: "HelveticaNeueCyr-Medium", Helvetica;
             font-weight: 500;
@@ -260,12 +260,44 @@
             letter-spacing: 0;
         }
 
+        /* Стрелки в кружочках - УНИВЕРСАЛЬНЫЕ СТИЛИ */
+        .arrow-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        /* Белые стрелки для фиолетовых кнопок */
+        .arrow-white {
+            background: transparent;
+            border: 2px solid #ffffff;
+            color: #ffffff;
+        }
+
+        /* Черные стрелки для белых кнопок */
+        .arrow-black {
+            background: rgba(0, 0, 0, 0.05);
+            border: 2px solid #000000;
+            color: #000000;
+        }
+
+        /* Маленькие стрелки */
+        .arrow-small {
+            width: 24px;
+            height: 24px;
+            font-size: 14px;
+        }
+
         /* Заголовок статистики */
         .p {
             width: 318px;
             height: 90px;
             position: absolute;
-            top: 744px;
+            top: 750px; /* сдвинул вниз из-за увеличенного отступа кнопок */
             left: 27px;
             font-family: "Benzin-Medium", Helvetica;
             font-weight: 400;
@@ -281,7 +313,7 @@
             position: absolute;
             width: 372px;
             height: 171px;
-            top: 864px;
+            top: 870px;
             left: 2px;
         }
 
@@ -289,7 +321,7 @@
             position: absolute;
             width: 372px;
             height: 171px;
-            top: 1057px;
+            top: 1063px;
             left: 2px;
         }
 
@@ -297,7 +329,7 @@
             position: absolute;
             width: 372px;
             height: 171px;
-            top: 1250px;
+            top: 1256px;
             left: 2px;
         }
 
@@ -326,7 +358,7 @@
             position: absolute;
             width: 318px;
             height: 83px;
-            top: 1441px;
+            top: 1447px;
             left: 29px;
         }
 
@@ -351,13 +383,14 @@
             height: 48px;
             top: 0;
             left: 229px;
+            transform: rotate(90deg);
         }
 
         .view-3 {
             position: absolute;
             width: 128px;
             height: 28px;
-            top: 1536px;
+            top: 1542px;
             left: 124px;
         }
 
@@ -416,7 +449,7 @@
         /* Контейнер отзывов */
         .reviews-container {
             position: absolute;
-            top: 1589px;
+            top: 1595px;
             left: 20px;
             width: 335px;
             height: 321px;
@@ -445,7 +478,7 @@
         /* Кнопка отзывов */
         .review-more-btn {
             position: absolute;
-            top: 1940px;
+            top: 1946px;
             left: 50%;
             transform: translateX(-50%);
             background: linear-gradient(90deg, #9272e6, #B777FF 52%, #9272e6);
@@ -466,7 +499,7 @@
             width: 318px;
             height: 30px;
             position: absolute;
-            top: 2006px;
+            top: 2012px;
             left: 29px;
             font-family: "Benzin-Medium", Helvetica;
             font-weight: 400;
@@ -480,7 +513,7 @@
         /* Контейнер проектов */
         .projects-container {
             position: absolute;
-            top: 2060px;
+            top: 2066px;
             left: 20px;
             width: 335px;
             height: 484px;
@@ -511,7 +544,7 @@
             position: absolute;
             width: 232px;
             height: 55px;
-            top: 2557px;
+            top: 2563px;
             left: 72px;
         }
 
@@ -524,6 +557,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            gap: 10px;
             cursor: pointer;
         }
 
@@ -535,12 +569,6 @@
             text-align: center;
             line-height: normal;
             letter-spacing: 0;
-            margin-right: 10px;
-        }
-
-        .ei-arrow-left-3 {
-            width: 24px;
-            height: 24px;
         }
 
         /* Заголовок контактов */
@@ -548,7 +576,7 @@
             width: 214px;
             height: 60px;
             position: absolute;
-            top: 2655px;
+            top: 2661px;
             left: 80px;
             font-family: "Benzin-Medium", Helvetica;
             font-weight: 400;
@@ -564,7 +592,7 @@
             position: absolute;
             width: 306px;
             height: 73px;
-            top: 2745px;
+            top: 2751px;
             left: 34px;
             border-radius: 32.79px;
             box-shadow: 0px 1.46px 5.47px #0b001e40;
@@ -572,6 +600,23 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            gap: 15px;
+            cursor: pointer;
+        }
+
+        .view-2 {
+            position: absolute;
+            width: 306px;
+            height: 73px;
+            top: 2839px;
+            left: 34px;
+            border-radius: 32.79px;
+            background: white;
+            border: 2px solid #9272e6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
             cursor: pointer;
         }
 
@@ -583,27 +628,6 @@
             text-align: center;
             line-height: normal;
             letter-spacing: 0;
-            margin-right: 15px;
-        }
-
-        .ei-arrow-left-2 {
-            width: 30px;
-            height: 30px;
-        }
-
-        .view-2 {
-            position: absolute;
-            width: 306px;
-            height: 73px;
-            top: 2829px;
-            left: 34px;
-            border-radius: 32.79px;
-            background: white;
-            border: 2px solid #9272e6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
         }
 
         /* Контактная информация */
@@ -611,7 +635,7 @@
             position: absolute;
             width: 202px;
             height: 22px;
-            top: 2949px;
+            top: 2955px;
             left: 20px;
             display: flex;
             align-items: center;
@@ -636,7 +660,7 @@
             position: absolute;
             width: 250px;
             height: 22px;
-            top: 2988px;
+            top: 2994px;
             left: 20px;
             display: flex;
             align-items: center;
@@ -662,7 +686,7 @@
             position: absolute;
             width: 335px;
             height: 291px;
-            top: 3039px;
+            top: 3045px;
             left: 20px;
             object-fit: cover;
         }
@@ -672,7 +696,7 @@
             position: absolute;
             width: 334px;
             height: 44px;
-            top: 3350px;
+            top: 3356px;
             left: 19px;
             display: flex;
             align-items: center;
@@ -693,7 +717,7 @@
             position: absolute;
             width: 133px;
             height: 60px;
-            top: 3432px;
+            top: 3438px;
             left: 122px;
         }
 
@@ -702,7 +726,7 @@
             position: absolute;
             width: 375px;
             height: 137px;
-            top: 3533px;
+            top: 3539px;
             left: 0;
             background-color: #000000;
         }
@@ -740,8 +764,8 @@
         /* Адаптивность */
         @media (max-width: 480px) {
             .screen .div {
-                width: 100%;
-                max-width: 375px;
+                width: calc(100vw - (var(--container-padding) * 2));
+                max-width: calc(375px - (var(--container-padding) * 2));
             }
         }
     </style>
@@ -768,7 +792,7 @@
                 <div class="div-wrapper" id="orderButton">
                     <div class="group-6">
                         <div class="text-wrapper-8">Заказать</div>
-                        <i class="fas fa-arrow-right ei-arrow-left"></i>
+                        <i class="fas fa-arrow-right arrow-circle arrow-white"></i>
                     </div>
                 </div>
             </div>
@@ -777,7 +801,7 @@
                 <div class="div-wrapper-secondary" id="callButton">
                     <div class="group-6">
                         <div class="text-wrapper-8-secondary">Позвонить</div>
-                        <i class="fas fa-arrow-right ei-arrow-left"></i>
+                        <i class="fas fa-arrow-right arrow-circle arrow-black"></i>
                     </div>
                 </div>
             </div>
@@ -786,19 +810,14 @@
 
             <div class="group-wrapper">
                 <img src="500_case.png" alt="500+ клиентов" class="stat-card-image">
-                <div class="stat-overlay-icon">★</div>
             </div>
 
             <div class="img-wrapper">
                 <img src="15age_2.png" alt="15+ лет опыта" class="stat-card-image">
-                <div class="stat-overlay-icon">
-                    <img src="icon_15age.png" alt="Иконка портфеля" style="width: 20px; height: 18px;">
-                </div>
             </div>
 
             <div class="overlap-2">
                 <img src="partners_2.png" alt="Партнерство с фондами" class="stat-card-image">
-                <div class="stat-overlay-icon">♥</div>
             </div>
 
             <div class="overlap-group">
@@ -844,7 +863,7 @@
             <div class="view-5">
                 <div class="group-15">
                     <div class="text-wrapper-13">Смотреть</div>
-                    <i class="fas fa-arrow-right ei-arrow-left-3"></i>
+                    <i class="fas fa-arrow-right arrow-circle arrow-black arrow-small"></i>
                 </div>
             </div>
 
@@ -852,12 +871,12 @@
 
             <div class="view-4" id="contactOrderButton">
                 <div class="text-wrapper-12">Оставить заявку</div>
-                <i class="fas fa-arrow-right ei-arrow-left-2"></i>
+                <i class="fas fa-arrow-right arrow-circle arrow-white"></i>
             </div>
 
             <div class="view-2" id="contactCallButton">
                 <div class="text-wrapper-8-secondary">Позвонить</div>
-                <i class="fas fa-arrow-right ei-arrow-left"></i>
+                <i class="fas fa-arrow-right arrow-circle arrow-black"></i>
             </div>
 
             <div class="view-7">
