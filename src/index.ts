@@ -32,20 +32,6 @@ bot.telegram.setMyCommands([
   { command: 'app', description: '🚀 Открыть приложение' }
 ]);
 
-// --- ЛОГИРОВАНИЕ file_id для картинок ---
-bot.on('photo', async (ctx) => {
-  const photo = ctx.message.photo;
-  const largestPhoto = photo[photo.length - 1]; // Берем самое большое разрешение
-  console.log('🖼️ ПОЛУЧЕНА КАРТИНКА:');
-  console.log('File ID:', largestPhoto.file_id);
-  console.log('Размер:', largestPhoto.width + 'x' + largestPhoto.height);
-  console.log('Используйте этот file_id в коде бота!');
-  
-  await ctx.reply(`✅ Логотип получен!\n\nFile ID: \`${largestPhoto.file_id}\`\n\nСкопируйте этот ID для кода бота.`, {
-    parse_mode: 'Markdown'
-  });
-});
-
 // --- СТАРТОВОЕ МЕНЮ ---
 bot.start(async (ctx) => {
   try {
@@ -62,41 +48,21 @@ bot.start(async (ctx) => {
       },
     });
 
-    // Пробуем отправить логотип, если не получается - отправляем текст
-    try {
-      await ctx.replyWithPhoto(
-        { url: 'AgACAgIAAxkBAAICRWhpw6XXPrldcv1IK2YUf2boX6mxAAL99jEbaHNQS0g_hguljSVZAQADAgADeQADNgQ' },
-        {
-          caption: `🚀 Добро пожаловать в Polli Digital!\n\n` +
-                  `Привет, ${userInDb.first_name}! Мы создаем сайты, которые продают.\n\n` +
-                  `🎯 Что можем для вас сделать?`,
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: '💰 Рассчитать стоимость', callback_data: 'start_quiz' }],
-              [{ text: '👁 Посмотреть работы', web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' } }]
-            ]
-          }
+    // Отправляем приветствие с логотипом (используем file_id)
+    await ctx.replyWithPhoto(
+      'AgACAgIAAxkBAAICRWhpw6XXPrldcv1IK2YUf2boX6mxAAL99jEbaHNQS0g_hguljSVZAQADAgADeQADNgQ',
+      {
+        caption: `🚀 Добро пожаловать в Polli Digital!\n\n` +
+                `Привет, ${userInDb.first_name}! Мы создаем сайты, которые продают.\n\n` +
+                `🎯 Что можем для вас сделать?`,
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: '💰 Рассчитать стоимость', callback_data: 'start_quiz' }],
+            [{ text: '👁 Посмотреть работы', web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' } }]
+          ]
         }
-      );
-    } catch (photoError) {
-      console.log('Не удалось загрузить логотип, отправляем текстовое приветствие');
-      // Fallback - отправляем красивое текстовое приветствие
-      await ctx.reply(
-        `🎨 **POLLI DIGITAL** 🎨\n\n` +
-        `🚀 Добро пожаловать!\n\n` +
-        `Привет, ${userInDb.first_name}! Мы создаем сайты, которые продают.\n\n` +
-        `🎯 Что можем для вас сделать?`,
-        {
-          parse_mode: 'Markdown',
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: '💰 Рассчитать стоимость', callback_data: 'start_quiz' }],
-              [{ text: '👁 Посмотреть работы', web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' } }]
-            ]
-          }
-        }
-      );
-    }
+      }
+    );
   } catch (error) {
     console.error('Ошибка в /start:', error);
     await ctx.reply('Ой, что-то пошло не так. Попробуйте еще раз позже.');
