@@ -475,11 +475,11 @@
             object-fit: cover;
         }
 
-        /* Кнопка отзывов */
+        /* Кнопка отзывов - ИСПРАВЛЕНО: сдвинута правее */
         .review-more-btn {
             position: absolute;
             top: 1946px;
-            left: 50%;
+            left: 51%; /* было 50%, сдвинули правее */
             transform: translateX(-50%);
             background: linear-gradient(90deg, #9272e6, #B777FF 52%, #9272e6);
             color: white;
@@ -492,6 +492,9 @@
             font-size: 14px;
             padding: 0 24px;
             white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         /* Заголовок проектов */
@@ -712,13 +715,14 @@
             letter-spacing: 0;
         }
 
-        /* Социальные сети */
+        /* Социальные сети - ДОБАВЛЕН ОБРАБОТЧИК */
         .image-5 {
             position: absolute;
             width: 133px;
             height: 60px;
             top: 3438px;
             left: 122px;
+            cursor: pointer; /* добавили курсор */
         }
 
         /* Футер */
@@ -843,8 +847,10 @@
                 <img src="client (6).png" alt="Отзыв Петра Маркова" class="review-image">
             </div>
 
+            <!-- ИСПРАВЛЕНО: кнопка сдвинута правее + добавлена PNG иконка -->
             <button class="review-more-btn" id="yandexMapsButton">
-                Смотреть на Яндекс.Картах ❤️
+                Смотреть на Яндекс.Картах 
+                <img src="mapsy_icon.png" alt="Maps" style="width: 18px; height: 18px;">
             </button>
 
             <div class="text-wrapper-6">Наши проекты</div>
@@ -896,11 +902,14 @@
                 <div class="text-wrapper-14">Москва, Армянский переулок, 11/2А, 101000</div>
             </div>
 
-            <img class="image-5" src="social_media_icons.png" alt="Социальные сети" />
+            <!-- ИСПРАВЛЕНО: добавлен обработчик клика на соцсети -->
+            <img class="image-5" src="social_media_icons.png" alt="Социальные сети" id="socialMediaIcons" />
 
             <div class="overlap-4">
                 <div class="text-wrapper-17">Договор-офферты</div>
-                <div class="text-wrapper-18">Политика конфиденциальности</div>
+                <a href="policy.html" target="_blank" class="text-wrapper-18" style="text-decoration: underline;">
+                    Политика конфиденциальности
+                </a>
             </div>
         </div>
     </div>
@@ -920,7 +929,7 @@
         });
 
         document.getElementById('yandexMapsButton').addEventListener('click', function() {
-            const mapsUrl = 'https://yandex.ru/maps/213/moscow/?ll=37.625000%2C55.755000&z=15';
+            const mapsUrl = 'https://yandex.ru/maps/org/polli_dizhital/235246933847?si=gfeb8uk83w8xk7mcr4rp0mak3r';
             window.open(mapsUrl, '_blank');
         });
 
@@ -931,6 +940,11 @@
         
         document.getElementById('contactCallButton').addEventListener('click', function() {
             window.location.href = 'tel:+79111848008';
+        });
+
+        // НОВЫЙ ОБРАБОТЧИК: клик по соцсетям ведет в Telegram
+        document.getElementById('socialMediaIcons').addEventListener('click', function() {
+            window.open('https://t.me/polli_woww', '_blank');
         });
     </script>
 </body>

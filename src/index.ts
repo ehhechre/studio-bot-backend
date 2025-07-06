@@ -1,4 +1,4 @@
-// src/index.ts - Финальная версия: Улучшенный квиз, согласие, удаление данных, отправка в канал
+// src/index.ts - Обновленная версия с новыми вопросами квиза
 
 // --- Импорты ---
 import { Telegraf, Context, Markup } from 'telegraf';
@@ -23,6 +23,14 @@ if (!botToken || !CHANNEL_ID) {
 }
 
 const bot = new Telegraf<TelegramContext>(botToken);
+
+// --- УСТАНОВКА КОМАНД МЕНЮ ---
+bot.telegram.setMyCommands([
+  { command: 'start', description: '🏠 Главное меню' },
+  { command: 'cases', description: '👁 Посмотреть работы' },
+  { command: 'calculate', description: '💰 Рассчитать стоимость' },
+  { command: 'app', description: '🚀 Открыть приложение' }
+]);
 
 // --- СТАРТОВОЕ МЕНЮ ---
 bot.start(async (ctx) => {
@@ -56,8 +64,44 @@ bot.start(async (ctx) => {
   }
 });
 
+// --- КОМАНДЫ МЕНЮ ---
+bot.command('cases', (ctx) => {
+  ctx.reply('👁 Посмотрите наши работы:', {
+    reply_markup: {
+      inline_keyboard: [[
+        { 
+          text: '🎨 Портфолио Polli Digital', 
+          web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
+        }
+      ]]
+    }
+  });
+});
 
+bot.command('calculate', (ctx) => {
+  ctx.reply('💰 Рассчитать стоимость сайта:', {
+    reply_markup: {
+      inline_keyboard: [[
+        { text: '📋 Начать опрос', callback_data: 'start_quiz' }
+      ]]
+    }
+  });
+});
 
+bot.command('app', (ctx) => {
+  ctx.reply('🚀 Откройте наше приложение:', {
+    reply_markup: {
+      inline_keyboard: [[
+        { 
+          text: '🎨 Polli Digital App', 
+          web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
+        }
+      ]]
+    }
+  });
+});
+
+// --- СОГЛАСИЕ НА ОБРАБОТКУ ДАННЫХ ---
 bot.action('start_quiz', (ctx) => {
   ctx.reply(
     `📋 СОГЛАСИЕ НА ОБРАБОТКУ ПЕРСОНАЛЬНЫХ ДАННЫХ\n\n` +
@@ -120,21 +164,70 @@ async function saveAnswerAndNext(ctx: TelegramContext, field: string, value: any
   }
 }
 
-// --- Вопросы квиза ---
-async function sendQuestion1(ctx: TelegramContext) {
-  await ctx.reply(`❓ 1/3: Какой сайт вам нужен?`, { reply_markup: { inline_keyboard: [[{ text: '📄 Лендинг', callback_data: 'q1_landing' }], [{ text: '🛒 Магазин', callback_data: 'q1_shop' }]]}});
-}
-bot.action('q1_landing', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Лендинг', sendQuestion2));
-bot.action('q1_shop', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Магазин', sendQuestion2));
+// --- ОБНОВЛЕННЫЕ ВОПРОСЫ КВИЗА ---
 
-async function sendQuestion2(ctx: TelegramContext) {
-  await ctx.reply(`❓ 2/3: В какой нише работаете?`, { reply_markup: { inline_keyboard: [[{ text: '⚙️ Услуги', callback_data: 'q2_services' }], [{ text: '✏️ Другое', callback_data: 'q2_other' }]]}});
+// Вопрос 1: Какой сайт вам нужен?
+async function sendQuestion1(ctx: TelegramContext) {
+  await ctx.reply(`❓ 1/4: Какой сайт вам нужен?`, { 
+    reply_markup: { 
+      inline_keyboard: [
+        [{ text: '📄 Лендинг', callback_data: 'q1_landing' }],
+        [{ text: '🌐 Многостраничный сайт', callback_data: 'q1_multipage' }],
+        [{ text: '🛒 Интернет-магазин', callback_data: 'q1_shop' }],
+        [{ text: '🤔 Не знаю — нужна консультация', callback_data: 'q1_consultation' }]
+      ]
+    }
+  });
 }
+
+bot.action('q1_landing', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Лендинг', sendQuestion2));
+bot.action('q1_multipage', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Многостраничный сайт', sendQuestion2));
+bot.action('q1_shop', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Интернет-магазин', sendQuestion2));
+bot.action('q1_consultation', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Нужна консультация', sendQuestion2));
+
+// Вопрос 2: В какой нише работаете?
+async function sendQuestion2(ctx: TelegramContext) {
+  await ctx.reply(`❓ 2/4: В какой нише вы работаете?`, { 
+    reply_markup: { 
+      inline_keyboard: [
+        [{ text: '⚙️ Услуги', callback_data: 'q2_services' }],
+        [{ text: '🎓 Образование', callback_data: 'q2_education' }],
+        [{ text: '🏗 Строительство', callback_data: 'q2_construction' }],
+        [{ text: '💄 Красота/мода', callback_data: 'q2_beauty' }],
+        [{ text: '🏠 Недвижимость', callback_data: 'q2_realestate' }],
+        [{ text: '✏️ Другое', callback_data: 'q2_other' }]
+      ]
+    }
+  });
+}
+
 bot.action('q2_services', (ctx) => saveAnswerAndNext(ctx, 'niche', 'Услуги', sendQuestion3));
+bot.action('q2_education', (ctx) => saveAnswerAndNext(ctx, 'niche', 'Образование', sendQuestion3));
+bot.action('q2_construction', (ctx) => saveAnswerAndNext(ctx, 'niche', 'Строительство', sendQuestion3));
+bot.action('q2_beauty', (ctx) => saveAnswerAndNext(ctx, 'niche', 'Красота/мода', sendQuestion3));
+bot.action('q2_realestate', (ctx) => saveAnswerAndNext(ctx, 'niche', 'Недвижимость', sendQuestion3));
 bot.action('q2_other', (ctx) => ctx.reply('✏️ Напишите вашу нишу текстом:'));
 
+// Вопрос 3: Есть ли фирменный стиль?
 async function sendQuestion3(ctx: TelegramContext) {
-  await ctx.reply(`❓ 3/3: Как с вами связаться?\n\n📛 Напишите ваше имя:`);
+  await ctx.reply(`❓ 3/4: Есть ли у вас фирменный стиль или логотип?`, { 
+    reply_markup: { 
+      inline_keyboard: [
+        [{ text: '✅ Да, всё готово', callback_data: 'q3_ready' }],
+        [{ text: '🔄 Частично', callback_data: 'q3_partial' }],
+        [{ text: '❌ Нет, нужно создать с нуля', callback_data: 'q3_none' }]
+      ]
+    }
+  });
+}
+
+bot.action('q3_ready', (ctx) => saveAnswerAndNext(ctx, 'brand_style', 'Да, всё готово', sendQuestion4));
+bot.action('q3_partial', (ctx) => saveAnswerAndNext(ctx, 'brand_style', 'Частично', sendQuestion4));
+bot.action('q3_none', (ctx) => saveAnswerAndNext(ctx, 'brand_style', 'Нет, нужно создать с нуля', sendQuestion4));
+
+// Вопрос 4: Контакты
+async function sendQuestion4(ctx: TelegramContext) {
+  await ctx.reply(`❓ 4/4: Как с вами связаться?\n\n📛 Напишите ваше имя:`);
 }
 
 // --- ОБРАБОТКА ТЕКСТА ---
@@ -155,14 +248,56 @@ bot.on('text', async (ctx) => {
       return;
     }
     
-    // Обработка ввода имени на шаге 3
-    if (session.current_step === 3 && !currentAnswers.contacts) {
+    // Обработка ввода имени на шаге 4
+    if (session.current_step === 4 && !currentAnswers.contacts) {
       currentAnswers.contacts = { name: ctx.message.text };
       await prisma.quizSession.update({ data: { answers: currentAnswers }, where: { id: session.id } });
       await ctx.reply(
         '📱 Поделитесь вашим контактом для связи:',
         Markup.keyboard([ Markup.button.contactRequest('📞 Поделиться контактом') ]).resize().oneTime()
       );
+      return;
+    }
+    
+    // Обработка комментария после получения контакта
+    if (session.current_step === 4 && currentAnswers.contacts && currentAnswers.contacts.phone && !currentAnswers.contacts.comment) {
+      currentAnswers.contacts.comment = ctx.message.text;
+      
+      await prisma.quizSession.update({ 
+        data: { answers: currentAnswers, is_completed: true }, 
+        where: { id: session.id } 
+      });
+      
+      const application = await prisma.application.create({
+        data: {
+          user_id: user.id,
+          status: 'new',
+          answers: currentAnswers,
+          contact_info: `${currentAnswers.contacts.name}, ${currentAnswers.contacts.phone}`,
+        },
+        include: { user: true },
+      });
+      
+      console.log('Квиз завершен, заявка создана');
+      await notifyChannelNewApplication(application);
+      
+      await ctx.reply(
+        `🎉 Спасибо! Ваша заявка принята. Мы скоро свяжемся с вами.\n\n` +
+        `Пока ждете — посмотрите наши работы:`,
+        {
+          reply_markup: {
+            inline_keyboard: [[
+              { 
+                text: '👁 Посмотреть портфолио', 
+                web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
+              }
+            ]]
+          }
+        }
+      );
+      
+      // Убираем клавиатуру
+      await ctx.reply('Спасибо за заявку! 🚀', Markup.removeKeyboard());
     }
   } catch (error) {
     console.error('Ошибка при обработке текста:', error);
@@ -188,24 +323,14 @@ bot.on('contact', async (ctx) => {
       currentAnswers.contacts.phone = ctx.message.contact.phone_number;
       
       await prisma.quizSession.update({ 
-        data: { answers: currentAnswers, is_completed: true }, 
+        data: { answers: currentAnswers }, 
         where: { id: session.id } 
       });
       
-      const application = await prisma.application.create({
-        data: {
-          user_id: user.id,
-          status: 'new',
-          answers: currentAnswers,
-          contact_info: `${currentAnswers.contacts.name}, ${currentAnswers.contacts.phone}`,
-        },
-        include: { user: true },
-      });
-      
-      console.log('Квиз завершен, заявка создана');
-      await notifyChannelNewApplication(application);
-      
-      await ctx.reply(`🎉 Спасибо! Ваша заявка принята. Мы скоро свяжемся с вами.`, Markup.removeKeyboard());
+      await ctx.reply(
+        '✍️ Есть комментарий к заказу? Напишите или отправьте "-" если нет:',
+        Markup.removeKeyboard()
+      );
     }
   } catch (error) {
     console.error('Ошибка при обработке контакта:', error);
@@ -216,7 +341,6 @@ bot.on('contact', async (ctx) => {
 bot.command('delete_data', async (ctx) => {
   try {
     const userId = ctx.from.id;
-    // Prisma не может удалять по вложенному условию, поэтому сначала найдем ID пользователя
     const userToDelete = await prisma.user.findUnique({ where: { telegram_id: userId }});
     if (userToDelete) {
         await prisma.quizSession.deleteMany({ where: { user_id: userToDelete.id } });
@@ -232,19 +356,7 @@ bot.command('delete_data', async (ctx) => {
     await ctx.reply('❌ Ошибка при удалении данных. Обратитесь к администратору.');
   }
 });
-// Команда для запуска Web App
-bot.command('app', (ctx) => {
-    ctx.reply('🚀 Откройте наше приложение:', {
-      reply_markup: {
-        inline_keyboard: [[
-          { 
-            text: '🎨 Polli Digital App', 
-            web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
-          }
-        ]]
-      }
-    });
-  });
+
 // --- ФУНКЦИЯ ДЛЯ ОТПРАВКИ УВЕДОМЛЕНИЯ В КАНАЛ ---
 async function notifyChannelNewApplication(application: any) {
   try {
@@ -255,8 +367,10 @@ async function notifyChannelNewApplication(application: any) {
       `👤 Клиент: ${user.first_name || 'Аноним'} (@${user.username || '?'})\n` +
       `📞 Контакты: ${contact.name}, ${contact.phone}\n\n` +
       `--- Ответы на квиз ---\n`+
-      `Тип сайта: ${answers.site_type || '?'}\n` +
-      `Ниша: ${answers.niche || '?'}`;
+      `🌐 Тип сайта: ${answers.site_type || '?'}\n` +
+      `🏢 Ниша: ${answers.niche || '?'}\n` +
+      `🎨 Фирменный стиль: ${answers.brand_style || '?'}\n` +
+      `💬 Комментарий: ${contact.comment || 'Нет'}`;
     
     if (CHANNEL_ID) {
         await bot.telegram.sendMessage(CHANNEL_ID, message);
