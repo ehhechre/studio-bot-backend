@@ -44,58 +44,47 @@
             --container-padding: 1px; /* ОДНА переменная для всех устройств */
         }
 
-        /* Базовые стили - ИСПРАВЛЕНО ДЛЯ МОБИЛЬНЫХ */
+        /* Базовые стили как в Figma */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        body {
-            background-color: #ffffff !important;
-            overflow-x: hidden;
-        }
-
         .screen {
-            background-color: #ffffff !important;
+            background-color: #ffffff;
             display: flex;
             flex-direction: row;
             justify-content: center;
             width: 100%;
-            min-height: 100vh;
             padding: 0 var(--container-padding);
             box-sizing: border-box;
-            overflow-x: hidden;
         }
 
         .screen .div {
-            background-color: #ffffff !important;
-            overflow-x: hidden;
-            width: 100%;
-            max-width: 375px;
-            height: auto;
+            background-color: #ffffff;
+            overflow: hidden;
+            width: calc(375px - (var(--container-padding) * 2));
+            max-width: calc(100vw - (var(--container-padding) * 2));
+            height: 3670px;
             position: relative;
-            padding-bottom: 0;
         }
 
-        /* ИСПРАВЛЕНИЕ ДЛЯ МОБИЛЬНЫХ - ВАЖНО */
+        /* Главная секция с фото и заголовками */
         .overlap {
             position: relative;
-            width: 100%;
-            max-width: 100%;
+            width: 375px;
             height: 419px;
             margin-top: 14px;
-            margin-left: 0;
-            overflow: hidden;
+            margin-left: -9px;
         }
 
         .team-photo {
             position: absolute;
-            width: 100%;
-            max-width: 100%;
+            width: 375px;
             height: 265px;
             top: 34px;
-            left: 0;
+            left: 9px;
             object-fit: cover;
         }
 
@@ -490,7 +479,7 @@
         .review-more-btn {
             position: absolute;
             top: 1946px;
-            left: 60%; /* было 50%, сдвинули правее */
+            left: 51%; /* было 50%, сдвинули правее */
             transform: translateX(-50%);
             background: linear-gradient(90deg, #9272e6, #B777FF 52%, #9272e6);
             color: white;
@@ -771,33 +760,47 @@
             transform: scale(1.1);
         }
 
-        /* ФУТЕР В ОБЫЧНОМ ПОТОКЕ - НАДЕЖНО */
-        .footer {
-            width: 100%;
-            background: linear-gradient(135deg, #2c2c2c, #1a1a1a);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border-radius: 16px 16px 0 0;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
-            margin-top: 50px; /* отступ от контента выше */
+        /* Футер */
+        .overlap-4 {
+            position: absolute;
+            width: 375px;
+            height: 137px;
+            top: 3539px;
+            left: 0;
+            background-color: #000000;
         }
 
-        .footer-link {
+        .text-wrapper-17 {
+            height: 22px;
+            position: absolute;
+            top: 29px;
+            left: 117px;
             font-family: "Helvetica-Regular", Helvetica;
-            font-size: 15px;
-            color: #ffffff;
+            font-weight: 400;
+            color: #ffffffcc;
+            font-size: 16px;
+            line-height: 21.9px;
             text-decoration: underline;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
+            white-space: nowrap;
+            letter-spacing: 0;
         }
 
-        .footer-link:hover {
-            color: #B777FF;
-            transform: translateY(-2px);
+        .text-wrapper-18 {
+            height: 22px;
+            position: absolute;
+            top: 74px;
+            left: 66px;
+            font-family: "Helvetica-Regular", Helvetica;
+            font-weight: 400;
+            color: #ffffffcc;
+            font-size: 16px;
+            line-height: 21.9px;
+            text-decoration: underline;
+            white-space: nowrap;
+            letter-spacing: 0;
         }
+
+        /* Адаптивность */
         @media (max-width: 480px) {
             .screen .div {
                 width: calc(100vw - (var(--container-padding) * 2));
@@ -837,12 +840,14 @@
                 <img src="whatsapp_icon.png" alt="WhatsApp" class="social-icon" id="whatsappIcon">
                 <img src="telegram_icon.png" alt="Telegram" class="social-icon" id="telegramIcon">
             </div>
-        </div>
-    </div>
 
-    <!-- ФУТЕР ВНЕ ОСНОВНОГО КОНТЕЙНЕРА -->
-    <div style="width: 100%; background: linear-gradient(135deg, #2c2c2c, #1a1a1a); padding: 20px; text-align: center; color: white;">
-        <a href="policy.html" target="_blank" style="color: #ffffff; text-decoration: underline; font-family: 'Helvetica-Regular', Helvetica; font-size: 15px;">Политика конфиденциальности</a>
+            <div class="overlap-4">
+                <div class="text-wrapper-17">Договор-офферты</div>
+                <a href="policy.html" target="_blank" class="text-wrapper-18" style="text-decoration: underline;">
+                    Политика конфиденциальности
+                </a>
+            </div>
+        </div>
     </div>
     
     <script>
