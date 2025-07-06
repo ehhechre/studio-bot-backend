@@ -32,13 +32,6 @@ bot.telegram.setMyCommands([
   { command: 'app', description: '🚀 Открыть приложение' }
 ]);
 
-// --- ПЕРСИСТЕНТНАЯ КНОПКА "КЕЙСЫ" ---
-bot.telegram.setChatMenuButton({
-  type: 'web_app',
-  text: 'Кейсы',
-  web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
-});
-
 // --- СТАРТОВОЕ МЕНЮ ---
 bot.start(async (ctx) => {
   try {
@@ -75,16 +68,6 @@ bot.start(async (ctx) => {
         }
       );
       console.log('✅ Логотип отправлен успешно!');
-      
-      // Дополнительная проверка - отправляем простое сообщение
-      setTimeout(async () => {
-        try {
-          await ctx.reply('🔔 Проверка связи - если видите это сообщение, всё работает!');
-          console.log('✅ Проверочное сообщение отправлено');
-        } catch (err) {
-          console.log('❌ Ошибка проверочного сообщения:', err.message);
-        }
-      }, 1000);
       
     } catch (photoError) {
       console.log('❌ Ошибка отправки логотипа:', photoError.message);
@@ -580,7 +563,16 @@ async function notifyChannelNewApplication(application: any) {
 }
 
 // --- ЗАПУСК БОТА ---
-bot.launch();
-console.log('✅ Бот успешно запущен!');
+bot.launch().then(() => {
+  console.log('✅ Бот успешно запущен!');
+  
+  // Устанавливаем персистентную кнопку "Кейсы"
+  bot.telegram.setChatMenuButton({
+    type: 'web_app',
+    text: 'Кейсы',
+    web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
+  }).catch(err => console.log('Ошибка установки кнопки меню:', err));
+});
+
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
