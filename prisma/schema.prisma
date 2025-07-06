@@ -1,18 +1,14 @@
-// Этот блок говорит Prisma, как подключаться к нашей базе данных.
-// Он был создан автоматически командой 'prisma init'.
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL") // Prisma возьмет ссылку на БД из файла .env
+  url      = env("DATABASE_URL")
 }
 
 // === НАЧАЛО НАШИХ МОДЕЛЕЙ ===
-// Модель - это описание таблицы для Prisma.
 
-// Описываем таблицу 'users'. Названия полей должны совпадать с колонками в БД.
 model User {
   id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   telegram_id     BigInt   @unique @db.BigInt
@@ -22,14 +18,12 @@ model User {
   language_code   String?
   created_at      DateTime? @default(now()) @db.Timestamptz(6)
 
-  // Связи: у одного юзера может быть много заявок и много сессий
   applications    Application[]
   quiz_sessions   QuizSession[]
 
-  @@map("users") // Явно указываем, что эта модель соответствует таблице "users"
+  @@map("users")
 }
 
-// Описываем таблицу 'applications'
 model Application {
   id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   user_id         String            @db.Uuid
@@ -40,16 +34,14 @@ model Application {
   is_test         Boolean?          @default(false)
   created_at      DateTime?         @default(now()) @db.Timestamptz(6)
   
-  priority     String?           @default("normal") // low, normal, high
-  assigned_to  String?           // telegram_id админа
-  notes        String?           // внутренние заметки
-  // Связь: эта заявка принадлежит одному пользователю
+  priority     String?           @default("normal")
+  assigned_to  String?
+  notes        String?
   user            User              @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("applications")
 }
 
-// Описываем таблицу 'quiz_sessions'
 model QuizSession {
   id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   user_id         String    @db.Uuid
@@ -63,13 +55,11 @@ model QuizSession {
   updated_at      DateTime? @default(now()) @db.Timestamptz(6)
   created_at      DateTime? @default(now()) @db.Timestamptz(6)
 
-  // Связь: эта сессия принадлежит одному пользователю
   user            User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("quiz_sessions")
 }
 
-// Описываем наш специальный тип 'application_status'
 enum ApplicationStatus {
   new
   in_progress
