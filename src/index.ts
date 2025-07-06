@@ -45,6 +45,9 @@ if (!DATABASE_URL) {
 // --- Инициализация ---
 const bot = new Telegraf(BOT_TOKEN);
 const prisma = new PrismaClient();
+prisma.$connect()
+  .then(() => console.log('✅ Успешное подключение к базе данных'))
+  .catch((err) => console.error('❌ Ошибка подключения к базе данных:', err));
 const userCache: UserCache = {};
 
 // --- Утилиты ---
