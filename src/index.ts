@@ -68,6 +68,17 @@ bot.start(async (ctx) => {
         }
       );
       console.log('✅ Логотип отправлен успешно!');
+      
+      // Дополнительная проверка - отправляем простое сообщение
+      setTimeout(async () => {
+        try {
+          await ctx.reply('🔔 Проверка связи - если видите это сообщение, всё работает!');
+          console.log('✅ Проверочное сообщение отправлено');
+        } catch (err) {
+          console.log('❌ Ошибка проверочного сообщения:', err.message);
+        }
+      }, 1000);
+      
     } catch (photoError) {
       console.log('❌ Ошибка отправки логотипа:', photoError.message);
       console.log('📝 Отправляем текстовое приветствие...');
@@ -446,6 +457,173 @@ bot.command('delete_data', async (ctx) => {
   } catch (error) {
     console.error('Ошибка удаления данных:', error);
     await ctx.reply('❌ Ошибка при удалении данных. Обратитесь к администратору.');
+  }
+});
+
+// --- ВРЕМЕННАЯ КОМАНДА ДЛЯ ПОЛУЧЕНИЯ ID ---
+bot.command('myid', async (ctx) => {
+  await ctx.reply(`Ваш Telegram ID: ${ctx.from.id}`);
+  console.log(`ID пользователя ${ctx.from.first_name}: ${ctx.from.id}`);
+});
+
+// --- АДМИН КОМАНДЫ ---
+const ADMIN_IDS = [123456789]; // Замените на ваш ID после получения
+
+bot.command('admin_stats', async (ctx) => {
+  try {
+    if (!ADMIN_IDS.includes(ctx.from.id)) {
+      await ctx.reply('❌ У вас нет прав администратора.');
+      return;
+    }
+
+    const usersCount = await prisma.user.count();
+    const applicationsCount = await prisma.application.count();
+    const completedQuizzes = await prisma.quizSession.count({ where: { is_completed: true } });
+
+    await ctx.reply(
+      `📊 СТАТИСТИКА БОТА\n\n` +
+      `👥 Всего пользователей: ${usersCount}\n` +
+      `📋 Заявок отправлено: ${applicationsCount}\n` +
+      `✅ Квизов завершено: ${completedQuizzes}\n\n` +
+      `Команды:\n` +
+      `/admin_users - список пользователей\n` +
+      `/admin_applications - последние заявки`
+    );
+  } catch (error) {
+    console.error('Ошибка статистики:', error);
+    await ctx.reply('❌ Ошибка получения статистики.');
+  }
+});
+
+bot.command('admin_users', async (ctx) => {
+  try {
+    if (!ADMIN_IDS.includes(ctx.from.id)) return;
+
+    const users = await prisma.user.findMany({
+      orderBy: { created_at: 'desc' },
+      take: 10
+    });
+
+    let message = `👥 ПОСЛЕДНИЕ 10 ПОЛЬЗОВАТЕЛЕЙ:\n\n`;
+    
+    users.forEach((user, index) => {
+      const date = new Date(user.created_at).toLocaleDateString('ru-RU');
+      message += `${index + 1}. ${user.first_name || 'Аноним'} (@${user.username || '?'})\n`;
+      message += `   ID: ${user.telegram_id} | ${date}\n\n`;
+    });
+
+    await ctx.reply(message);
+  } catch (error) {
+    console.error('Ошибка списка пользователей:', error);
+    await ctx.reply('❌ Ошибка получения пользователей.');
+  }
+});
+
+bot.command('admin_applications', async (ctx) => {
+  try {
+    if (!ADMIN_IDS.includes(ctx.from.id)) return;
+
+    const applications = await prisma.application.findMany({
+      include: { user: true },
+      orderBy: { created_at: 'desc' },
+      take: 5
+    });
+
+    let message = `📋 ПОСЛЕДНИЕ 5 ЗАЯВОК:\n\n`;
+    
+    applications.forEach((app, index) => {
+      const date = new Date(app.created_at).toLocaleDateString('ru-RU');
+      const answers = app.answers as any;
+      message += `${index + 1}. ${app.user.first_name} - ${date}\n`;
+      message += `   Тип: ${answers.site_type || '?'}\n`;
+      message += `   Ниша: ${answers.niche || '?'}\n`;
+      message += `   Стиль: ${answers.brand_style || '?'}\n`;
+      message += `   Контакт: ${answers.contacts?.phone || '?'}\n`;
+      message += `   Комментарий: ${answers.contacts?.comment || 'Нет'}\n\n`;
+    });
+
+    await ctx.reply(message);
+  } catch (error) {
+    console.error('Ошибка списка заявок:', error);
+    await ctx.reply('❌ Ошибка получения заявок.');
+  }
+});
+
+bot.command('admin_stats', async (ctx) => {
+  try {
+    if (!ADMIN_IDS.includes(ctx.from.id)) {
+      await ctx.reply('❌ У вас нет прав администратора.');
+      return;
+    }
+
+    const usersCount = await prisma.user.count();
+    const applicationsCount = await prisma.application.count();
+    const completedQuizzes = await prisma.quizSession.count({ where: { is_completed: true } });
+
+    await ctx.reply(
+      `📊 СТАТИСТИКА БОТА\n\n` +
+      `👥 Всего пользователей: ${usersCount}\n` +
+      `📋 Заявок отправлено: ${applicationsCount}\n` +
+      `✅ Квизов завершено: ${completedQuizzes}\n\n` +
+      `Команды:\n` +
+      `/admin_users - список пользователей\n` +
+      `/admin_applications - последние заявки`
+    );
+  } catch (error) {
+    console.error('Ошибка статистики:', error);
+    await ctx.reply('❌ Ошибка получения статистики.');
+  }
+});
+
+bot.command('admin_users', async (ctx) => {
+  try {
+    if (!ADMIN_IDS.includes(ctx.from.id)) return;
+
+    const users = await prisma.user.findMany({
+      orderBy: { created_at: 'desc' },
+      take: 10
+    });
+
+    let message = `👥 ПОСЛЕДНИЕ 10 ПОЛЬЗОВАТЕЛЕЙ:\n\n`;
+    
+    users.forEach((user, index) => {
+      const date = new Date(user.created_at).toLocaleDateString('ru-RU');
+      message += `${index + 1}. ${user.first_name || 'Аноним'} (@${user.username || '?'})\n`;
+      message += `   ID: ${user.telegram_id} | ${date}\n\n`;
+    });
+
+    await ctx.reply(message);
+  } catch (error) {
+    console.error('Ошибка списка пользователей:', error);
+    await ctx.reply('❌ Ошибка получения пользователей.');
+  }
+});
+
+bot.command('admin_applications', async (ctx) => {
+  try {
+    if (!ADMIN_IDS.includes(ctx.from.id)) return;
+
+    const applications = await prisma.application.findMany({
+      include: { user: true },
+      orderBy: { created_at: 'desc' },
+      take: 5
+    });
+
+    let message = `📋 ПОСЛЕДНИЕ 5 ЗАЯВОК:\n\n`;
+    
+    applications.forEach((app, index) => {
+      const date = new Date(app.created_at).toLocaleDateString('ru-RU');
+      const answers = app.answers as any;
+      message += `${index + 1}. ${app.user.first_name} - ${date}\n`;
+      message += `   Тип: ${answers.site_type || '?'}\n`;
+      message += `   Ниша: ${answers.niche || '?'}\n`;
+      message += `   Контакт: ${answers.contacts?.phone || '?'}\n\n`;
+    });
+
+    await ctx.reply(message);
+  } catch (error) {
+    console.error('Ошибка списка заявок:', error);
+    await ctx.reply('❌ Ошибка получения заявок.');
   }
 });
 
