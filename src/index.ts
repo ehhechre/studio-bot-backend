@@ -32,6 +32,20 @@ bot.telegram.setMyCommands([
   { command: 'app', description: '🚀 Открыть приложение' }
 ]);
 
+// --- ЛОГИРОВАНИЕ file_id для картинок ---
+bot.on('photo', async (ctx) => {
+  const photo = ctx.message.photo;
+  const largestPhoto = photo[photo.length - 1]; // Берем самое большое разрешение
+  console.log('🖼️ ПОЛУЧЕНА КАРТИНКА:');
+  console.log('File ID:', largestPhoto.file_id);
+  console.log('Размер:', largestPhoto.width + 'x' + largestPhoto.height);
+  console.log('Используйте этот file_id в коде бота!');
+  
+  await ctx.reply(`✅ Логотип получен!\n\nFile ID: \`${largestPhoto.file_id}\`\n\nСкопируйте этот ID для кода бота.`, {
+    parse_mode: 'Markdown'
+  });
+});
+
 // --- СТАРТОВОЕ МЕНЮ ---
 bot.start(async (ctx) => {
   try {
@@ -48,16 +62,41 @@ bot.start(async (ctx) => {
       },
     });
 
-    await ctx.reply(
-      `Привет, ${userInDb.first_name}! 🚀\n\nВыберите действие:`, {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: '💰 Рассчитать стоимость', callback_data: 'start_quiz' }],
-            [{ text: '👁 Посмотреть работы', web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' } }]
-          ]
+    // Пробуем отправить логотип, если не получается - отправляем текст
+    try {
+      await ctx.replyWithPhoto(
+        { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/assets/logo_main.png' },
+        {
+          caption: `🚀 Добро пожаловать в Polli Digital!\n\n` +
+                  `Привет, ${userInDb.first_name}! Мы создаем сайты, которые продают.\n\n` +
+                  `🎯 Что можем для вас сделать?`,
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: '💰 Рассчитать стоимость', callback_data: 'start_quiz' }],
+              [{ text: '👁 Посмотреть работы', web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' } }]
+            ]
+          }
         }
-      }
-    );
+      );
+    } catch (photoError) {
+      console.log('Не удалось загрузить логотип, отправляем текстовое приветствие');
+      // Fallback - отправляем красивое текстовое приветствие
+      await ctx.reply(
+        `🎨 **POLLI DIGITAL** 🎨\n\n` +
+        `🚀 Добро пожаловать!\n\n` +
+        `Привет, ${userInDb.first_name}! Мы создаем сайты, которые продают.\n\n` +
+        `🎯 Что можем для вас сделать?`,
+        {
+          parse_mode: 'Markdown',
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: '💰 Рассчитать стоимость', callback_data: 'start_quiz' }],
+              [{ text: '👁 Посмотреть работы', web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' } }]
+            ]
+          }
+        }
+      );
+    }
   } catch (error) {
     console.error('Ошибка в /start:', error);
     await ctx.reply('Ой, что-то пошло не так. Попробуйте еще раз позже.');
@@ -225,6 +264,63 @@ bot.action('q3_ready', (ctx) => saveAnswerAndNext(ctx, 'brand_style', 'Да, в�
 bot.action('q3_partial', (ctx) => saveAnswerAndNext(ctx, 'brand_style', 'Частично', sendQuestion4));
 bot.action('q3_none', (ctx) => saveAnswerAndNext(ctx, 'brand_style', 'Нет, нужно создать с нуля', sendQuestion4));
 
+// --- ОБРАБОТКА КНОПКИ "НЕТ КОММЕНТАРИЯ" ---
+bot.action('no_comment', async (ctx) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { telegram_id: ctx.from.id } });
+    if (!user) return;
+    
+    const session = await prisma.quizSession.findFirst({
+      where: { user_id: user.id, is_completed: false },
+      orderBy: { created_at: 'desc' },
+    });
+    
+    if (!session) return;
+    
+    const currentAnswers = (session.answers as any) || {};
+    
+    if (currentAnswers.contacts && currentAnswers.contacts.phone) {
+      currentAnswers.contacts.comment = 'Без комментария';
+      
+      await prisma.quizSession.update({ 
+        data: { answers: currentAnswers, is_completed: true }, 
+        where: { id: session.id } 
+      });
+      
+      const application = await prisma.application.create({
+        data: {
+          user_id: user.id,
+          status: 'new',
+          answers: currentAnswers,
+          contact_info: `${currentAnswers.contacts.name}, ${currentAnswers.contacts.phone}`,
+        },
+        include: { user: true },
+      });
+      
+      console.log('Квиз завершен без комментария, заявка создана');
+      await notifyChannelNewApplication(application);
+      
+      await ctx.editMessageText(
+        `🎉 Спасибо! Ваша заявка принята. Мы скоро свяжемся с вами.\n\n` +
+        `Пока ждете — посмотрите наши работы:`,
+        {
+          reply_markup: {
+            inline_keyboard: [[
+              { 
+                text: '👁 Посмотреть портфолио', 
+                web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
+              }
+            ]]
+          }
+        }
+      );
+    }
+  } catch (error) {
+    console.error('Ошибка при обработке "нет комментария":', error);
+    await ctx.reply('Произошла ошибка, попробуйте начать сначала: /start');
+  }
+});
+
 // Вопрос 4: Контакты
 async function sendQuestion4(ctx: TelegramContext) {
   await ctx.reply(`❓ 4/4: Как с вами связаться?\n\n📛 Напишите ваше имя:`);
@@ -278,7 +374,7 @@ bot.on('text', async (ctx) => {
         include: { user: true },
       });
       
-      console.log('Квиз завершен, заявка создана');
+      console.log('Квиз завершен с комментарием, заявка создана');
       await notifyChannelNewApplication(application);
       
       await ctx.reply(
@@ -295,9 +391,6 @@ bot.on('text', async (ctx) => {
           }
         }
       );
-      
-      // Убираем клавиатуру
-      await ctx.reply('Спасибо за заявку! 🚀', Markup.removeKeyboard());
     }
   } catch (error) {
     console.error('Ошибка при обработке текста:', error);
@@ -328,8 +421,14 @@ bot.on('contact', async (ctx) => {
       });
       
       await ctx.reply(
-        '✍️ Есть комментарий к заказу? Напишите или отправьте "-" если нет:',
-        Markup.removeKeyboard()
+        '✍️ Есть комментарий к заказу?\n\nНапишите ваши пожелания или нажмите кнопку ниже:',
+        {
+          reply_markup: {
+            inline_keyboard: [[
+              { text: '✅ Нет комментария', callback_data: 'no_comment' }
+            ]]
+          }
+        }
       );
     }
   } catch (error) {
