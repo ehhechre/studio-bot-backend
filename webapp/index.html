@@ -63,28 +63,32 @@
 
         .screen .div {
             background-color: #ffffff;
-            overflow: hidden;
+            overflow: visible;
             width: calc(375px - (var(--container-padding) * 2));
             max-width: calc(100vw - (var(--container-padding) * 2));
-            height: 3670px;
+            height: auto; /* убираем фиксированную высоту */
             position: relative;
+            padding-bottom: 0; /* убираем лишние отступы */
         }
 
-        /* Главная секция с фото и заголовками */
+        /* ИСПРАВЛЕНИЕ ПЕРЕПОЛНЕНИЯ */
         .overlap {
             position: relative;
-            width: 375px;
+            width: 100%; /* было 375px */
+            max-width: 373px; /* ограничиваем максимум */
             height: 419px;
             margin-top: 14px;
-            margin-left: -9px;
+            margin-left: 0; /* было -9px */
+            overflow: hidden; /* добавили */
         }
 
         .team-photo {
             position: absolute;
-            width: 375px;
+            width: 100%; /* было 375px */
+            max-width: 373px; /* ограничиваем */
             height: 265px;
             top: 34px;
-            left: 9px;
+            left: 0; /* было 9px */
             object-fit: cover;
         }
 
@@ -760,47 +764,36 @@
             transform: scale(1.1);
         }
 
-        /* Футер */
-        .overlap-4 {
+        /* КРАСИВЫЙ ФУТЕР - БЕЗ ЛИШНЕГО ПРОСТРАНСТВА */
+        .footer {
             position: absolute;
-            width: 375px;
-            height: 137px;
-            top: 3539px;
+            top: 3500px; /* сдвинул выше */
             left: 0;
-            background-color: #000000;
+            width: 100%;
+            max-width: 373px;
+            background: linear-gradient(135deg, #2c2c2c, #1a1a1a);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-radius: 16px 16px 0 0;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
         }
 
-        .text-wrapper-17 {
-            height: 22px;
-            position: absolute;
-            top: 29px;
-            left: 117px;
+        .footer-link {
             font-family: "Helvetica-Regular", Helvetica;
-            font-weight: 400;
-            color: #ffffffcc;
-            font-size: 16px;
-            line-height: 21.9px;
+            font-size: 15px;
+            color: #ffffff;
             text-decoration: underline;
-            white-space: nowrap;
-            letter-spacing: 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
         }
 
-        .text-wrapper-18 {
-            height: 22px;
-            position: absolute;
-            top: 74px;
-            left: 66px;
-            font-family: "Helvetica-Regular", Helvetica;
-            font-weight: 400;
-            color: #ffffffcc;
-            font-size: 16px;
-            line-height: 21.9px;
-            text-decoration: underline;
-            white-space: nowrap;
-            letter-spacing: 0;
+        .footer-link:hover {
+            color: #B777FF;
+            transform: translateY(-2px);
         }
-
-        /* Адаптивность */
         @media (max-width: 480px) {
             .screen .div {
                 width: calc(100vw - (var(--container-padding) * 2));
@@ -841,11 +834,9 @@
                 <img src="telegram_icon.png" alt="Telegram" class="social-icon" id="telegramIcon">
             </div>
 
-            <div class="overlap-4">
-                <div class="text-wrapper-17">Договор-офферты</div>
-                <a href="policy.html" target="_blank" class="text-wrapper-18" style="text-decoration: underline;">
-                    Политика конфиденциальности
-                </a>
+            <!-- ТОЛЬКО ПОЛИТИКА КОНФИДЕНЦИАЛЬНОСТИ -->
+            <div class="footer">
+                <a href="policy.html" target="_blank" class="footer-link">Политика конфиденциальности</a>
             </div>
         </div>
     </div>
