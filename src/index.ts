@@ -26,10 +26,7 @@ const bot = new Telegraf<TelegramContext>(botToken);
 
 // --- УСТАНОВКА КОМАНД МЕНЮ ---
 bot.telegram.setMyCommands([
-  { command: 'start', description: '🏠 Главное меню' },
-  { command: 'cases', description: '👁 Посмотреть работы' },
-  { command: 'calculate', description: '💰 Рассчитать стоимость' },
-  { command: 'app', description: '🚀 Открыть приложение' }
+  { command: 'app', description: 'Кейсы' }
 ]);
 
 // --- СТАРТОВОЕ МЕНЮ ---
@@ -96,6 +93,20 @@ bot.start(async (ctx) => {
 });
 
 // --- КОМАНДЫ МЕНЮ ---
+bot.command('app', (ctx) => {
+  ctx.reply('🎨 Портфолио Polli Digital:', {
+    reply_markup: {
+      inline_keyboard: [[
+        { 
+          text: 'Открыть приложение', 
+          web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
+        }
+      ]]
+    }
+  });
+});
+
+// --- СКРЫТЫЕ КОМАНДЫ (работают, но не видны в меню) ---
 bot.command('cases', (ctx) => {
   ctx.reply('👁 Посмотрите наши работы:', {
     reply_markup: {
@@ -114,19 +125,6 @@ bot.command('calculate', (ctx) => {
     reply_markup: {
       inline_keyboard: [[
         { text: '📋 Начать опрос', callback_data: 'start_quiz' }
-      ]]
-    }
-  });
-});
-
-bot.command('app', (ctx) => {
-  ctx.reply('🚀 Откройте наше приложение:', {
-    reply_markup: {
-      inline_keyboard: [[
-        { 
-          text: '🎨 Polli Digital App', 
-          web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
-        }
       ]]
     }
   });
