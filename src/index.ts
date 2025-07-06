@@ -65,7 +65,7 @@ bot.start(async (ctx) => {
     // Пробуем отправить логотип, если не получается - отправляем текст
     try {
       await ctx.replyWithPhoto(
-        { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/assets/logo_main.png' },
+        { url: 'AgACAgIAAxkBAAICRWhpw6XXPrldcv1IK2YUf2boX6mxAAL99jEbaHNQS0g_hguljSVZAQADAgADeQADNgQ' },
         {
           caption: `🚀 Добро пожаловать в Polli Digital!\n\n` +
                   `Привет, ${userInDb.first_name}! Мы создаем сайты, которые продают.\n\n` +
