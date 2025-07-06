@@ -1,4 +1,4 @@
-// src/index.ts - Обновленная версия с новыми вопросами квиза
+// src/index.ts - ЧИСТАЯ версия БЕЗ ДУБЛЕЙ
 
 // --- Импорты ---
 import { Telegraf, Context, Markup } from 'telegraf';
@@ -144,6 +144,94 @@ bot.command('app', (ctx) => {
   });
 });
 
+// --- АДМИН КОМАНДЫ ---
+const ADMIN_IDS = [443699588]; // ID Игоря
+
+bot.command('myid', async (ctx) => {
+  await ctx.reply(`Ваш Telegram ID: ${ctx.from.id}`);
+  console.log(`ID пользователя ${ctx.from.first_name}: ${ctx.from.id}`);
+});
+
+bot.command('admin_stats', async (ctx) => {
+  try {
+    if (!ADMIN_IDS.includes(ctx.from.id)) {
+      await ctx.reply('❌ У вас нет прав администратора.');
+      return;
+    }
+
+    const usersCount = await prisma.user.count();
+    const applicationsCount = await prisma.application.count();
+    const completedQuizzes = await prisma.quizSession.count({ where: { is_completed: true } });
+
+    await ctx.reply(
+      `📊 СТАТИСТИКА БОТА\n\n` +
+      `👥 Всего пользователей: ${usersCount}\n` +
+      `📋 Заявок отправлено: ${applicationsCount}\n` +
+      `✅ Квизов завершено: ${completedQuizzes}\n\n` +
+      `Команды:\n` +
+      `/admin_users - список пользователей\n` +
+      `/admin_applications - последние заявки`
+    );
+  } catch (error) {
+    console.error('Ошибка статистики:', error);
+    await ctx.reply('❌ Ошибка получения статистики.');
+  }
+});
+
+bot.command('admin_users', async (ctx) => {
+  try {
+    if (!ADMIN_IDS.includes(ctx.from.id)) return;
+
+    const users = await prisma.user.findMany({
+      orderBy: { created_at: 'desc' },
+      take: 10
+    });
+
+    let message = `👥 ПОСЛЕДНИЕ 10 ПОЛЬЗОВАТЕЛЕЙ:\n\n`;
+    
+    users.forEach((user, index) => {
+      const date = new Date(user.created_at).toLocaleDateString('ru-RU');
+      message += `${index + 1}. ${user.first_name || 'Аноним'} (@${user.username || '?'})\n`;
+      message += `   ID: ${user.telegram_id} | ${date}\n\n`;
+    });
+
+    await ctx.reply(message);
+  } catch (error) {
+    console.error('Ошибка списка пользователей:', error);
+    await ctx.reply('❌ Ошибка получения пользователей.');
+  }
+});
+
+bot.command('admin_applications', async (ctx) => {
+  try {
+    if (!ADMIN_IDS.includes(ctx.from.id)) return;
+
+    const applications = await prisma.application.findMany({
+      include: { user: true },
+      orderBy: { created_at: 'desc' },
+      take: 5
+    });
+
+    let message = `📋 ПОСЛЕДНИЕ 5 ЗАЯВОК:\n\n`;
+    
+    applications.forEach((app, index) => {
+      const date = new Date(app.created_at).toLocaleDateString('ru-RU');
+      const answers = app.answers as any;
+      message += `${index + 1}. ${app.user.first_name} - ${date}\n`;
+      message += `   Тип: ${answers.site_type || '?'}\n`;
+      message += `   Ниша: ${answers.niche || '?'}\n`;
+      message += `   Стиль: ${answers.brand_style || '?'}\n`;
+      message += `   Контакт: ${answers.contacts?.phone || '?'}\n`;
+      message += `   Комментарий: ${answers.contacts?.comment || 'Нет'}\n\n`;
+    });
+
+    await ctx.reply(message);
+  } catch (error) {
+    console.error('Ошибка списка заявок:', error);
+    await ctx.reply('❌ Ошибка получения заявок.');
+  }
+});
+
 // --- СОГЛАСИЕ НА ОБРАБОТКУ ДАННЫХ ---
 bot.action('start_quiz', (ctx) => {
   ctx.reply(
@@ -207,7 +295,7 @@ async function saveAnswerAndNext(ctx: TelegramContext, field: string, value: any
   }
 }
 
-// --- ОБНОВЛЕННЫЕ ВОПРОСЫ КВИЗА ---
+// --- ВОПРОСЫ КВИЗА ---
 
 // Вопрос 1: Какой сайт вам нужен?
 async function sendQuestion1(ctx: TelegramContext) {
@@ -268,6 +356,11 @@ bot.action('q3_ready', (ctx) => saveAnswerAndNext(ctx, 'brand_style', 'Да, в�
 bot.action('q3_partial', (ctx) => saveAnswerAndNext(ctx, 'brand_style', 'Частично', sendQuestion4));
 bot.action('q3_none', (ctx) => saveAnswerAndNext(ctx, 'brand_style', 'Нет, нужно создать с нуля', sendQuestion4));
 
+// Вопрос 4: Контакты
+async function sendQuestion4(ctx: TelegramContext) {
+  await ctx.reply(`❓ 4/4: Как с вами связаться?\n\n📛 Напишите ваше имя:`);
+}
+
 // --- ОБРАБОТКА КНОПКИ "НЕТ КОММЕНТАРИЯ" ---
 bot.action('no_comment', async (ctx) => {
   try {
@@ -324,11 +417,6 @@ bot.action('no_comment', async (ctx) => {
     await ctx.reply('Произошла ошибка, попробуйте начать сначала: /start');
   }
 });
-
-// Вопрос 4: Контакты
-async function sendQuestion4(ctx: TelegramContext) {
-  await ctx.reply(`❓ 4/4: Как с вами связаться?\n\n📛 Напишите ваше имя:`);
-}
 
 // --- ОБРАБОТКА ТЕКСТА ---
 bot.on('text', async (ctx) => {
@@ -457,173 +545,6 @@ bot.command('delete_data', async (ctx) => {
   } catch (error) {
     console.error('Ошибка удаления данных:', error);
     await ctx.reply('❌ Ошибка при удалении данных. Обратитесь к администратору.');
-  }
-});
-
-// --- ВРЕМЕННАЯ КОМАНДА ДЛЯ ПОЛУЧЕНИЯ ID ---
-bot.command('myid', async (ctx) => {
-  await ctx.reply(`Ваш Telegram ID: ${ctx.from.id}`);
-  console.log(`ID пользователя ${ctx.from.first_name}: ${ctx.from.id}`);
-});
-
-// --- АДМИН КОМАНДЫ ---
-const ADMIN_IDS = [443699588]; // Замените на ваш ID после получения
-
-bot.command('admin_stats', async (ctx) => {
-  try {
-    if (!ADMIN_IDS.includes(ctx.from.id)) {
-      await ctx.reply('❌ У вас нет прав администратора.');
-      return;
-    }
-
-    const usersCount = await prisma.user.count();
-    const applicationsCount = await prisma.application.count();
-    const completedQuizzes = await prisma.quizSession.count({ where: { is_completed: true } });
-
-    await ctx.reply(
-      `📊 СТАТИСТИКА БОТА\n\n` +
-      `👥 Всего пользователей: ${usersCount}\n` +
-      `📋 Заявок отправлено: ${applicationsCount}\n` +
-      `✅ Квизов завершено: ${completedQuizzes}\n\n` +
-      `Команды:\n` +
-      `/admin_users - список пользователей\n` +
-      `/admin_applications - последние заявки`
-    );
-  } catch (error) {
-    console.error('Ошибка статистики:', error);
-    await ctx.reply('❌ Ошибка получения статистики.');
-  }
-});
-
-bot.command('admin_users', async (ctx) => {
-  try {
-    if (!ADMIN_IDS.includes(ctx.from.id)) return;
-
-    const users = await prisma.user.findMany({
-      orderBy: { created_at: 'desc' },
-      take: 10
-    });
-
-    let message = `👥 ПОСЛЕДНИЕ 10 ПОЛЬЗОВАТЕЛЕЙ:\n\n`;
-    
-    users.forEach((user, index) => {
-      const date = new Date(user.created_at).toLocaleDateString('ru-RU');
-      message += `${index + 1}. ${user.first_name || 'Аноним'} (@${user.username || '?'})\n`;
-      message += `   ID: ${user.telegram_id} | ${date}\n\n`;
-    });
-
-    await ctx.reply(message);
-  } catch (error) {
-    console.error('Ошибка списка пользователей:', error);
-    await ctx.reply('❌ Ошибка получения пользователей.');
-  }
-});
-
-bot.command('admin_applications', async (ctx) => {
-  try {
-    if (!ADMIN_IDS.includes(ctx.from.id)) return;
-
-    const applications = await prisma.application.findMany({
-      include: { user: true },
-      orderBy: { created_at: 'desc' },
-      take: 5
-    });
-
-    let message = `📋 ПОСЛЕДНИЕ 5 ЗАЯВОК:\n\n`;
-    
-    applications.forEach((app, index) => {
-      const date = new Date(app.created_at).toLocaleDateString('ru-RU');
-      const answers = app.answers as any;
-      message += `${index + 1}. ${app.user.first_name} - ${date}\n`;
-      message += `   Тип: ${answers.site_type || '?'}\n`;
-      message += `   Ниша: ${answers.niche || '?'}\n`;
-      message += `   Стиль: ${answers.brand_style || '?'}\n`;
-      message += `   Контакт: ${answers.contacts?.phone || '?'}\n`;
-      message += `   Комментарий: ${answers.contacts?.comment || 'Нет'}\n\n`;
-    });
-
-    await ctx.reply(message);
-  } catch (error) {
-    console.error('Ошибка списка заявок:', error);
-    await ctx.reply('❌ Ошибка получения заявок.');
-  }
-});
-
-bot.command('admin_stats', async (ctx) => {
-  try {
-    if (!ADMIN_IDS.includes(ctx.from.id)) {
-      await ctx.reply('❌ У вас нет прав администратора.');
-      return;
-    }
-
-    const usersCount = await prisma.user.count();
-    const applicationsCount = await prisma.application.count();
-    const completedQuizzes = await prisma.quizSession.count({ where: { is_completed: true } });
-
-    await ctx.reply(
-      `📊 СТАТИСТИКА БОТА\n\n` +
-      `👥 Всего пользователей: ${usersCount}\n` +
-      `📋 Заявок отправлено: ${applicationsCount}\n` +
-      `✅ Квизов завершено: ${completedQuizzes}\n\n` +
-      `Команды:\n` +
-      `/admin_users - список пользователей\n` +
-      `/admin_applications - последние заявки`
-    );
-  } catch (error) {
-    console.error('Ошибка статистики:', error);
-    await ctx.reply('❌ Ошибка получения статистики.');
-  }
-});
-
-bot.command('admin_users', async (ctx) => {
-  try {
-    if (!ADMIN_IDS.includes(ctx.from.id)) return;
-
-    const users = await prisma.user.findMany({
-      orderBy: { created_at: 'desc' },
-      take: 10
-    });
-
-    let message = `👥 ПОСЛЕДНИЕ 10 ПОЛЬЗОВАТЕЛЕЙ:\n\n`;
-    
-    users.forEach((user, index) => {
-      const date = new Date(user.created_at).toLocaleDateString('ru-RU');
-      message += `${index + 1}. ${user.first_name || 'Аноним'} (@${user.username || '?'})\n`;
-      message += `   ID: ${user.telegram_id} | ${date}\n\n`;
-    });
-
-    await ctx.reply(message);
-  } catch (error) {
-    console.error('Ошибка списка пользователей:', error);
-    await ctx.reply('❌ Ошибка получения пользователей.');
-  }
-});
-
-bot.command('admin_applications', async (ctx) => {
-  try {
-    if (!ADMIN_IDS.includes(ctx.from.id)) return;
-
-    const applications = await prisma.application.findMany({
-      include: { user: true },
-      orderBy: { created_at: 'desc' },
-      take: 5
-    });
-
-    let message = `📋 ПОСЛЕДНИЕ 5 ЗАЯВОК:\n\n`;
-    
-    applications.forEach((app, index) => {
-      const date = new Date(app.created_at).toLocaleDateString('ru-RU');
-      const answers = app.answers as any;
-      message += `${index + 1}. ${app.user.first_name} - ${date}\n`;
-      message += `   Тип: ${answers.site_type || '?'}\n`;
-      message += `   Ниша: ${answers.niche || '?'}\n`;
-      message += `   Контакт: ${answers.contacts?.phone || '?'}\n\n`;
-    });
-
-    await ctx.reply(message);
-  } catch (error) {
-    console.error('Ошибка списка заявок:', error);
-    await ctx.reply('❌ Ошибка получения заявок.');
   }
 });
 
