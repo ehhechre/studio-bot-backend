@@ -479,7 +479,7 @@
         .review-more-btn {
             position: absolute;
             top: 1946px;
-            left: 51%; /* было 50%, сдвинули правее */
+            left: 60%; /* было 50%, сдвинули правее */
             transform: translateX(-50%);
             background: linear-gradient(90deg, #9272e6, #B777FF 52%, #9272e6);
             color: white;
@@ -684,14 +684,34 @@
             line-height: 21.9px;
         }
 
-        /* Карта */
-        .rectangle-2 {
+        /* Интерактивная карта Яндекс */
+        .yandex-map-container {
             position: absolute;
             width: 335px;
             height: 291px;
             top: 3045px;
             left: 20px;
-            object-fit: cover;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .yandex-map-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 8px;
+        }
+
+        .yandex-map-container a {
+            color: #666;
+            font-size: 11px;
+            position: absolute;
+            background: rgba(255,255,255,0.9);
+            padding: 2px 4px;
+            border-radius: 3px;
+            text-decoration: none;
+            z-index: 10;
         }
 
         /* Адрес */
@@ -729,8 +749,8 @@
         }
 
         .social-icon {
-            width: 35px;
-            height: 35px;
+            width: 40px; /* было 35px */
+            height: 40px; /* было 35px */
             cursor: pointer;
             border-radius: 8px;
             transition: transform 0.2s ease;
@@ -910,7 +930,12 @@
                 <div class="text-wrapper-16">info@newdigital.moscow</div>
             </div>
 
-            <img class="rectangle-2" src="ymaps_icon.png" alt="Карта офиса" />
+            <!-- ИНТЕРАКТИВНАЯ ЯНДЕКС КАРТА -->
+            <div class="yandex-map-container">
+                <a href="https://yandex.ru/maps/213/moscow/?utm_medium=mapframe&utm_source=maps" style="top:0px;">Москва</a>
+                <a href="https://yandex.ru/maps/213/moscow/house/armyanskiy_pereulok_11_2a/Z04YcARoS0cCQFtvfXt0eH1qZw==/?ll=37.638772%2C55.759208&utm_medium=mapframe&utm_source=maps&z=17" style="top:14px;">Армянский переулок, 11/2А — Яндекс Карты</a>
+                <iframe src="https://yandex.ru/map-widget/v1/?ll=37.638772%2C55.759208&mode=whatshere&whatshere%5Bpoint%5D=37.638225%2C55.759193&whatshere%5Bzoom%5D=17&z=17" allowfullscreen="true"></iframe>
+            </div>
 
             <div class="view-6">
                 <img class="img-2" src="igolka.png" alt="Адрес">
@@ -963,7 +988,7 @@
 
         // НОВЫЕ ОБРАБОТЧИКИ для отдельных соцсетей
         document.getElementById('vkIcon').addEventListener('click', function() {
-            window.open('https://vk.com/new.design.new1', '_blank');
+            window.open('https://vk.com/polli_digital', '_blank');
         });
 
         document.getElementById('whatsappIcon').addEventListener('click', function() {

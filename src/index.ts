@@ -59,7 +59,7 @@ bot.start(async (ctx) => {
           reply_markup: {
             inline_keyboard: [
               [{ text: '💰 Рассчитать стоимость', callback_data: 'start_quiz' }],
-              [{ text: '👁 Посмотреть работы', web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' } }]
+              [{ text: '👁 Посмотреть работы', web_app: { url: 'https://polli-digital.ru/portfolio' } }]
             ]
           }
         }
@@ -570,11 +570,11 @@ bot.launch().then(async () => {
         type: 'web_app',
         text: 'Кейсы',
         web_app: {
-          url: 'https://ehhechre.github.io/studio-bot-backend/webapp/'
+          url: 'https://polli-digital.ru/portfolio'
         }
       }
     });
-    console.log('🔥 КНОПКА "КЕЙСЫ" УСТАНОВЛЕНА!', result);
+    console.log('🔥 КНОПКА "КЕЙСЫ" УСТАНОВЛЕНА НА ОСНОВНОЙ САЙТ!', result);
   } catch (error) {
     console.log('❌ Ошибка установки кнопки:', error);
     
@@ -584,9 +584,9 @@ bot.launch().then(async () => {
       await bot.telegram.setChatMenuButton(undefined, {
         type: 'web_app', 
         text: 'Кейсы',
-        web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
+        web_app: { url: 'https://polli-digital.ru/portfolio' }
       });
-      console.log('🔥 КНОПКА "КЕЙСЫ" УСТАНОВЛЕНА (способ 2)!');
+      console.log('🔥 КНОПКА "КЕЙСЫ" УСТАНОВЛЕНА НА ОСНОВНОЙ САЙТ (способ 2)!');
     } catch (error2) {
       console.log('❌ Второй способ тоже не сработал:', error2);
     }
