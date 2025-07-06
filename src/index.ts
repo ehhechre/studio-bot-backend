@@ -98,20 +98,21 @@ bot.start(async (ctx) => {
   try {
     const telegramUser = ctx.from;
     logUserAction(telegramUser.id, 'start_command');
-    const userInDb = await prisma.users.upsert({
-      where: { telegram_id: telegramUser.id },
-      update: {
-        username: telegramUser.username,
-        first_name: telegramUser.first_name
-      },
-      create: {
-        telegram_id: telegramUser.id,
-        username: telegramUser.username,
-        first_name: telegramUser.first_name,
-        last_name: telegramUser.last_name,
-        language_code: telegramUser.language_code,
-      },
-    });
+    const userInDb = await prisma.user.upsert({
+        where: { telegram_id: telegramUser.id },
+        update: {
+          username: telegramUser.username,
+          first_name: telegramUser.first_name
+        },
+        create: {
+          telegram_id: telegramUser.id,
+          username: telegramUser.username,
+          first_name: telegramUser.first_name,
+          last_name: telegramUser.last_name,
+          language_code: telegramUser.language_code,
+        },
+      });
+      
 
     userCache.set(telegramUser.id, userInDb);
     console.log(`🔥 Пользователь: ${userInDb.first_name} (${telegramUser.id})`);
