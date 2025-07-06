@@ -467,7 +467,7 @@ bot.command('myid', async (ctx) => {
 });
 
 // --- АДМИН КОМАНДЫ ---
-const ADMIN_IDS = [123456789]; // Замените на ваш ID после получения
+const ADMIN_IDS = [443699588]; // Замените на ваш ID после получения
 
 bot.command('admin_stats', async (ctx) => {
   try {
