@@ -59,7 +59,7 @@ bot.start(async (ctx) => {
           reply_markup: {
             inline_keyboard: [
               [{ text: '💰 Рассчитать стоимость', callback_data: 'start_quiz' }],
-              [{ text: '👁 Посмотреть работы', web_app: { url: 'https://polli-digital.ru/portfolio' } }]
+              [{ text: '👁 Посмотреть работы', web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' } }]
             ]
           }
         }
@@ -122,7 +122,7 @@ bot.command('app', (ctx) => {
       inline_keyboard: [[
         { 
           text: '🎨 Polli Digital App', 
-          web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
+          web_app: { url: 'https://polli-digital.ru/portfolio' }
         }
       ]]
     }
@@ -390,7 +390,7 @@ bot.action('no_comment', async (ctx) => {
             inline_keyboard: [[
               { 
                 text: '👁 Посмотреть портфолио', 
-                web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
+                web_app: { url: 'https://polli-digital.ru/portfolio' }
               }
             ]]
           }
@@ -462,7 +462,7 @@ bot.on('text', async (ctx) => {
             inline_keyboard: [[
               { 
                 text: '👁 Посмотреть портфолио', 
-                web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
+                web_app: { url: 'https://polli-digital.ru/portfolio' }
               }
             ]]
           }
