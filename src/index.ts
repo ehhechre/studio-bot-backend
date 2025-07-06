@@ -26,10 +26,7 @@ const bot = new Telegraf<TelegramContext>(botToken);
 
 // --- УСТАНОВКА КОМАНД МЕНЮ ---
 bot.telegram.setMyCommands([
-  { command: 'start', description: '🏠 Главное меню' },
-  { command: 'cases', description: '👁 Посмотреть работы' },
-  { command: 'calculate', description: '💰 Рассчитать стоимость' },
-  { command: 'app', description: '🚀 Открыть приложение' }
+  { command: 'app', description: 'Кейсы' }
 ]);
 
 // --- СТАРТОВОЕ МЕНЮ ---
@@ -563,8 +560,37 @@ async function notifyChannelNewApplication(application: any) {
 }
 
 // --- ЗАПУСК БОТА ---
-bot.launch().then(() => {
+bot.launch().then(async () => {
   console.log('✅ Бот успешно запущен!');
+  
+  // Правильный API для кнопки "Кейсы" 
+  try {
+    const result = await bot.telegram.callApi('setChatMenuButton', {
+      menu_button: {
+        type: 'web_app',
+        text: 'Кейсы',
+        web_app: {
+          url: 'https://ehhechre.github.io/studio-bot-backend/webapp/'
+        }
+      }
+    });
+    console.log('🔥 КНОПКА "КЕЙСЫ" УСТАНОВЛЕНА!', result);
+  } catch (error) {
+    console.log('❌ Ошибка установки кнопки:', error);
+    
+    // Еще один способ
+    try {
+      // @ts-ignore
+      await bot.telegram.setChatMenuButton(undefined, {
+        type: 'web_app', 
+        text: 'Кейсы',
+        web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
+      });
+      console.log('🔥 КНОПКА "КЕЙСЫ" УСТАНОВЛЕНА (способ 2)!');
+    } catch (error2) {
+      console.log('❌ Второй способ тоже не сработал:', error2);
+    }
+  }
 });
 
 process.once('SIGINT', () => bot.stop('SIGINT'));
