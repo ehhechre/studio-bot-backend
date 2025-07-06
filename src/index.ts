@@ -1,1014 +1,479 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- Подключение Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+// src/index.ts - PRODUCTION VERSION БЕЗ ОШИБОК PRISMA
+
+// --- Импорты ---
+import { Telegraf, Context, Markup } from 'telegraf';
+import dotenv from 'dotenv';
+import { PrismaClient } from '@prisma/client';
+
+// --- Типы ---
+interface TelegramContext extends Context {
+  from?: {
+    id: number;
+    username?: string;
+    first_name?: string;
+    last_name?: string;
+    language_code?: string;
+  };
+}
+
+interface UserCache {
+  [key: number]: {
+    id: string;
+    telegram_id: bigint;
+    username: string | null;
+    first_name: string | null;
+    last_name: string | null;
+    language_code: string | null;
+    created_at: Date | null;
+  };
+}
+
+// --- Конфигурация ---
+dotenv.config();
+
+const BOT_TOKEN = process.env.BOT_TOKEN;
+const DATABASE_URL = process.env.DATABASE_URL;
+const CASES_BUTTON_TO_SITE = process.env.CASES_BUTTON_TO_SITE === 'true';
+
+if (!BOT_TOKEN) {
+  throw new Error('❌ BOT_TOKEN не найден в .env файле');
+}
+
+if (!DATABASE_URL) {
+  throw new Error('❌ DATABASE_URL не найден в .env файле');
+}
+
+// --- Инициализация ---
+const bot = new Telegraf(BOT_TOKEN);
+const prisma = new PrismaClient();
+const userCache: UserCache = {};
+
+// --- Утилиты ---
+function formatMemoryUsage(): string {
+  const used = process.memoryUsage();
+  return `${Math.round(used.rss / 1024 / 1024 * 100) / 100} MB`;
+}
+
+function logUserAction(userId: number, action: string, details?: any): void {
+  const timestamp = new Date().toISOString();
+  console.log(`📊 [${timestamp}] User ${userId}: ${action}${details ? ` ${JSON.stringify(details)}` : ''}`);
+}
+
+function logError(error: Error, context: string, userId?: number): void {
+  const timestamp = new Date().toISOString();
+  console.log(`❌ [${timestamp}] ERROR in ${context}${userId ? ` (User: ${userId})` : ''}: ${error.name}:`);
+  console.log(error.message);
+  if (error.stack) {
+    console.log(error.stack.split('\n').slice(0, 5).join('\n'));
+  }
+}
+
+// --- Команды ---
+bot.start(async (ctx: TelegramContext) => {
+  try {
+    const telegramUser = ctx.from;
+    if (!telegramUser) {
+      await ctx.reply('❌ Ошибка получения данных пользователя');
+      return;
+    }
+
+    logUserAction(telegramUser.id, 'start_command');
+
+    // ИСПРАВЛЕНО: убрали last_visit полностью
+    const userInDb = await prisma.user.upsert({
+      where: { telegram_id: BigInt(telegramUser.id) },
+      update: {
+        username: telegramUser.username || null,
+        first_name: telegramUser.first_name || null,
+        last_name: telegramUser.last_name || null,
+        language_code: telegramUser.language_code || null
+      },
+      create: {
+        telegram_id: BigInt(telegramUser.id),
+        username: telegramUser.username || null,
+        first_name: telegramUser.first_name || null,
+        last_name: telegramUser.last_name || null,
+        language_code: telegramUser.language_code || null
+      }
+    });
+
+    // Обновляем кеш
+    userCache[telegramUser.id] = userInDb;
+
+    const keyboard = Markup.inlineKeyboard([
+      [Markup.button.callback('📋 Заполнить анкету', 'fill_form')],
+      [Markup.button.callback('💼 Кейсы', 'cases')],
+      [Markup.button.callback('📞 Связаться с нами', 'contact')]
+    ]);
+
+    await ctx.reply(
+      `👋 Добро пожаловать в Polli Digital!\n\n` +
+      `🎯 Мы специализируемся на:\n` +
+      `• Брендинг и фирменный стиль\n` +
+      `• Создание сайтов и приложений\n` +
+      `• Digital-маркетинг и реклама\n\n` +
+      `✨ Выберите действие:`,
+      keyboard
+    );
+
+  } catch (error) {
+    logError(error as Error, 'start_command', ctx.from?.id);
+    await ctx.reply('❌ Произошла ошибка. Попробуйте позже.');
+  }
+});
+
+// --- Обработчики кнопок ---
+bot.action('fill_form', async (ctx: TelegramContext) => {
+  try {
+    if (!ctx.from) return;
     
-    <title>Polli Digital</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        /* Подключение шрифтов */
-        @font-face {
-            font-family: 'Benzin-Medium';
-            src: url('fonts/Benzin-Medium.woff2') format('woff2');
-            font-weight: 500;
-            font-display: swap;
-        }
-
-        @font-face {
-            font-family: 'Helvetica-Regular';
-            src: url('fonts/HelveticaRegular.woff') format('woff');
-            font-weight: 400;
-            font-display: swap;
-        }
-
-        @font-face {
-            font-family: 'HelveticaNeueCyr-Medium';
-            src: url('fonts/helveticaneuecyr-medium1.ttf') format('truetype');
-            font-weight: 500;
-            font-display: swap;
-        }
-
-        @font-face {
-            font-family: 'Helvetica-Bold';
-            src: url('fonts/HelveticaBold.woff') format('woff');
-            font-weight: 700;
-            font-display: swap;
-        }
-
-        /* CSS переменные */
-        :root {
-            --main-text-color: #181818;
-            --container-padding: 1px; /* ОДНА переменная для всех устройств */
-        }
-
-        /* Базовые стили - ИСПРАВЛЕНО ДЛЯ МОБИЛЬНЫХ */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background-color: #ffffff !important;
-            overflow-x: hidden;
-        }
-
-        .screen {
-            background-color: #ffffff !important;
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            width: 100%;
-            min-height: 100vh;
-            padding: 0 var(--container-padding);
-            box-sizing: border-box;
-            overflow-x: hidden;
-        }
-
-        .screen .div {
-            background-color: #ffffff !important;
-            overflow-x: hidden;
-            width: 100%;
-            max-width: 375px;
-            height: auto;
-            position: relative;
-            padding-bottom: 0;
-        }
-
-        /* ИСПРАВЛЕНИЕ ДЛЯ МОБИЛЬНЫХ - ВАЖНО */
-        .overlap {
-            position: relative;
-            width: 100%;
-            max-width: 100%;
-            height: 419px;
-            margin-top: 14px;
-            margin-left: 0;
-            overflow: hidden;
-        }
-
-        .team-photo {
-            position: absolute;
-            width: 100%;
-            max-width: 100%;
-            height: 265px;
-            top: 34px;
-            left: 0;
-            object-fit: cover;
-        }
-
-        .logo-image {
-            position: absolute;
-            width: 85px;
-            height: 55px;
-            top: 0;
-            left: 31px;
-            object-fit: cover;
-        }
-
-        /* Текстовый блок */
-        .element-2 {
-            position: absolute;
-            width: 356px;
-            height: 135px;
-            top: 323px;
-            left: 25px;
-        }
-
-        .text-wrapper {
-            width: 234px;
-            height: 30px;
-            top: 0;
-            left: 0;
-            font-family: "Benzin-Medium", Helvetica;
-            font-weight: 400;
-            color: var(--main-text-color);
-            font-size: 36px;
-            text-align: center;
-            line-height: 29.9px;
-            white-space: nowrap;
-            position: absolute;
-            letter-spacing: 0;
-        }
-
-        .text-wrapper-2 {
-            width: 156px;
-            height: 30px;
-            top: 39px;
-            left: 87px;
-            font-family: "Benzin-Medium", Helvetica;
-            font-weight: 400;
-            color: var(--main-text-color);
-            font-size: 36px;
-            text-align: center;
-            line-height: 29.9px;
-            white-space: nowrap;
-            position: absolute;
-            letter-spacing: 0;
-        }
-
-        .text-wrapper-3 {
-            width: 268px;
-            height: 30px;
-            top: 78px;
-            left: 80px;
-            font-family: "Benzin-Medium", Helvetica;
-            font-weight: 400;
-            color: var(--main-text-color);
-            font-size: 36px;
-            text-align: center;
-            line-height: 29.9px;
-            white-space: nowrap;
-            position: absolute;
-            letter-spacing: 0;
-        }
-
-        .text-wrapper-4 {
-            width: 229px;
-            height: 22px;
-            top: 113px;
-            left: 88px;
-            font-family: "Helvetica-Regular", Helvetica;
-            font-weight: 400;
-            color: #353434;
-            font-size: 17px;
-            text-align: center;
-            line-height: 21.9px;
-            white-space: nowrap;
-            position: absolute;
-            letter-spacing: 0;
-        }
-
-        /* Декоративные элементы */
-        .img {
-            position: absolute;
-            width: 52px;
-            height: 54px;
-            top: 399px;
-            left: 29px;
-        }
-
-        .image-2 {
-            position: absolute;
-            width: 93px;
-            height: 93px;
-            top: 299px;
-            left: 277px;
-        }
-
-        /* ===== КНОПКИ - ФИНАЛЬНАЯ ВЕРСИЯ ===== */
-        
-        /* Главные кнопки на первом экране */
-        .view {
-            position: absolute;
-            width: 306px;
-            height: 72px;
-            top: 556px;
-            left: 33px;
-        }
-
-        .view-secondary {
-            position: absolute;
-            width: 306px;
-            height: 72px;
-            top: 643px; /* отступ 15px от первой кнопки */
-            left: 33px;
-        }
-
-        /* Стили кнопок */
-        .div-wrapper {
-            width: 100%;
-            height: 72px;
-            border-radius: 32.79px;
-            background: linear-gradient(90deg, #9272e6, #B777FF 52%, #9272e6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            cursor: pointer;
-        }
-
-        .div-wrapper-secondary {
-            width: 100%;
-            height: 72px;
-            border-radius: 32.79px;
-            background: white;
-            border: 2px solid #9272e6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            cursor: pointer;
-        }
-
-        .group-6 {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        /* Тексты кнопок */
-        .text-wrapper-8 {
-            font-family: "HelveticaNeueCyr-Medium", Helvetica;
-            font-weight: 500;
-            color: #ffffff;
-            font-size: 23px;
-            text-align: center;
-            line-height: normal;
-            letter-spacing: 0;
-        }
-
-        .text-wrapper-8-secondary {
-            font-family: "HelveticaNeueCyr-Medium", Helvetica;
-            font-weight: 500;
-            color: #181818;
-            font-size: 23px;
-            text-align: center;
-            line-height: normal;
-            letter-spacing: 0;
-        }
-
-        /* Стрелки в кружочках - УНИВЕРСАЛЬНЫЕ СТИЛИ */
-        .arrow-circle {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-        }
-
-        /* Белые стрелки для фиолетовых кнопок */
-        .arrow-white {
-            background: transparent;
-            border: 2px solid #ffffff;
-            color: #ffffff;
-        }
-
-        /* Черные стрелки для белых кнопок */
-        .arrow-black {
-            background: rgba(0, 0, 0, 0.05);
-            border: 2px solid #000000;
-            color: #000000;
-        }
-
-        /* Маленькие стрелки */
-        .arrow-small {
-            width: 24px;
-            height: 24px;
-            font-size: 14px;
-        }
-
-        /* Заголовок статистики */
-        .p {
-            width: 318px;
-            height: 90px;
-            position: absolute;
-            top: 750px; /* сдвинул вниз из-за увеличенного отступа кнопок */
-            left: 27px;
-            font-family: "Benzin-Medium", Helvetica;
-            font-weight: 400;
-            color: var(--main-text-color);
-            font-size: 28px;
-            text-align: center;
-            line-height: 29.9px;
-            letter-spacing: 0;
-        }
-
-        /* Секция статистики */
-        .group-wrapper {
-            position: absolute;
-            width: 372px;
-            height: 171px;
-            top: 870px;
-            left: 2px;
-        }
-
-        .img-wrapper {
-            position: absolute;
-            width: 372px;
-            height: 171px;
-            top: 1063px;
-            left: 2px;
-        }
-
-        .overlap-2 {
-            position: absolute;
-            width: 372px;
-            height: 171px;
-            top: 1256px;
-            left: 2px;
-        }
-
-        .stat-card-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 0;
-        }
-
-        .stat-overlay-icon {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            top: 19px;
-            left: 37px;
-            color: white;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* Секция отзывов */
-        .overlap-group {
-            position: absolute;
-            width: 318px;
-            height: 83px;
-            top: 1447px;
-            left: 29px;
-        }
-
-        .text-wrapper-5 {
-            width: 318px;
-            height: 60px;
-            top: 23px;
-            left: 0;
-            font-family: "Benzin-Medium", Helvetica;
-            font-weight: 400;
-            color: var(--main-text-color);
-            font-size: 28px;
-            text-align: center;
-            line-height: 29.9px;
-            position: absolute;
-            letter-spacing: 0;
-        }
-
-        .group-2 {
-            position: absolute;
-            width: 49px;
-            height: 48px;
-            top: 0;
-            left: 229px;
-            transform: rotate(90deg);
-        }
-
-        .view-3 {
-            position: absolute;
-            width: 128px;
-            height: 28px;
-            top: 1542px;
-            left: 124px;
-        }
-
-        .overlap-group-2 {
-            position: absolute;
-            width: 71px;
-            height: 28px;
-            top: 0;
-            left: 0;
-        }
-
-        .ellipse {
-            left: 0;
-            background-color: #9272e6;
-            position: absolute;
-            width: 28px;
-            height: 28px;
-            top: 0;
-            border-radius: 14px;
-        }
-
-        .ellipse-2 {
-            left: 21px;
-            background-color: #c1aafb;
-            position: absolute;
-            width: 28px;
-            height: 28px;
-            top: 0;
-            border-radius: 14px;
-        }
-
-        .ellipse-3 {
-            left: 43px;
-            background-color: #eceaf4;
-            position: absolute;
-            width: 28px;
-            height: 28px;
-            top: 0;
-            border-radius: 14px;
-        }
-
-        .text-wrapper-9 {
-            height: 22px;
-            top: 4px;
-            left: 78px;
-            font-family: "Benzin-Medium", Helvetica;
-            font-weight: 400;
-            color: #000000;
-            font-size: 14px;
-            line-height: 21.9px;
-            white-space: nowrap;
-            position: absolute;
-            letter-spacing: 0;
-        }
-
-        /* Контейнер отзывов */
-        .reviews-container {
-            position: absolute;
-            top: 1595px;
-            left: 20px;
-            width: 335px;
-            height: 321px;
-            display: flex;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            gap: 15px;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-
-        .reviews-container::-webkit-scrollbar {
-            display: none;
-        }
-
-        .review-image {
-            flex: 0 0 306px;
-            width: 306px;
-            height: 321px;
-            scroll-snap-align: start;
-            border-radius: 0;
-            object-fit: cover;
-        }
-
-        /* Кнопка отзывов - ИСПРАВЛЕНО: сдвинута правее */
-        .review-more-btn {
-            position: absolute;
-            top: 1946px;
-            left: 60%; /* было 50%, сдвинули правее */
-            transform: translateX(-50%);
-            background: linear-gradient(90deg, #9272e6, #B777FF 52%, #9272e6);
-            color: white;
-            height: 48px;
-            border-radius: 24px;
-            font-family: "HelveticaNeueCyr-Medium", Helvetica;
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            padding: 0 24px;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* Заголовок проектов */
-        .text-wrapper-6 {
-            width: 318px;
-            height: 30px;
-            position: absolute;
-            top: 2012px;
-            left: 29px;
-            font-family: "Benzin-Medium", Helvetica;
-            font-weight: 400;
-            color: var(--main-text-color);
-            font-size: 28px;
-            text-align: center;
-            line-height: 29.9px;
-            letter-spacing: 0;
-        }
-
-        /* Контейнер проектов */
-        .projects-container {
-            position: absolute;
-            top: 2066px;
-            left: 20px;
-            width: 335px;
-            height: 484px;
-            display: flex;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            gap: 15px;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-
-        .projects-container::-webkit-scrollbar {
-            display: none;
-        }
-
-        .element-3 {
-            flex: 0 0 240px;
-            width: 240px;
-            height: 484px;
-            scroll-snap-align: start;
-            border-radius: 0;
-            object-fit: cover;
-        }
-
-        /* Кнопка проектов */
-        .view-5 {
-            position: absolute;
-            width: 232px;
-            height: 55px;
-            top: 2563px;
-            left: 72px;
-        }
-
-        .group-15 {
-            width: 100%;
-            height: 55px;
-            border-radius: 24.87px;
-            background: white;
-            border: 2px solid #9272e6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            cursor: pointer;
-        }
-
-        .text-wrapper-13 {
-            font-family: "HelveticaNeueCyr-Medium", Helvetica;
-            font-weight: 500;
-            color: #181818;
-            font-size: 18px;
-            text-align: center;
-            line-height: normal;
-            letter-spacing: 0;
-        }
-
-        /* Заголовок контактов */
-        .text-wrapper-7 {
-            width: 214px;
-            height: 60px;
-            position: absolute;
-            top: 2661px;
-            left: 80px;
-            font-family: "Benzin-Medium", Helvetica;
-            font-weight: 400;
-            color: var(--main-text-color);
-            font-size: 28px;
-            text-align: center;
-            line-height: 29.9px;
-            letter-spacing: 0;
-        }
-
-        /* Кнопки контактов */
-        .view-4 {
-            position: absolute;
-            width: 306px;
-            height: 73px;
-            top: 2751px;
-            left: 34px;
-            border-radius: 32.79px;
-            box-shadow: 0px 1.46px 5.47px #0b001e40;
-            background: linear-gradient(90deg, #9272e6, #B777FF 52%, #9272e6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            cursor: pointer;
-        }
-
-        .view-2 {
-            position: absolute;
-            width: 306px;
-            height: 73px;
-            top: 2839px;
-            left: 34px;
-            border-radius: 32.79px;
-            background: white;
-            border: 2px solid #9272e6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            cursor: pointer;
-        }
-
-        .text-wrapper-12 {
-            font-family: "Helvetica-Regular", Helvetica;
-            font-weight: 400;
-            color: #ffffff;
-            font-size: 23px;
-            text-align: center;
-            line-height: normal;
-            letter-spacing: 0;
-        }
-
-        /* Контактная информация */
-        .view-7 {
-            position: absolute;
-            width: 202px;
-            height: 22px;
-            top: 2955px;
-            left: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .img-2 {
-            width: 19px;
-            height: 19px;
-        }
-
-        .text-wrapper-15 {
-            font-family: "Benzin-Medium", Helvetica;
-            font-weight: 400;
-            color: var(--main-text-color);
-            font-size: 15px;
-            letter-spacing: 0;
-            line-height: 21.9px;
-        }
-
-        .view-8 {
-            position: absolute;
-            width: 250px;
-            height: 22px;
-            top: 2994px;
-            left: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .vector {
-            width: 19px;
-            height: 13px;
-        }
-
-        .text-wrapper-16 {
-            font-family: "Benzin-Medium", Helvetica;
-            font-weight: 400;
-            color: var(--main-text-color);
-            font-size: 15px;
-            letter-spacing: 0;
-            line-height: 21.9px;
-        }
-
-        /* Интерактивная карта Яндекс */
-        .yandex-map-container {
-            position: absolute;
-            width: 335px;
-            height: 291px;
-            top: 3045px;
-            left: 20px;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .yandex-map-container iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            border-radius: 8px;
-        }
-
-        .yandex-map-container a {
-            color: #666;
-            font-size: 11px;
-            position: absolute;
-            background: rgba(255,255,255,0.9);
-            padding: 2px 4px;
-            border-radius: 3px;
-            text-decoration: none;
-            z-index: 10;
-        }
-
-        /* Адрес */
-        .view-6 {
-            position: absolute;
-            width: 334px;
-            height: 44px;
-            top: 3356px;
-            left: 19px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .text-wrapper-14 {
-            font-family: "Benzin-Medium", Helvetica;
-            font-weight: 400;
-            color: var(--main-text-color);
-            font-size: 15px;
-            line-height: 21.9px;
-            letter-spacing: 0;
-        }
-
-        /* Социальные сети - НОВЫЙ ДИЗАЙН */
-        .social-icons-container {
-            position: absolute;
-            width: 133px;
-            height: 60px;
-            top: 3438px;
-            left: 122px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-        }
-
-        .social-icon {
-            width: 40px; /* было 35px */
-            height: 40px; /* было 35px */
-            cursor: pointer;
-            border-radius: 8px;
-            transition: transform 0.2s ease;
-        }
-
-        .social-icon:hover {
-            transform: scale(1.1);
-        }
-
-        /* ФУТЕР В ОБЫЧНОМ ПОТОКЕ - НАДЕЖНО */
-        .footer {
-            width: 100%;
-            background: linear-gradient(135deg, #2c2c2c, #1a1a1a);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border-radius: 16px 16px 0 0;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
-            margin-top: 50px; /* отступ от контента выше */
-        }
-
-        .footer-link {
-            font-family: "Helvetica-Regular", Helvetica;
-            font-size: 15px;
-            color: #ffffff;
-            text-decoration: underline;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-
-        .footer-link:hover {
-            color: #B777FF;
-            transform: translateY(-2px);
-        }
-        @media (max-width: 480px) {
-            .screen .div {
-                width: calc(100vw - (var(--container-padding) * 2));
-                max-width: calc(375px - (var(--container-padding) * 2));
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="screen">
-        <div class="div">
-            <div class="view-7">
-                <img class="img-2" src="call_icon.png" alt="Телефон">
-                <div class="text-wrapper-15">+7 (911) 184-80-08</div>
-            </div>
-
-            <div class="view-8">
-                <img class="vector" src="mail.png" alt="Email">
-                <div class="text-wrapper-16">info@newdigital.moscow</div>
-            </div>
-
-            <!-- ИНТЕРАКТИВНАЯ ЯНДЕКС КАРТА -->
-            <div class="yandex-map-container">
-                <a href="https://yandex.ru/maps/213/moscow/?utm_medium=mapframe&utm_source=maps" style="top:0px;">Москва</a>
-                <a href="https://yandex.ru/maps/213/moscow/house/armyanskiy_pereulok_11_2a/Z04YcARoS0cCQFtvfXt0eH1qZw==/?ll=37.638772%2C55.759208&utm_medium=mapframe&utm_source=maps&z=17" style="top:14px;">Армянский переулок, 11/2А — Яндекс Карты</a>
-                <iframe src="https://yandex.ru/map-widget/v1/?ll=37.638772%2C55.759208&mode=whatshere&whatshere%5Bpoint%5D=37.638225%2C55.759193&whatshere%5Bzoom%5D=17&z=17" allowfullscreen="true"></iframe>
-            </div>
-
-            <div class="view-6">
-                <img class="img-2" src="igolka.png" alt="Адрес">
-                <div class="text-wrapper-14">Москва, Армянский переулок, 11/2А, 101000</div>
-            </div>
-
-            <!-- НОВЫЕ ОТДЕЛЬНЫЕ ИКОНКИ СОЦСЕТЕЙ -->
-            <div class="social-icons-container">
-                <img src="vk_icon.png" alt="VKontakte" class="social-icon" id="vkIcon">
-                <img src="whatsapp_icon.png" alt="WhatsApp" class="social-icon" id="whatsappIcon">
-                <img src="telegram_icon.png" alt="Telegram" class="social-icon" id="telegramIcon">
-            </div>
-        </div>
-    </div>
-
-    <!-- ФУТЕР ВНЕ ОСНОВНОГО КОНТЕЙНЕРА -->
-    <div style="width: 100%; background: linear-gradient(135deg, #2c2c2c, #1a1a1a); padding: 20px; text-align: center; color: white;">
-        <a href="policy.html" target="_blank" style="color: #ffffff; text-decoration: underline; font-family: 'Helvetica-Regular', Helvetica; font-size: 15px;">Политика конфиденциальности</a>
-    </div>
+    logUserAction(ctx.from.id, 'button_click', { button: 'fill_form' });
+
+    // Проверяем, есть ли уже активная сессия
+    const existingSession = await prisma.quizSession.findFirst({
+      where: {
+        user_id: userCache[ctx.from.id]?.id,
+        completed_at: null
+      }
+    });
+
+    if (existingSession) {
+      await ctx.editMessageText(
+        `📋 У вас уже есть незавершенная анкета!\n\n` +
+        `📍 Текущий этап: ${existingSession.current_step || 1}\n\n` +
+        `Хотите продолжить или начать заново?`,
+        Markup.inlineKeyboard([
+          [Markup.button.callback('▶️ Продолжить', 'continue_form')],
+          [Markup.button.callback('🔄 Начать заново', 'restart_form')],
+          [Markup.button.callback('◀️ Назад', 'back_to_menu')]
+        ])
+      );
+      return;
+    }
+
+    // Создаем новую сессию
+    const session = await prisma.quizSession.create({
+      data: {
+        user_id: userCache[ctx.from.id].id,
+        current_step: 1,
+        answers: {}
+      }
+    });
+
+    await ctx.editMessageText(
+      `📋 Анкета для брифа\n\n` +
+      `📌 Шаг 1 из 10\n\n` +
+      `❓ Как вас зовут? (имя и фамилия)`,
+      Markup.inlineKeyboard([
+        [Markup.button.callback('◀️ Назад в меню', 'back_to_menu')]
+      ])
+    );
+
+  } catch (error) {
+    logError(error as Error, 'fill_form_action', ctx.from?.id);
+    await ctx.reply('❌ Ошибка при создании анкеты');
+  }
+});
+
+bot.action('continue_form', async (ctx: TelegramContext) => {
+  try {
+    if (!ctx.from) return;
+
+    const session = await prisma.quizSession.findFirst({
+      where: {
+        user_id: userCache[ctx.from.id]?.id,
+        completed_at: null
+      }
+    });
+
+    if (!session) {
+      await ctx.editMessageText('❌ Сессия не найдена');
+      return;
+    }
+
+    // ИСПРАВЛЕНО: проверяем на null
+    const currentStep = session.current_step || 1;
+    const questions = getQuestions();
     
-    <script>
-        // Инициализация Telegram Web App
-        let tg = window.Telegram.WebApp;
-        tg.expand();
-        
-        // Обработчики для основных кнопок
-        document.getElementById('orderButton').addEventListener('click', function() {
-            window.open('https://t.me/polli_woww', '_blank');
-        });
-        
-        // ИСПРАВЛЕННЫЕ КНОПКИ ЗВОНКОВ
-        document.getElementById('callButton').addEventListener('click', function() {
-            // Попробуем несколько способов
-            if (window.Telegram && window.Telegram.WebApp) {
-                // В Telegram WebApp используем openLink
-                window.Telegram.WebApp.openLink('tel:+79111848008');
-            } else {
-                // Обычный браузер
-                window.location.href = 'tel:+79111848008';
-            }
-        });
+    if (currentStep <= questions.length) {
+      await ctx.editMessageText(
+        `📋 Анкета для брифа\n\n` +
+        `📌 Шаг ${currentStep} из ${questions.length}\n\n` +
+        `❓ ${questions[currentStep - 1]}`,
+        Markup.inlineKeyboard([
+          [Markup.button.callback('◀️ Назад в меню', 'back_to_menu')]
+        ])
+      );
+    }
 
-        document.getElementById('yandexMapsButton').addEventListener('click', function() {
-            const mapsUrl = 'https://yandex.ru/maps/org/polli_dizhital/235246933847?si=gfeb8uk83w8xk7mcr4rp0mak3r';
-            window.open(mapsUrl, '_blank');
-        });
+  } catch (error) {
+    logError(error as Error, 'continue_form_action', ctx.from?.id);
+  }
+});
 
-        // Обработчики для контактных кнопок
-        document.getElementById('contactOrderButton').addEventListener('click', function() {
-            window.open('https://t.me/polli_woww', '_blank');
-        });
-        
-        // ИСПРАВЛЕННАЯ ВТОРАЯ КНОПКА ЗВОНКА
-        document.getElementById('contactCallButton').addEventListener('click', function() {
-            // Попробуем несколько способов для второй кнопки
-            if (window.Telegram && window.Telegram.WebApp) {
-                // В Telegram WebApp используем openLink
-                window.Telegram.WebApp.openLink('tel:+79111848008');
-            } else {
-                // Обычный браузер
-                window.location.href = 'tel:+79111848008';
-            }
-        });
+bot.action('restart_form', async (ctx: TelegramContext) => {
+  try {
+    if (!ctx.from) return;
 
-        // НОВЫЕ ОБРАБОТЧИКИ для отдельных соцсетей
-        document.getElementById('vkIcon').addEventListener('click', function() {
-            window.open('https://vk.com/polli_digital', '_blank');
-        });
+    // Удаляем старую сессию
+    await prisma.quizSession.deleteMany({
+      where: {
+        user_id: userCache[ctx.from.id]?.id,
+        completed_at: null
+      }
+    });
 
-        document.getElementById('whatsappIcon').addEventListener('click', function() {
-            window.open('https://wa.me/79111848008', '_blank');
-        });
+    // Создаем новую
+    await prisma.quizSession.create({
+      data: {
+        user_id: userCache[ctx.from.id].id,
+        current_step: 1,
+        answers: {}
+      }
+    });
 
-        document.getElementById('telegramIcon').addEventListener('click', function() {
-            window.open('https://t.me/polli_woww', '_blank');
-        });
-    </script>
-</body>
-</html>="overlap">
-                <img class="team-photo" src="фото.jpg" alt="Команда Polli Digital" />
-                <img class="logo-image" src="logo.png" alt="Polli Digital Logo" />
-                
-                <div class="element-2">
-                    <div class="text-wrapper">Брендинг</div>
-                    <div class="text-wrapper-2">Сайты</div>
-                    <div class="text-wrapper-3">Маркетинг</div>
-                    <div class="text-wrapper-4">Скорость. Эстетика. Смысл</div>
-                </div>
-                
-                <img class="img" src="arrow.svg" alt="Декоративная линия" />
-                <img class="image-2" src="circle-badge.svg" alt="Создаем цифровую репутацию" />
-            </div>
+    await ctx.editMessageText(
+      `📋 Анкета для брифа\n\n` +
+      `📌 Шаг 1 из 10\n\n` +
+      `❓ Как вас зовут? (имя и фамилия)`,
+      Markup.inlineKeyboard([
+        [Markup.button.callback('◀️ Назад в меню', 'back_to_menu')]
+      ])
+    );
 
-            <div class="view">
-                <div class="div-wrapper" id="orderButton">
-                    <div class="group-6">
-                        <div class="text-wrapper-8">Заказать</div>
-                        <i class="fas fa-arrow-right arrow-circle arrow-white"></i>
-                    </div>
-                </div>
-            </div>
+  } catch (error) {
+    logError(error as Error, 'restart_form_action', ctx.from?.id);
+  }
+});
 
-            <div class="view-secondary">
-                <div class="div-wrapper-secondary" id="callButton">
-                    <div class="group-6">
-                        <div class="text-wrapper-8-secondary">Позвонить</div>
-                        <i class="fas fa-arrow-right arrow-circle arrow-black"></i>
-                    </div>
-                </div>
-            </div>
+bot.action('cases', async (ctx: TelegramContext) => {
+  try {
+    if (!ctx.from) return;
+    
+    logUserAction(ctx.from.id, 'button_click', { button: 'cases' });
 
-            <p class="p">Мы любим свое дело и дорожим репутацией</p>
+    if (CASES_BUTTON_TO_SITE) {
+      await ctx.editMessageText(
+        `💼 Наши кейсы\n\n` +
+        `🌟 Более 500 успешных проектов!\n\n` +
+        `📱 Посмотрите примеры наших работ на сайте:`,
+        Markup.inlineKeyboard([
+          [Markup.button.url('🌐 Открыть кейсы на сайте', 'https://newdigital.moscow/cases')],
+          [Markup.button.callback('◀️ Назад в меню', 'back_to_menu')]
+        ])
+      );
+    } else {
+      await ctx.editMessageText(
+        `💼 Наши кейсы\n\n` +
+        `🌟 Более 500 успешных проектов!\n\n` +
+        `🎯 Направления:\n` +
+        `• Создание сайтов и лендингов\n` +
+        `• Мобильные приложения\n` +
+        `• Брендинг и дизайн\n` +
+        `• Интернет-маркетинг\n\n` +
+        `📞 Свяжитесь с нами для просмотра портфолио!`,
+        Markup.inlineKeyboard([
+          [Markup.button.callback('📞 Связаться', 'contact')],
+          [Markup.button.callback('◀️ Назад в меню', 'back_to_menu')]
+        ])
+      );
+    }
 
-            <div class="group-wrapper">
-                <img src="500_case.png" alt="500+ клиентов" class="stat-card-image">
-            </div>
+  } catch (error) {
+    logError(error as Error, 'cases_action', ctx.from?.id);
+  }
+});
 
-            <div class="img-wrapper">
-                <img src="15age_2.png" alt="15+ лет опыта" class="stat-card-image">
-            </div>
+bot.action('contact', async (ctx: TelegramContext) => {
+  try {
+    if (!ctx.from) return;
+    
+    logUserAction(ctx.from.id, 'button_click', { button: 'contact' });
 
-            <div class="overlap-2">
-                <img src="partners_2.png" alt="Партнерство с фондами" class="stat-card-image">
-            </div>
+    await ctx.editMessageText(
+      `📞 Связаться с нами\n\n` +
+      `💬 Telegram: @polli_woww\n` +
+      `📱 WhatsApp: +7 (911) 184-80-08\n` +
+      `📧 Email: info@newdigital.moscow\n\n` +
+      `🌐 Сайт: newdigital.moscow\n\n` +
+      `📍 Адрес: Москва, Армянский пер., 11/2А`,
+      Markup.inlineKeyboard([
+        [Markup.button.url('💬 Telegram', 'https://t.me/polli_woww')],
+        [Markup.button.url('📱 WhatsApp', 'https://wa.me/79111848008')],
+        [Markup.button.callback('◀️ Назад в меню', 'back_to_menu')]
+      ])
+    );
 
-            <div class="overlap-group">
-                <div class="text-wrapper-5">Нас<br>рекомендуют</div>
-                <img class="group-2" src="arrow.svg" alt="Декоративная стрелка" />
-            </div>
+  } catch (error) {
+    logError(error as Error, 'contact_action', ctx.from?.id);
+  }
+});
 
-            <div class="view-3">
-                <div class="overlap-group-2">
-                    <div class="ellipse"></div>
-                    <div class="ellipse-2"></div>
-                    <div class="ellipse-3"></div>
-                </div>
-                <div class="text-wrapper-9">500+</div>
-            </div>
+bot.action('back_to_menu', async (ctx: TelegramContext) => {
+  try {
+    await ctx.editMessageText(
+      `👋 Добро пожаловать в Polli Digital!\n\n` +
+      `🎯 Мы специализируемся на:\n` +
+      `• Брендинг и фирменный стиль\n` +
+      `• Создание сайтов и приложений\n` +
+      `• Digital-маркетинг и реклама\n\n` +
+      `✨ Выберите действие:`,
+      Markup.inlineKeyboard([
+        [Markup.button.callback('📋 Заполнить анкету', 'fill_form')],
+        [Markup.button.callback('💼 Кейсы', 'cases')],
+        [Markup.button.callback('📞 Связаться с нами', 'contact')]
+      ])
+    );
+  } catch (error) {
+    logError(error as Error, 'back_to_menu_action', ctx.from?.id);
+  }
+});
 
-            <div class="reviews-container">
-                <img src="client (1).png" alt="Отзыв Оксаны Л." class="review-image">
-                <img src="client (2).png" alt="Отзыв Григория М." class="review-image">
-                <img src="client (3).png" alt="Отзыв Ирины Тищенко" class="review-image">
-                <img src="client (4).png" alt="Отзыв Yana" class="review-image">
-                <img src="client (5).png" alt="Отзыв ООО Никойл" class="review-image">
-                <img src="client (6).png" alt="Отзыв Петра Маркова" class="review-image">
-            </div>
+// --- Обработка текстовых сообщений ---
+bot.on('text', async (ctx: TelegramContext) => {
+  try {
+    if (!ctx.from) return;
 
-            <!-- ИСПРАВЛЕНО: кнопка сдвинута правее + добавлена PNG иконка -->
-            <button class="review-more-btn" id="yandexMapsButton">
-                Смотреть на Яндекс.Картах 
-                <img src="mapsy_icon.png" alt="Maps" style="width: 18px; height: 18px;">
-            </button>
+    logUserAction(ctx.from.id, 'message', { message: ctx.message?.text });
 
-            <div class="text-wrapper-6">Наши проекты</div>
+    // Проверяем активную сессию анкеты
+    const session = await prisma.quizSession.findFirst({
+      where: {
+        user_id: userCache[ctx.from.id]?.id,
+        completed_at: null
+      }
+    });
 
-            <div class="projects-container">
-                <img src="project_1.png" alt="Проект UGG приложение" class="element-3">
-                <img src="project_2.png" alt="Проект 2" class="element-3">
-                <img src="project_3.png" alt="Проект 3" class="element-3">
-                <img src="project_4.png" alt="Проект 4" class="element-3">
-                <img src="project_5.png" alt="Проект 5" class="element-3">
-                <img src="project_6.png" alt="Проект 6" class="element-3">
-                <img src="project_7.png" alt="Проект 7" class="element-3">
-                <img src="project_8.png" alt="Проект 8" class="element-3">
-            </div>
+    if (session) {
+      await handleQuizAnswer(ctx, session);
+    } else {
+      // Обычное сообщение
+      await ctx.reply(
+        `Спасибо за сообщение! 😊\n\n` +
+        `Для быстрой связи используйте /start`,
+        Markup.inlineKeyboard([
+          [Markup.button.callback('🏠 Главное меню', 'back_to_menu')]
+        ])
+      );
+    }
 
-            <div class="view-5">
-                <div class="group-15">
-                    <div class="text-wrapper-13">Смотреть</div>
-                    <i class="fas fa-arrow-right arrow-circle arrow-black arrow-small"></i>
-                </div>
-            </div>
+  } catch (error) {
+    logError(error as Error, 'text_handler', ctx.from?.id);
+  }
+});
 
-            <div class="text-wrapper-7">Связаться<br>с нами</div>
+// --- Обработка ответов анкеты ---
+async function handleQuizAnswer(ctx: TelegramContext, session: any) {
+  try {
+    if (!ctx.from || !ctx.message || !('text' in ctx.message)) return;
 
-            <div class="view-4" id="contactOrderButton">
-                <div class="text-wrapper-12">Оставить заявку</div>
-                <i class="fas fa-arrow-right arrow-circle arrow-white"></i>
-            </div>
+    const answer = ctx.message.text;
+    const currentStep = session.current_step || 1;
+    const questions = getQuestions();
 
-            <div class="view-2" id="contactCallButton">
-                <div class="text-wrapper-8-secondary">Позвонить</div>
-                <i class="fas fa-arrow-right arrow-circle arrow-black"></i>
-            </div>
+    // Сохраняем ответ
+    const answers = session.answers || {};
+    answers[`step_${currentStep}`] = answer;
 
-            <div class
+    if (currentStep >= questions.length) {
+      // Завершаем анкету
+      await prisma.quizSession.update({
+        where: { id: session.id },
+        data: {
+          answers: answers,
+          completed_at: new Date()
+        }
+      });
+
+      // Создаем заявку
+      await prisma.application.create({
+        data: {
+          user_id: userCache[ctx.from.id].id,
+          form_data: answers,
+          status: 'NEW'
+        }
+      });
+
+      await ctx.reply(
+        `✅ Спасибо! Анкета заполнена.\n\n` +
+        `📞 Мы свяжемся с вами в ближайшее время!\n\n` +
+        `💬 Если есть вопросы - пишите @polli_woww`,
+        Markup.inlineKeyboard([
+          [Markup.button.callback('🏠 Главное меню', 'back_to_menu')]
+        ])
+      );
+
+    } else {
+      // Переходим к следующему вопросу
+      const nextStep = currentStep + 1;
+      
+      await prisma.quizSession.update({
+        where: { id: session.id },
+        data: {
+          current_step: nextStep,
+          answers: answers
+        }
+      });
+
+      await ctx.reply(
+        `📋 Анкета для брифа\n\n` +
+        `📌 Шаг ${nextStep} из ${questions.length}\n\n` +
+        `❓ ${questions[nextStep - 1]}`,
+        Markup.inlineKeyboard([
+          [Markup.button.callback('◀️ Назад в меню', 'back_to_menu')]
+        ])
+      );
+    }
+
+  } catch (error) {
+    logError(error as Error, 'handleQuizAnswer', ctx.from?.id);
+  }
+}
+
+// --- Вопросы анкеты ---
+function getQuestions(): string[] {
+  return [
+    "Как вас зовут? (имя и фамилия)",
+    "Название вашей компании/проекта?",
+    "Какую услугу вас интересует?",
+    "Опишите ваш бизнес в 2-3 предложениях",
+    "Какая ваша целевая аудитория?",
+    "Есть ли у вас фирменный стиль?",
+    "Какие у вас есть примеры дизайна, который вам нравится?",
+    "Какой планируемый бюджет проекта?",
+    "В какие сроки планируете реализацию?",
+    "Как с вами связаться? (телефон, email, telegram)"
+  ];
+}
+
+// --- Обработка ошибок ---
+bot.catch((err: Error, ctx: Context) => {
+  logError(err, 'bot_error', (ctx as TelegramContext).from?.id);
+});
+
+// --- Graceful shutdown ---
+process.once('SIGINT', () => {
+  console.log('🛑 Получен сигнал SIGINT - корректное завершение...');
+  bot.stop('SIGINT');
+  prisma.$disconnect();
+  process.exit(0);
+});
+
+process.once('SIGTERM', () => {
+  console.log('🛑 Получен сигнал SIGTERM - корректное завершение...');
+  bot.stop('SIGTERM');
+  prisma.$disconnect();
+  process.exit(0);
+});
+
+// --- Запуск бота ---
+bot.launch().then(() => {
+  console.log('🚀 Production bot v2.0 запущен успешно!');
+  console.log(`🔥 КНОПКА "КЕЙСЫ" УСТАНОВЛЕНА НА ОСНОВНОЙ САЙТ!`, CASES_BUTTON_TO_SITE);
+  console.log(`💾 Память: ${formatMemoryUsage()}`);
+  console.log(`📊 Кеш пользователей: ${Object.keys(userCache).length} записей`);
+  console.log('✅ Все системы готовы к работе!');
+}).catch((error) => {
+  console.error('❌ Ошибка запуска бота:', error);
+  process.exit(1);
+});
