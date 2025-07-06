@@ -32,6 +32,13 @@ bot.telegram.setMyCommands([
   { command: 'app', description: '🚀 Открыть приложение' }
 ]);
 
+// --- ПЕРСИСТЕНТНАЯ КНОПКА "КЕЙСЫ" ---
+bot.telegram.setChatMenuButton({
+  type: 'web_app',
+  text: 'Кейсы',
+  web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
+});
+
 // --- СТАРТОВОЕ МЕНЮ ---
 bot.start(async (ctx) => {
   try {
@@ -85,12 +92,10 @@ bot.start(async (ctx) => {
       
       // Fallback - отправляем красивое текстовое приветствие
       await ctx.reply(
-        `🎨 **POLLI DIGITAL** 🎨\n\n` +
-        `🚀 Добро пожаловать!\n\n` +
-        `Привет, ${userInDb.first_name}! Мы создаем сайты, которые продают.\n\n` +
-        `🎯 Что можем для вас сделать?`,
+        `Здравствуйте! Меня зовут Полина, я консультант студии Polli Digital.\n\n` +
+        `Мы создаём бренды, сайты и маркетинг, которые работают на результат и узнаваемость.\n\n` +
+        `Буду рада обсудить ваш проект и помочь найти лучшее решение для вашего бизнеса.`,
         {
-          parse_mode: 'Markdown',
           reply_markup: {
             inline_keyboard: [
               [{ text: '💰 Рассчитать стоимость', callback_data: 'start_quiz' }],
@@ -190,7 +195,7 @@ bot.command('admin_users', async (ctx) => {
     let message = `👥 ПОСЛЕДНИЕ 10 ПОЛЬЗОВАТЕЛЕЙ:\n\n`;
     
     users.forEach((user, index) => {
-      const date = new Date(user.created_at).toLocaleDateString('ru-RU');
+      const date = user.created_at ? new Date(user.created_at).toLocaleDateString('ru-RU') : 'Неизвестно';
       message += `${index + 1}. ${user.first_name || 'Аноним'} (@${user.username || '?'})\n`;
       message += `   ID: ${user.telegram_id} | ${date}\n\n`;
     });
@@ -215,7 +220,7 @@ bot.command('admin_applications', async (ctx) => {
     let message = `📋 ПОСЛЕДНИЕ 5 ЗАЯВОК:\n\n`;
     
     applications.forEach((app, index) => {
-      const date = new Date(app.created_at).toLocaleDateString('ru-RU');
+      const date = app.created_at ? new Date(app.created_at).toLocaleDateString('ru-RU') : 'Неизвестно';
       const answers = app.answers as any;
       message += `${index + 1}. ${app.user.first_name} - ${date}\n`;
       message += `   Тип: ${answers.site_type || '?'}\n`;

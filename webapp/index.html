@@ -715,14 +715,29 @@
             letter-spacing: 0;
         }
 
-        /* Социальные сети - ДОБАВЛЕН ОБРАБОТЧИК */
-        .image-5 {
+        /* Социальные сети - НОВЫЙ ДИЗАЙН */
+        .social-icons-container {
             position: absolute;
             width: 133px;
             height: 60px;
             top: 3438px;
             left: 122px;
-            cursor: pointer; /* добавили курсор */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .social-icon {
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: transform 0.2s ease;
+        }
+
+        .social-icon:hover {
+            transform: scale(1.1);
         }
 
         /* Футер */
@@ -902,8 +917,12 @@
                 <div class="text-wrapper-14">Москва, Армянский переулок, 11/2А, 101000</div>
             </div>
 
-            <!-- ИСПРАВЛЕНО: добавлен обработчик клика на соцсети -->
-            <img class="image-5" src="social_media_icons.png" alt="Социальные сети" id="socialMediaIcons" />
+            <!-- НОВЫЕ ОТДЕЛЬНЫЕ ИКОНКИ СОЦСЕТЕЙ -->
+            <div class="social-icons-container">
+                <img src="vk_icon.png" alt="VKontakte" class="social-icon" id="vkIcon">
+                <img src="whatsapp_icon.png" alt="WhatsApp" class="social-icon" id="whatsappIcon">
+                <img src="telegram_icon.png" alt="Telegram" class="social-icon" id="telegramIcon">
+            </div>
 
             <div class="overlap-4">
                 <div class="text-wrapper-17">Договор-офферты</div>
@@ -921,7 +940,7 @@
         
         // Обработчики для основных кнопок
         document.getElementById('orderButton').addEventListener('click', function() {
-            alert('Нажата кнопка Заказать');
+            window.open('https://t.me/polli_woww', '_blank');
         });
         
         document.getElementById('callButton').addEventListener('click', function() {
@@ -935,15 +954,23 @@
 
         // Обработчики для контактных кнопок
         document.getElementById('contactOrderButton').addEventListener('click', function() {
-            alert('Нажата кнопка Оставить заявку');
+            window.open('https://t.me/polli_woww', '_blank');
         });
         
         document.getElementById('contactCallButton').addEventListener('click', function() {
             window.location.href = 'tel:+79111848008';
         });
 
-        // НОВЫЙ ОБРАБОТЧИК: клик по соцсетям ведет в Telegram
-        document.getElementById('socialMediaIcons').addEventListener('click', function() {
+        // НОВЫЕ ОБРАБОТЧИКИ для отдельных соцсетей
+        document.getElementById('vkIcon').addEventListener('click', function() {
+            window.open('https://vk.com/new.design.new1', '_blank');
+        });
+
+        document.getElementById('whatsappIcon').addEventListener('click', function() {
+            window.open('https://wa.me/79111848008', '_blank');
+        });
+
+        document.getElementById('telegramIcon').addEventListener('click', function() {
             window.open('https://t.me/polli_woww', '_blank');
         });
     </script>
