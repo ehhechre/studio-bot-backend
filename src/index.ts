@@ -1,4 +1,4 @@
-// src/index.ts - ИСПРАВЛЕНО ПОД РЕАЛЬНУЮ СТРУКТУРУ БД
+// src/index.ts - ИСПРАВЛЕНО ПОД РЕАЛЬНУЮ СХЕМУ БД
 
 import { Telegraf, Context, Markup } from 'telegraf';
 import dotenv from 'dotenv';
@@ -78,7 +78,7 @@ bot.start(async (ctx: TelegramContext) => {
 
     logUserAction(telegramUser.id, 'start_command');
 
-    // ИСПРАВЛЕНО: используем правильное имя таблицы
+    // ИСПРАВЛЕНО: используем правильные названия моделей
     const userInDb = await prisma.users.upsert({
       where: { telegram_id: BigInt(telegramUser.id) },
       update: {
@@ -128,11 +128,11 @@ bot.action('fill_form', async (ctx: TelegramContext) => {
     
     logUserAction(ctx.from.id, 'button_click', { button: 'fill_form' });
 
-    // ИСПРАВЛЕНО: правильное имя таблицы
+    // ИСПРАВЛЕНО: проверяем незавершенные сессии по is_completed
     const existingSession = await prisma.quiz_sessions.findFirst({
       where: {
         user_id: userCache[ctx.from.id]?.id,
-        completed_at: null
+        is_completed: false
       }
     });
 
@@ -150,12 +150,13 @@ bot.action('fill_form', async (ctx: TelegramContext) => {
       return;
     }
 
-    // ИСПРАВЛЕНО: правильное имя таблицы
+    // Создаем новую сессию
     const session = await prisma.quiz_sessions.create({
       data: {
         user_id: userCache[ctx.from.id].id,
         current_step: 1,
-        answers: {}
+        answers: {},
+        is_completed: false
       }
     });
 
@@ -178,11 +179,10 @@ bot.action('continue_form', async (ctx: TelegramContext) => {
   try {
     if (!ctx.from) return;
 
-    // ИСПРАВЛЕНО: правильное имя таблицы
     const session = await prisma.quiz_sessions.findFirst({
       where: {
         user_id: userCache[ctx.from.id]?.id,
-        completed_at: null
+        is_completed: false
       }
     });
 
@@ -214,20 +214,21 @@ bot.action('restart_form', async (ctx: TelegramContext) => {
   try {
     if (!ctx.from) return;
 
-    // ИСПРАВЛЕНО: правильное имя таблицы
+    // Удаляем старую сессию
     await prisma.quiz_sessions.deleteMany({
       where: {
         user_id: userCache[ctx.from.id]?.id,
-        completed_at: null
+        is_completed: false
       }
     });
 
-    // ИСПРАВЛЕНО: правильное имя таблицы
+    // Создаем новую
     await prisma.quiz_sessions.create({
       data: {
         user_id: userCache[ctx.from.id].id,
         current_step: 1,
-        answers: {}
+        answers: {},
+        is_completed: false
       }
     });
 
@@ -335,11 +336,11 @@ bot.on('text', async (ctx: TelegramContext) => {
 
     logUserAction(ctx.from.id, 'message', { message: ctx.message?.text });
 
-    // ИСПРАВЛЕНО: правильное имя таблицы
+    // Проверяем активную сессию анкеты
     const session = await prisma.quiz_sessions.findFirst({
       where: {
         user_id: userCache[ctx.from.id]?.id,
-        completed_at: null
+        is_completed: false
       }
     });
 
@@ -374,21 +375,22 @@ async function handleQuizAnswer(ctx: TelegramContext, session: any) {
     answers[`step_${currentStep}`] = answer;
 
     if (currentStep >= questions.length) {
-      // ИСПРАВЛЕНО: правильное имя таблицы
+      // Завершаем анкету
       await prisma.quiz_sessions.update({
         where: { id: session.id },
         data: {
           answers: answers,
+          is_completed: true,
           completed_at: new Date()
         }
       });
 
-      // ИСПРАВЛЕНО: правильное имя таблицы
+      // ИСПРАВЛЕНО: используем правильные поля (answers вместо form_data, status enum)
       await prisma.applications.create({
         data: {
           user_id: userCache[ctx.from.id].id,
-          form_data: answers,
-          status: 'NEW'
+          answers: answers,
+          status: 'new' as any
         }
       });
 
@@ -402,9 +404,9 @@ async function handleQuizAnswer(ctx: TelegramContext, session: any) {
       );
 
     } else {
+      // Переходим к следующему вопросу
       const nextStep = currentStep + 1;
       
-      // ИСПРАВЛЕНО: правильное имя таблицы
       await prisma.quiz_sessions.update({
         where: { id: session.id },
         data: {
@@ -444,71 +446,6 @@ function getQuestions(): string[] {
   ];
 }
 
-// --- Команда /admin ---
-bot.command('admin', async (ctx: TelegramContext) => {
-  try {
-    if (!ctx.from) return;
-
-    const adminIds = [7080992269]; // ID администраторов
-    if (!adminIds.includes(ctx.from.id)) {
-      await ctx.reply('❌ У вас нет прав администратора');
-      return;
-    }
-
-    // ИСПРАВЛЕНО: правильное имя таблицы
-    const usersCount = await prisma.users.count();
-    const applicationsCount = await prisma.applications.count();
-    const activeSessionsCount = await prisma.quiz_sessions.count({
-      where: { completed_at: null }
-    });
-
-    await ctx.reply(
-      `👨‍💼 Панель администратора\n\n` +
-      `👥 Пользователей: ${usersCount}\n` +
-      `📋 Заявок: ${applicationsCount}\n` +
-      `🔄 Активных анкет: ${activeSessionsCount}\n` +
-      `💾 Память: ${formatMemoryUsage()}\n` +
-      `📊 Кеш: ${Object.keys(userCache).length} записей`,
-      Markup.inlineKeyboard([
-        [Markup.button.callback('📋 Последние заявки', 'admin_applications')],
-        [Markup.button.callback('🗑 Очистить кеш', 'admin_clear_cache')],
-        [Markup.button.callback('🔄 Перезагрузить', 'admin_restart')]
-      ])
-    );
-
-  } catch (error) {
-    logError(error as Error, 'admin_command', ctx.from?.id);
-  }
-});
-
-bot.action('admin_applications', async (ctx: TelegramContext) => {
-  try {
-    if (!ctx.from) return;
-
-    // ИСПРАВЛЕНО: правильное имя таблицы
-    const applications = await prisma.applications.findMany({
-      take: 5,
-      orderBy: { created_at: 'desc' },
-      include: { users: true }
-    });
-
-    let message = '📋 Последние 5 заявок:\n\n';
-    
-    applications.forEach((app: any, index: number) => {
-      const userData = app.users;
-      message += `${index + 1}. ${userData?.first_name || 'Без имени'} (@${userData?.username || 'нет'})\n`;
-      message += `   📅 ${app.created_at.toLocaleDateString('ru')}\n\n`;
-    });
-
-    await ctx.editMessageText(message, Markup.inlineKeyboard([
-      [Markup.button.callback('◀️ Назад', 'admin_back')]
-    ]));
-
-  } catch (error) {
-    logError(error as Error, 'admin_applications_action', ctx.from?.id);
-  }
-});
-
 // --- Обработка ошибок ---
 bot.catch((err: Error, ctx: Context) => {
   logError(err, 'bot_error', (ctx as TelegramContext).from?.id);
@@ -531,7 +468,7 @@ process.once('SIGTERM', () => {
 
 // --- Запуск бота ---
 bot.launch().then(() => {
-  console.log('🚀 Production bot v2.2 запущен успешно!');
+  console.log('🚀 Production bot v2.4 запущен успешно!');
   console.log(`🔥 КНОПКА "КЕЙСЫ" УСТАНОВЛЕНА НА ОСНОВНОЙ САЙТ!`, CASES_BUTTON_TO_SITE);
   console.log(`💾 Память: ${formatMemoryUsage()}`);
   console.log(`📊 Кеш пользователей: ${Object.keys(userCache).length} записей`);
