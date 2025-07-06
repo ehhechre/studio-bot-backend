@@ -1,4 +1,4 @@
-// src/index.ts - PRODUCTION VERSION БЕЗ ОШИБОК PRISMA
+// src/index.ts - PRODUCTION VERSION С ИСПРАВЛЕННЫМИ МОДЕЛЯМИ PRISMA
 import { Telegraf, Context, Markup } from 'telegraf';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
@@ -81,7 +81,7 @@ const getCachedUser = async (telegramId: number) => {
     if (userCache.has(telegramId)) {
       return userCache.get(telegramId);
     }
-    const user = await prisma.users.findUnique({ where: { telegram_id: telegramId } });
+    const user = await prisma.user.findUnique({ where: { telegram_id: telegramId } });
     if (user) {
       userCache.set(telegramId, user);
     }
@@ -99,20 +99,19 @@ bot.start(async (ctx) => {
     const telegramUser = ctx.from;
     logUserAction(telegramUser.id, 'start_command');
     const userInDb = await prisma.user.upsert({
-        where: { telegram_id: telegramUser.id },
-        update: {
-          username: telegramUser.username,
-          first_name: telegramUser.first_name
-        },
-        create: {
-          telegram_id: telegramUser.id,
-          username: telegramUser.username,
-          first_name: telegramUser.first_name,
-          last_name: telegramUser.last_name,
-          language_code: telegramUser.language_code,
-        },
-      });
-      
+      where: { telegram_id: telegramUser.id },
+      update: {
+        username: telegramUser.username,
+        first_name: telegramUser.first_name
+      },
+      create: {
+        telegram_id: telegramUser.id,
+        username: telegramUser.username,
+        first_name: telegramUser.first_name,
+        last_name: telegramUser.last_name,
+        language_code: telegramUser.language_code,
+      },
+    });
 
     userCache.set(telegramUser.id, userInDb);
     console.log(`🔥 Пользователь: ${userInDb.first_name} (${telegramUser.id})`);
@@ -235,10 +234,10 @@ bot.command('admin_stats', async (ctx) => {
     }
     logUserAction(ctx.from.id, 'admin_stats_request');
     const [usersCount, applicationsCount, completedQuizzes, todayUsers] = await Promise.all([
-      prisma.users.count(),
-      prisma.applications.count(),
-      prisma.quiz_sessions.count({ where: { is_completed: true } }),
-      prisma.users.count({
+      prisma.user.count(),
+      prisma.application.count(),
+      prisma.quizSession.count({ where: { is_completed: true } }),
+      prisma.user.count({
         where: { created_at: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } }
       })
     ]);
@@ -265,7 +264,7 @@ bot.command('admin_users', async (ctx) => {
   try {
     if (!ADMIN_IDS.includes(ctx.from.id)) return;
     logUserAction(ctx.from.id, 'admin_users_request');
-    const users = await prisma.users.findMany({
+    const users = await prisma.user.findMany({
       orderBy: { created_at: 'desc' },
       take: 10
     });
@@ -287,7 +286,7 @@ bot.command('admin_applications', async (ctx) => {
   try {
     if (!ADMIN_IDS.includes(ctx.from.id)) return;
     logUserAction(ctx.from.id, 'admin_applications_request');
-    const applications = await prisma.applications.findMany({
+    const applications = await prisma.application.findMany({
       include: { user: true },
       orderBy: { created_at: 'desc' },
       take: 5
@@ -316,7 +315,7 @@ bot.command('admin_health', async (ctx) => {
     if (!ADMIN_IDS.includes(ctx.from.id)) return;
     logUserAction(ctx.from.id, 'admin_health_request');
     const startTime = Date.now();
-    const dbTest = await prisma.users.count();
+    const dbTest = await prisma.user.count();
     const dbTime = Date.now() - startTime;
     const memUsage = process.memoryUsage();
     const uptime = process.uptime();
@@ -379,10 +378,10 @@ bot.action('consent_agree', async (ctx) => {
       await ctx.reply('❌ Пользователь не найден. Выполните /start');
       return;
     }
-    await prisma.quiz_sessions.deleteMany({
+    await prisma.quizSession.deleteMany({
       where: { user_id: user.id, is_completed: false }
     });
-    const session = await prisma.quiz_sessions.create({
+    const session = await prisma.quizSession.create({
       data: { user_id: user.id, current_step: 1, answers: {} },
     });
     logUserAction(ctx.from.id, 'quiz_session_created', { sessionId: session.id });
@@ -403,7 +402,7 @@ async function saveAnswerAndNext(
     await ctx.answerCbQuery('✅ Ответ сохранен');
     const user = await getCachedUser(ctx.from.id);
     if (!user) throw new Error('Пользователь не найден');
-    const session = await prisma.quiz_sessions.findFirst({
+    const session = await prisma.quizSession.findFirst({
       where: { user_id: user.id, is_completed: false },
       orderBy: { created_at: 'desc' },
     });
@@ -411,7 +410,7 @@ async function saveAnswerAndNext(
     const currentAnswers = (session.answers as QuizAnswers) || {};
     const sanitizedValue = typeof value === 'string' ? sanitizeInput(value) : value;
     const updatedAnswers = { ...currentAnswers, [field]: sanitizedValue };
-    await prisma.quiz_sessions.update({
+    await prisma.quizSession.update({
       where: { id: session.id },
       data: {
         answers: updatedAnswers,
@@ -526,7 +525,7 @@ bot.action('no_comment', async (ctx) => {
     await ctx.answerCbQuery('✅ Завершаю оформление заявки...');
     const user = await getCachedUser(ctx.from.id);
     if (!user) return;
-    const session = await prisma.quiz_sessions.findFirst({
+    const session = await prisma.quizSession.findFirst({
       where: { user_id: user.id, is_completed: false },
       orderBy: { created_at: 'desc' },
     });
@@ -534,11 +533,11 @@ bot.action('no_comment', async (ctx) => {
     const currentAnswers = (session.answers as any) || {};
     if (currentAnswers.contacts && currentAnswers.contacts.phone) {
       currentAnswers.contacts.comment = 'Без комментария';
-      await prisma.quiz_sessions.update({
+      await prisma.quizSession.update({
         data: { answers: currentAnswers, is_completed: true },
         where: { id: session.id }
       });
-      const application = await prisma.applications.create({
+      const application = await prisma.application.create({
         data: {
           user_id: user.id,
           status: 'new',
@@ -575,7 +574,7 @@ bot.on('text', async (ctx) => {
   try {
     const user = await getCachedUser(ctx.from.id);
     if (!user) return;
-    const session = await prisma.quiz_sessions.findFirst({
+    const session = await prisma.quizSession.findFirst({
       where: { user_id: user.id, is_completed: false },
       orderBy: { created_at: 'desc' },
     });
@@ -601,7 +600,7 @@ bot.on('text', async (ctx) => {
         return;
       }
       currentAnswers.contacts = { name: sanitizedText };
-      await prisma.quiz_sessions.update({
+      await prisma.quizSession.update({
         data: { answers: currentAnswers },
         where: { id: session.id }
       });
@@ -622,11 +621,11 @@ bot.on('text', async (ctx) => {
       }
       currentAnswers.contacts.comment = sanitizedText;
       await ctx.reply('✅ Комментарий сохранен. Оформляю заявку...');
-      await prisma.quiz_sessions.update({
+      await prisma.quizSession.update({
         data: { answers: currentAnswers, is_completed: true },
         where: { id: session.id }
       });
-      const application = await prisma.applications.create({
+      const application = await prisma.application.create({
         data: {
           user_id: user.id,
           status: 'new',
@@ -664,7 +663,7 @@ bot.on('contact', async (ctx) => {
   try {
     const user = await getCachedUser(ctx.from.id);
     if (!user) return;
-    const session = await prisma.quiz_sessions.findFirst({
+    const session = await prisma.quizSession.findFirst({
       where: { user_id: user.id, is_completed: false },
       orderBy: { created_at: 'desc' },
     });
@@ -680,7 +679,7 @@ bot.on('contact', async (ctx) => {
         return;
       }
       currentAnswers.contacts.phone = phoneNumber;
-      await prisma.quiz_sessions.update({
+      await prisma.quizSession.update({
         data: { answers: currentAnswers },
         where: { id: session.id }
       });
@@ -711,13 +710,13 @@ bot.command('delete_data', async (ctx) => {
   try {
     const userId = ctx.from.id;
     logUserAction(userId, 'delete_data_requested');
-    const userToDelete = await prisma.users.findUnique({
+    const userToDelete = await prisma.user.findUnique({
       where: { telegram_id: userId }
     });
     if (userToDelete) {
-      await prisma.quiz_sessions.deleteMany({ where: { user_id: userToDelete.id } });
-      await prisma.applications.deleteMany({ where: { user_id: userToDelete.id } });
-      await prisma.users.delete({ where: { telegram_id: userId } });
+      await prisma.quizSession.deleteMany({ where: { user_id: userToDelete.id } });
+      await prisma.application.deleteMany({ where: { user_id: userToDelete.id } });
+      await prisma.user.delete({ where: { telegram_id: userId } });
       userCache.delete(userId);
       logUserAction(userId, 'user_data_deleted');
       console.log(`🗑️ Удалены данные пользователя: ${userId}`);
@@ -782,7 +781,7 @@ process.on('unhandledRejection', (reason, promise) => {
 bot.launch().then(async () => {
   console.log('🚀 Production bot v2.1 запущен успешно!');
   try {
-    await prisma.users.count();
+    await prisma.user.count();
     console.log('✅ Соединение с базой данных установлено');
   } catch (error) {
     console.error('❌ ОШИБКА подключения к базе данных:', error);
