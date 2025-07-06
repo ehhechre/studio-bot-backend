@@ -48,23 +48,50 @@ bot.start(async (ctx) => {
       },
     });
 
-    // Отправляем приветствие с логотипом (используем file_id)
-    await ctx.replyWithPhoto(
-      'AgACAgIAAxkBAAICRWhpw6XXPrldcv1IK2YUf2boX6mxAAL99jEbaHNQS0g_hguljSVZAQADAgADeQADNgQ',
-      {
-        caption: `🚀 Добро пожаловать в Polli Digital!\n\n` +
-                `Привет, ${userInDb.first_name}! Мы создаем сайты, которые продают.\n\n` +
-                `🎯 Что можем для вас сделать?`,
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: '💰 Рассчитать стоимость', callback_data: 'start_quiz' }],
-            [{ text: '👁 Посмотреть работы', web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' } }]
-          ]
+    console.log(`🔥 Новый пользователь: ${userInDb.first_name} (${telegramUser.id})`);
+
+    // Пробуем отправить логотип, если не получается - отправляем текст
+    try {
+      console.log('📸 Попытка отправить логотип...');
+      await ctx.replyWithPhoto(
+        'AgACAgIAAxkBAAICRWhpw6XXPrldcv1IK2YUf2boX6mxAAL99jEbaHNQS0g_hguljSVZAQADAgADeQADNgQ',
+        {
+          caption: `🚀 Добро пожаловать в Polli Digital!\n\n` +
+                  `Привет, ${userInDb.first_name}! Мы создаем сайты, которые продают.\n\n` +
+                  `🎯 Что можем для вас сделать?`,
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: '💰 Рассчитать стоимость', callback_data: 'start_quiz' }],
+              [{ text: '👁 Посмотреть работы', web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' } }]
+            ]
+          }
         }
-      }
-    );
+      );
+      console.log('✅ Логотип отправлен успешно!');
+    } catch (photoError) {
+      console.log('❌ Ошибка отправки логотипа:', photoError.message);
+      console.log('📝 Отправляем текстовое приветствие...');
+      
+      // Fallback - отправляем красивое текстовое приветствие
+      await ctx.reply(
+        `🎨 **POLLI DIGITAL** 🎨\n\n` +
+        `🚀 Добро пожаловать!\n\n` +
+        `Привет, ${userInDb.first_name}! Мы создаем сайты, которые продают.\n\n` +
+        `🎯 Что можем для вас сделать?`,
+        {
+          parse_mode: 'Markdown',
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: '💰 Рассчитать стоимость', callback_data: 'start_quiz' }],
+              [{ text: '👁 Посмотреть работы', web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' } }]
+            ]
+          }
+        }
+      );
+      console.log('✅ Текстовое приветствие отправлено!');
+    }
   } catch (error) {
-    console.error('Ошибка в /start:', error);
+    console.error('💥 КРИТИЧЕСКАЯ ОШИБКА в /start:', error);
     await ctx.reply('Ой, что-то пошло не так. Попробуйте еще раз позже.');
   }
 });
