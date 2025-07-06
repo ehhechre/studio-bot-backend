@@ -1,960 +1,1014 @@
-// src/index.ts - PRODUCTION VERSION с техническими улучшениями
-
-// --- Импорты ---
-import { Telegraf, Context, Markup } from 'telegraf';
-import dotenv from 'dotenv';
-import { PrismaClient } from '@prisma/client';
-
-// --- Типы ---
-interface TelegramContext extends Context {
-  from: NonNullable<Context['from']>;
-}
-type QuizAnswers = { [key: string]: any };
-
-// --- Валидация и безопасность ---
-const sanitizeInput = (input: string): string => {
-  return input.trim().slice(0, 500).replace(/[<>\"']/g, '');
-};
-
-const validatePhone = (phone: string): boolean => {
-  const phoneRegex = /^\+?[1-9]\d{1,14}$/;
-  return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''));
-};
-
-const validateName = (name: string): boolean => {
-  return name.length >= 2 && name.length <= 50 && /^[a-zA-Zа-яА-Я\s]+$/.test(name);
-};
-
-// --- Аналитика и логирование ---
-const logUserAction = (userId: number, action: string, data?: any) => {
-  const timestamp = new Date().toISOString();
-  console.log(`📊 [${timestamp}] User ${userId}: ${action}`, data ? JSON.stringify(data) : '');
-};
-
-const logError = (error: any, context: string, userId?: number) => {
-  const timestamp = new Date().toISOString();
-  console.error(`❌ [${timestamp}] ERROR in ${context} ${userId ? `(User: ${userId})` : ''}:`, error);
-};
-
-// --- Инициализация ---
-dotenv.config();
-const prisma = new PrismaClient();
-const botToken = process.env.BOT_TOKEN;
-const CHANNEL_ID = process.env.CHANNEL_ID;
-
-if (!botToken || !CHANNEL_ID) {
-  console.error("🚨 КРИТИЧЕСКАЯ ОШИБКА: BOT_TOKEN или CHANNEL_ID не найдены в .env!");
-  process.exit(1);
-}
-
-const bot = new Telegraf<TelegramContext>(botToken);
-
-// --- Middleware для безопасности ---
-bot.use(async (ctx, next) => {
-  try {
-    if (ctx.from) {
-      logUserAction(ctx.from.id, 'request', { 
-        type: ctx.updateType,
-        message: 'text' in ctx.message ? ctx.message.text?.slice(0, 100) : undefined
-      });
-    }
-    await next();
-  } catch (error) {
-    logError(error, 'middleware', ctx.from?.id);
-    await ctx.reply('⚠️ Произошла техническая ошибка. Попробуйте позже или обратитесь в поддержку.');
-  }
-});
-
-// --- Установка команд меню ---
-bot.telegram.setMyCommands([
-  { command: 'app', description: 'Кейсы' }
-]);
-
-// --- Кеширование пользователей (простой in-memory кеш для демо) ---
-const userCache = new Map<number, any>();
-
-const getCachedUser = async (telegramId: number) => {
-  if (userCache.has(telegramId)) {
-    return userCache.get(telegramId);
-  }
-  
-  const user = await prisma.user.findUnique({ where: { telegram_id: telegramId } });
-  if (user) {
-    userCache.set(telegramId, user);
-  }
-  return user;
-};
-
-// --- СТАРТОВОЕ МЕНЮ с улучшенной обработкой ---
-bot.start(async (ctx) => {
-  const startTime = Date.now();
-  
-  try {
-    const telegramUser = ctx.from;
-    logUserAction(telegramUser.id, 'start_command');
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Подключение Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     
-    const userInDb = await prisma.user.upsert({
-      where: { telegram_id: telegramUser.id },
-      update: { 
-        username: telegramUser.username,
-        first_name: telegramUser.first_name,
-        last_visit: new Date()
-      },
-      create: {
-        telegram_id: telegramUser.id,
-        username: telegramUser.username,
-        first_name: telegramUser.first_name,
-        last_name: telegramUser.last_name,
-        language_code: telegramUser.language_code,
-      },
-    });
-
-    // Обновляем кеш
-    userCache.set(telegramUser.id, userInDb);
-    
-    const isNewUser = !userInDb.last_visit || 
-      (new Date().getTime() - new Date(userInDb.last_visit).getTime()) > 24 * 60 * 60 * 1000;
-    
-    if (isNewUser) {
-      logUserAction(telegramUser.id, 'new_user_registration');
-    }
-
-    console.log(`🔥 ${isNewUser ? 'Новый' : 'Вернувшийся'} пользователь: ${userInDb.first_name} (${telegramUser.id})`);
-
-    // Пробуем отправить логотип
-    try {
-      console.log('📸 Попытка отправить логотип...');
-      
-      await ctx.replyWithPhoto(
-        'AgACAgIAAxkBAAICRWhpw6XXPrldcv1IK2YUf2boX6mxAAL99jEbaHNQS0g_hguljSVZAQADAgADeQADNgQ',
-        {
-          caption: `🚀 Добро пожаловать в Polli Digital!\n\n` +
-                  `Привет, ${userInDb.first_name}! Мы создаем сайты, которые продают.\n\n` +
-                  `🎯 Что можем для вас сделать?`,
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: '💰 Рассчитать стоимость', callback_data: 'start_quiz' }],
-              [{ text: '👁 Посмотреть работы', web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' } }]
-            ]
-          }
+    <title>Polli Digital</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* Подключение шрифтов */
+        @font-face {
+            font-family: 'Benzin-Medium';
+            src: url('fonts/Benzin-Medium.woff2') format('woff2');
+            font-weight: 500;
+            font-display: swap;
         }
-      );
-      
-      const loadTime = Date.now() - startTime;
-      console.log(`✅ Логотип отправлен за ${loadTime}ms`);
-      logUserAction(telegramUser.id, 'welcome_sent', { loadTime, withLogo: true });
-      
-    } catch (photoError) {
-      logError(photoError, 'photo_send', telegramUser.id);
-      console.log('📝 Отправляем текстовое приветствие...');
-      
-      await ctx.reply(
-        `Здравствуйте! Меня зовут Полина, я консультант студии Polli Digital.\n\n` +
-        `Мы создаём бренды, сайты и маркетинг, которые работают на результат и узнаваемость.\n\n` +
-        `Буду рада обсудить ваш проект и помочь найти лучшее решение для вашего бизнеса.`,
-        {
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: '💰 Рассчитать стоимость', callback_data: 'start_quiz' }],
-              [{ text: '👁 Посмотреть работы', web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' } }]
-            ]
-          }
+
+        @font-face {
+            font-family: 'Helvetica-Regular';
+            src: url('fonts/HelveticaRegular.woff') format('woff');
+            font-weight: 400;
+            font-display: swap;
         }
-      );
-      
-      const loadTime = Date.now() - startTime;
-      console.log(`✅ Текстовое приветствие отправлено за ${loadTime}ms`);
-      logUserAction(telegramUser.id, 'welcome_sent', { loadTime, withLogo: false });
-    }
-    
-  } catch (error) {
-    logError(error, 'start_command', ctx.from?.id);
-    await ctx.reply(
-      '⚠️ Произошла техническая ошибка при загрузке. Попробуйте выполнить команду /start еще раз.\n\n' +
-      'Если проблема повторится, обратитесь в техподдержку.'
-    );
-  }
-});
 
-// --- КОМАНДЫ МЕНЮ с улучшенной обработкой ---
-bot.command('cases', async (ctx) => {
-  try {
-    logUserAction(ctx.from.id, 'cases_command');
-    
-    await ctx.reply('👁 Посмотрите наши работы:', {
-      reply_markup: {
-        inline_keyboard: [[
-          { 
-            text: '🎨 Портфолио Polli Digital', 
-            web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
-          }
-        ]]
-      }
-    });
-  } catch (error) {
-    logError(error, 'cases_command', ctx.from.id);
-    await ctx.reply('⚠️ Ошибка загрузки портфолио. Попробуйте позже.');
-  }
-});
-
-bot.command('calculate', async (ctx) => {
-  try {
-    logUserAction(ctx.from.id, 'calculate_command');
-    
-    await ctx.reply('💰 Рассчитать стоимость сайта:', {
-      reply_markup: {
-        inline_keyboard: [[
-          { text: '📋 Начать опрос', callback_data: 'start_quiz' }
-        ]]
-      }
-    });
-  } catch (error) {
-    logError(error, 'calculate_command', ctx.from.id);
-    await ctx.reply('⚠️ Ошибка загрузки калькулятора. Попробуйте позже.');
-  }
-});
-
-bot.command('app', async (ctx) => {
-  try {
-    logUserAction(ctx.from.id, 'app_command');
-    
-    await ctx.reply('🚀 Откройте наше приложение:', {
-      reply_markup: {
-        inline_keyboard: [[
-          { 
-            text: '🎨 Polli Digital App', 
-            web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
-          }
-        ]]
-      }
-    });
-  } catch (error) {
-    logError(error, 'app_command', ctx.from.id);
-    await ctx.reply('⚠️ Ошибка запуска приложения. Попробуйте позже.');
-  }
-});
-
-// --- АДМИН КОМАНДЫ с улучшенной безопасностью ---
-const ADMIN_IDS = [443699588];
-
-bot.command('myid', async (ctx) => {
-  try {
-    await ctx.reply(`🆔 Ваш Telegram ID: \`${ctx.from.id}\``, { parse_mode: 'Markdown' });
-    logUserAction(ctx.from.id, 'myid_request');
-  } catch (error) {
-    logError(error, 'myid_command', ctx.from.id);
-  }
-});
-
-bot.command('admin_stats', async (ctx) => {
-  try {
-    if (!ADMIN_IDS.includes(ctx.from.id)) {
-      logUserAction(ctx.from.id, 'unauthorized_admin_access');
-      await ctx.reply('❌ Недостаточно прав доступа.');
-      return;
-    }
-
-    logUserAction(ctx.from.id, 'admin_stats_request');
-
-    const [usersCount, applicationsCount, completedQuizzes, todayUsers] = await Promise.all([
-      prisma.user.count(),
-      prisma.application.count(),
-      prisma.quizSession.count({ where: { is_completed: true } }),
-      prisma.user.count({
-        where: {
-          created_at: {
-            gte: new Date(new Date().setHours(0, 0, 0, 0))
-          }
+        @font-face {
+            font-family: 'HelveticaNeueCyr-Medium';
+            src: url('fonts/helveticaneuecyr-medium1.ttf') format('truetype');
+            font-weight: 500;
+            font-display: swap;
         }
-      })
-    ]);
 
-    const conversionRate = usersCount > 0 ? ((applicationsCount / usersCount) * 100).toFixed(1) : '0';
-
-    await ctx.reply(
-      `📊 СТАТИСТИКА БОТА\n\n` +
-      `👥 Всего пользователей: ${usersCount}\n` +
-      `🆕 Новых сегодня: ${todayUsers}\n` +
-      `📋 Заявок отправлено: ${applicationsCount}\n` +
-      `✅ Квизов завершено: ${completedQuizzes}\n` +
-      `📈 Конверсия в заявку: ${conversionRate}%\n\n` +
-      `⚡ Команды:\n` +
-      `/admin_users - список пользователей\n` +
-      `/admin_applications - последние заявки\n` +
-      `/admin_health - статус системы`
-    );
-  } catch (error) {
-    logError(error, 'admin_stats', ctx.from.id);
-    await ctx.reply('❌ Ошибка получения статистики.');
-  }
-});
-
-bot.command('admin_users', async (ctx) => {
-  try {
-    if (!ADMIN_IDS.includes(ctx.from.id)) return;
-
-    logUserAction(ctx.from.id, 'admin_users_request');
-
-    const users = await prisma.user.findMany({
-      orderBy: { created_at: 'desc' },
-      take: 10
-    });
-
-    let message = `👥 ПОСЛЕДНИЕ 10 ПОЛЬЗОВАТЕЛЕЙ:\n\n`;
-    
-    users.forEach((user, index) => {
-      const date = user.created_at ? new Date(user.created_at).toLocaleDateString('ru-RU') : 'Неизвестно';
-      const isActive = user.last_visit && 
-        (new Date().getTime() - new Date(user.last_visit).getTime()) < 24 * 60 * 60 * 1000;
-      
-      message += `${index + 1}. ${user.first_name || 'Аноним'} (@${user.username || '?'})\n`;
-      message += `   🆔 ${user.telegram_id} | 📅 ${date} ${isActive ? '🟢' : '🔘'}\n\n`;
-    });
-
-    await ctx.reply(message);
-  } catch (error) {
-    logError(error, 'admin_users', ctx.from.id);
-    await ctx.reply('❌ Ошибка получения пользователей.');
-  }
-});
-
-bot.command('admin_applications', async (ctx) => {
-  try {
-    if (!ADMIN_IDS.includes(ctx.from.id)) return;
-
-    logUserAction(ctx.from.id, 'admin_applications_request');
-
-    const applications = await prisma.application.findMany({
-      include: { user: true },
-      orderBy: { created_at: 'desc' },
-      take: 5
-    });
-
-    let message = `📋 ПОСЛЕДНИЕ 5 ЗАЯВОК:\n\n`;
-    
-    applications.forEach((app, index) => {
-      const date = app.created_at ? new Date(app.created_at).toLocaleDateString('ru-RU') : 'Неизвестно';
-      const answers = app.answers as any;
-      const isValidPhone = answers.contacts?.phone ? validatePhone(answers.contacts.phone) : false;
-      
-      message += `${index + 1}. ${app.user.first_name} - ${date}\n`;
-      message += `   🌐 Тип: ${answers.site_type || '?'}\n`;
-      message += `   🏢 Ниша: ${answers.niche || '?'}\n`;
-      message += `   🎨 Стиль: ${answers.brand_style || '?'}\n`;
-      message += `   📞 Контакт: ${answers.contacts?.phone || '?'} ${isValidPhone ? '✅' : '⚠️'}\n`;
-      message += `   💬 Комментарий: ${answers.contacts?.comment || 'Нет'}\n\n`;
-    });
-
-    await ctx.reply(message);
-  } catch (error) {
-    logError(error, 'admin_applications', ctx.from.id);
-    await ctx.reply('❌ Ошибка получения заявок.');
-  }
-});
-
-bot.command('admin_health', async (ctx) => {
-  try {
-    if (!ADMIN_IDS.includes(ctx.from.id)) return;
-
-    logUserAction(ctx.from.id, 'admin_health_request');
-
-    const startTime = Date.now();
-    
-    // Проверка БД
-    const dbTest = await prisma.user.count();
-    const dbTime = Date.now() - startTime;
-    
-    // Проверка памяти
-    const memUsage = process.memoryUsage();
-    const uptime = process.uptime();
-    
-    const formatBytes = (bytes: number) => {
-      return (bytes / 1024 / 1024).toFixed(2) + ' MB';
-    };
-
-    await ctx.reply(
-      `🔧 СОСТОЯНИЕ СИСТЕМЫ\n\n` +
-      `⏱️ Время работы: ${Math.floor(uptime / 3600)}ч ${Math.floor((uptime % 3600) / 60)}м\n` +
-      `🗄️ База данных: ${dbTime}ms (${dbTest} пользователей)\n` +
-      `💾 Память: ${formatBytes(memUsage.heapUsed)} / ${formatBytes(memUsage.heapTotal)}\n` +
-      `📊 Кеш пользователей: ${userCache.size} записей\n` +
-      `✅ Статус: Система работает нормально`
-    );
-  } catch (error) {
-    logError(error, 'admin_health', ctx.from.id);
-    await ctx.reply('❌ Ошибка проверки состояния системы.');
-  }
-});
-
-// --- СОГЛАСИЕ НА ОБРАБОТКУ ДАННЫХ ---
-bot.action('start_quiz', async (ctx) => {
-  try {
-    logUserAction(ctx.from.id, 'quiz_start_requested');
-    
-    await ctx.reply(
-      `📋 СОГЛАСИЕ НА ОБРАБОТКУ ПЕРСОНАЛЬНЫХ ДАННЫХ\n\n` +
-      `Я даю согласие на обработку моих персональных данных (имя, телефон, Telegram ID) с целью предоставления услуг веб-разработки и связи со мной. Срок хранения данных - 3 года.\n\n` +
-      `Я могу отозвать согласие в любой момент командой /delete_data.`,
-      {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: '✅ Согласен', callback_data: 'consent_agree' }],
-            [{ text: '❌ Не согласен', callback_data: 'consent_decline' }]
-          ]
+        @font-face {
+            font-family: 'Helvetica-Bold';
+            src: url('fonts/HelveticaBold.woff') format('woff');
+            font-weight: 700;
+            font-display: swap;
         }
-      }
-    );
-  } catch (error) {
-    logError(error, 'start_quiz_action', ctx.from.id);
-    await ctx.reply('⚠️ Ошибка загрузки формы согласия. Попробуйте позже.');
-  }
-});
 
-bot.action('consent_decline', async (ctx) => {
-  try {
-    logUserAction(ctx.from.id, 'consent_declined');
-    await ctx.reply(`❌ Понял вас. Без согласия мы не можем начать опрос.\n\nЕсли передумаете - нажмите /start`);
-  } catch (error) {
-    logError(error, 'consent_decline_action', ctx.from.id);
-  }
-});
-
-// --- ЛОГИКА КВИЗА с индикаторами загрузки ---
-bot.action('consent_agree', async (ctx) => {
-  try {
-    logUserAction(ctx.from.id, 'consent_agreed');
-    
-    // Показываем индикатор загрузки
-    await ctx.reply('⏳ Подготавливаю опрос...');
-    
-    const user = await getCachedUser(ctx.from.id);
-    if (!user) {
-      await ctx.reply('❌ Пользователь не найден. Выполните /start');
-      return;
-    }
-    
-    // Удаляем старые незавершенные сессии
-    await prisma.quizSession.deleteMany({ 
-      where: { user_id: user.id, is_completed: false }
-    });
-
-    // Создаем новую сессию
-    const session = await prisma.quizSession.create({
-      data: { user_id: user.id, current_step: 1, answers: {} },
-    });
-    
-    logUserAction(ctx.from.id, 'quiz_session_created', { sessionId: session.id });
-    
-    await sendQuestion1(ctx);
-  } catch (error) {
-    logError(error, 'consent_agree_action', ctx.from.id);
-    await ctx.reply('❌ Ошибка при создании сессии опроса. Попробуйте начать сначала: /start');
-  }
-});
-
-async function saveAnswerAndNext(
-  ctx: TelegramContext, 
-  field: string, 
-  value: any, 
-  nextFunction: (ctx: TelegramContext) => Promise<void>
-) {
-  try {
-    // Показываем индикатор обработки
-    await ctx.answerCbQuery('✅ Ответ сохранен');
-    
-    const user = await getCachedUser(ctx.from.id);
-    if (!user) throw new Error('Пользователь не найден');
-    
-    const session = await prisma.quizSession.findFirst({
-      where: { user_id: user.id, is_completed: false },
-      orderBy: { created_at: 'desc' },
-    });
-    
-    if (!session) throw new Error('Активная сессия не найдена');
-    
-    const currentAnswers = (session.answers as QuizAnswers) || {};
-    const sanitizedValue = typeof value === 'string' ? sanitizeInput(value) : value;
-    const updatedAnswers = { ...currentAnswers, [field]: sanitizedValue };
-    
-    await prisma.quizSession.update({
-      where: { id: session.id },
-      data: { 
-        answers: updatedAnswers, 
-        current_step: (session.current_step || 0) + 1,
-        updated_at: new Date()
-      },
-    });
-    
-    logUserAction(ctx.from.id, 'quiz_answer_saved', { 
-      field, 
-      value: typeof value === 'string' ? value.slice(0, 50) : value,
-      step: session.current_step + 1 
-    });
-    
-    // Небольшая задержка для UX
-    setTimeout(() => nextFunction(ctx), 300);
-    
-  } catch (error) {
-    logError(error, 'saveAnswerAndNext', ctx.from.id);
-    await ctx.reply('❌ Ошибка сохранения ответа. Попробуйте начать сначала: /start');
-  }
-}
-
-// --- ВОПРОСЫ КВИЗА с улучшенной обработкой ---
-
-async function sendQuestion1(ctx: TelegramContext) {
-  try {
-    await ctx.reply(`❓ 1/4: Какой сайт вам нужен?`, { 
-      reply_markup: { 
-        inline_keyboard: [
-          [{ text: '📄 Лендинг', callback_data: 'q1_landing' }],
-          [{ text: '🌐 Многостраничный сайт', callback_data: 'q1_multipage' }],
-          [{ text: '🛒 Интернет-магазин', callback_data: 'q1_shop' }],
-          [{ text: '🤔 Не знаю — нужна консультация', callback_data: 'q1_consultation' }]
-        ]
-      }
-    });
-    
-    logUserAction(ctx.from.id, 'quiz_question_1_shown');
-  } catch (error) {
-    logError(error, 'sendQuestion1', ctx.from.id);
-  }
-}
-
-bot.action('q1_landing', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Лендинг', sendQuestion2));
-bot.action('q1_multipage', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Многостраничный сайт', sendQuestion2));
-bot.action('q1_shop', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Интернет-магазин', sendQuestion2));
-bot.action('q1_consultation', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Нужна консультация', sendQuestion2));
-
-async function sendQuestion2(ctx: TelegramContext) {
-  try {
-    await ctx.reply(`❓ 2/4: В какой нише вы работаете?`, { 
-      reply_markup: { 
-        inline_keyboard: [
-          [{ text: '⚙️ Услуги', callback_data: 'q2_services' }],
-          [{ text: '🎓 Образование', callback_data: 'q2_education' }],
-          [{ text: '🏗 Строительство', callback_data: 'q2_construction' }],
-          [{ text: '💄 Красота/мода', callback_data: 'q2_beauty' }],
-          [{ text: '🏠 Недвижимость', callback_data: 'q2_realestate' }],
-          [{ text: '✏️ Другое', callback_data: 'q2_other' }]
-        ]
-      }
-    });
-    
-    logUserAction(ctx.from.id, 'quiz_question_2_shown');
-  } catch (error) {
-    logError(error, 'sendQuestion2', ctx.from.id);
-  }
-}
-
-bot.action('q2_services', (ctx) => saveAnswerAndNext(ctx, 'niche', 'Услуги', sendQuestion3));
-bot.action('q2_education', (ctx) => saveAnswerAndNext(ctx, 'niche', 'Образование', sendQuestion3));
-bot.action('q2_construction', (ctx) => saveAnswerAndNext(ctx, 'niche', 'Строительство', sendQuestion3));
-bot.action('q2_beauty', (ctx) => saveAnswerAndNext(ctx, 'niche', 'Красота/мода', sendQuestion3));
-bot.action('q2_realestate', (ctx) => saveAnswerAndNext(ctx, 'niche', 'Недвижимость', sendQuestion3));
-
-bot.action('q2_other', async (ctx) => {
-  try {
-    await ctx.answerCbQuery('✏️ Укажите нишу');
-    await ctx.reply('✏️ Напишите вашу нишу текстом (например: "IT", "Медицина", "Юриспруденция"):');
-    logUserAction(ctx.from.id, 'quiz_question_2_custom_requested');
-  } catch (error) {
-    logError(error, 'q2_other_action', ctx.from.id);
-  }
-});
-
-async function sendQuestion3(ctx: TelegramContext) {
-  try {
-    await ctx.reply(`❓ 3/4: Есть ли у вас фирменный стиль или логотип?`, { 
-      reply_markup: { 
-        inline_keyboard: [
-          [{ text: '✅ Да, всё готово', callback_data: 'q3_ready' }],
-          [{ text: '🔄 Частично', callback_data: 'q3_partial' }],
-          [{ text: '❌ Нет, нужно создать с нуля', callback_data: 'q3_none' }]
-        ]
-      }
-    });
-    
-    logUserAction(ctx.from.id, 'quiz_question_3_shown');
-  } catch (error) {
-    logError(error, 'sendQuestion3', ctx.from.id);
-  }
-}
-
-bot.action('q3_ready', (ctx) => saveAnswerAndNext(ctx, 'brand_style', 'Да, всё готово', sendQuestion4));
-bot.action('q3_partial', (ctx) => saveAnswerAndNext(ctx, 'brand_style', 'Частично', sendQuestion4));
-bot.action('q3_none', (ctx) => saveAnswerAndNext(ctx, 'brand_style', 'Нет, нужно создать с нуля', sendQuestion4));
-
-async function sendQuestion4(ctx: TelegramContext) {
-  try {
-    await ctx.reply(`❓ 4/4: Как с вами связаться?\n\n📛 Напишите ваше имя:`);
-    logUserAction(ctx.from.id, 'quiz_question_4_shown');
-  } catch (error) {
-    logError(error, 'sendQuestion4', ctx.from.id);
-  }
-}
-
-// --- ОБРАБОТКА КНОПКИ "НЕТ КОММЕНТАРИЯ" ---
-bot.action('no_comment', async (ctx) => {
-  try {
-    await ctx.answerCbQuery('✅ Завершаю оформление заявки...');
-    
-    const user = await getCachedUser(ctx.from.id);
-    if (!user) return;
-    
-    const session = await prisma.quizSession.findFirst({
-      where: { user_id: user.id, is_completed: false },
-      orderBy: { created_at: 'desc' },
-    });
-    
-    if (!session) return;
-    
-    const currentAnswers = (session.answers as any) || {};
-    
-    if (currentAnswers.contacts && currentAnswers.contacts.phone) {
-      currentAnswers.contacts.comment = 'Без комментария';
-      
-      await prisma.quizSession.update({ 
-        data: { answers: currentAnswers, is_completed: true }, 
-        where: { id: session.id } 
-      });
-      
-      const application = await prisma.application.create({
-        data: {
-          user_id: user.id,
-          status: 'new',
-          answers: currentAnswers,
-          contact_info: `${currentAnswers.contacts.name}, ${currentAnswers.contacts.phone}`,
-        },
-        include: { user: true },
-      });
-      
-      logUserAction(ctx.from.id, 'application_completed', { 
-        applicationId: application.id,
-        hasComment: false 
-      });
-      
-      await notifyChannelNewApplication(application);
-      
-      await ctx.editMessageText(
-        `🎉 Спасибо! Ваша заявка #${application.id} принята. Мы скоро свяжемся с вами.\n\n` +
-        `Пока ждете — посмотрите наши работы:`,
-        {
-          reply_markup: {
-            inline_keyboard: [[
-              { 
-                text: '👁 Посмотреть портфолио', 
-                web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
-              }
-            ]]
-          }
+        /* CSS переменные */
+        :root {
+            --main-text-color: #181818;
+            --container-padding: 1px; /* ОДНА переменная для всех устройств */
         }
-      );
-    }
-  } catch (error) {
-    logError(error, 'no_comment_action', ctx.from.id);
-    await ctx.reply('❌ Ошибка при обработке заявки. Попробуйте начать сначала: /start');
-  }
-});
 
-// --- ОБРАБОТКА ТЕКСТА с валидацией ---
-bot.on('text', async (ctx) => {
-  try {
-    const user = await getCachedUser(ctx.from.id);
-    if (!user) return;
-    
-    const session = await prisma.quizSession.findFirst({
-      where: { user_id: user.id, is_completed: false },
-      orderBy: { created_at: 'desc' },
-    });
-    
-    if (!session || !('text' in ctx.message)) return;
-    
-    const messageText = ctx.message.text;
-    const sanitizedText = sanitizeInput(messageText);
-    const currentAnswers = (session.answers as any) || {};
-    
-    // Обработка ввода ниши на шаге 2
-    if (session.current_step === 2 && !currentAnswers.niche) {
-      if (sanitizedText.length < 2) {
-        await ctx.reply('⚠️ Слишком короткое название ниши. Введите минимум 2 символа.');
-        return;
-      }
-      
-      await ctx.reply('✅ Ниша сохранена');
-      await saveAnswerAndNext(ctx, 'niche', sanitizedText, sendQuestion3);
-      return;
-    }
-    
-    // Обработка ввода имени на шаге 4
-    if (session.current_step === 4 && !currentAnswers.contacts) {
-      if (!validateName(sanitizedText)) {
-        await ctx.reply(
-          '⚠️ Пожалуйста, введите корректное имя (2-50 символов, только буквы).\n\n' +
-          'Например: "Иван" или "Анна Петрова"'
-        );
-        return;
-      }
-      
-      currentAnswers.contacts = { name: sanitizedText };
-      
-      await prisma.quizSession.update({ 
-        data: { answers: currentAnswers }, 
-        where: { id: session.id } 
-      });
-      
-      await ctx.reply('✅ Имя сохранено');
-      await ctx.reply(
-        '📱 Поделитесь вашим контактом для связи:',
-        Markup.keyboard([
-          Markup.button.contactRequest('📞 Поделиться контактом')
-        ]).resize().oneTime()
-      );
-      
-      logUserAction(ctx.from.id, 'quiz_name_saved', { name: sanitizedText.slice(0, 20) });
-      return;
-    }
-    
-    // Обработка комментария после получения контакта
-    if (session.current_step === 4 && currentAnswers.contacts && currentAnswers.contacts.phone && !currentAnswers.contacts.comment) {
-      if (sanitizedText.length > 1000) {
-        await ctx.reply('⚠️ Комментарий слишком длинный. Максимум 1000 символов.');
-        return;
-      }
-      
-      currentAnswers.contacts.comment = sanitizedText;
-      
-      await ctx.reply('✅ Комментарий сохранен. Оформляю заявку...');
-      
-      await prisma.quizSession.update({ 
-        data: { answers: currentAnswers, is_completed: true }, 
-        where: { id: session.id } 
-      });
-      
-      const application = await prisma.application.create({
-        data: {
-          user_id: user.id,
-          status: 'new',
-          answers: currentAnswers,
-          contact_info: `${currentAnswers.contacts.name}, ${currentAnswers.contacts.phone}`,
-        },
-        include: { user: true },
-      });
-      
-      logUserAction(ctx.from.id, 'application_completed', { 
-        applicationId: application.id,
-        hasComment: true,
-        commentLength: sanitizedText.length 
-      });
-      
-      await notifyChannelNewApplication(application);
-      
-      await ctx.reply(
-        `🎉 Спасибо! Ваша заявка #${application.id} принята. Мы скоро свяжемся с вами.\n\n` +
-        `Пока ждете — посмотрите наши работы:`,
-        {
-          reply_markup: {
-            inline_keyboard: [[
-              { 
-                text: '👁 Посмотреть портфолио', 
-                web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
-              }
-            ]]
-          }
+        /* Базовые стили - ИСПРАВЛЕНО ДЛЯ МОБИЛЬНЫХ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-      );
-    }
-  } catch (error) {
-    logError(error, 'text_processing', ctx.from?.id);
-    await ctx.reply('⚠️ Ошибка обработки сообщения. Попробуйте еще раз.');
-  }
-});
-  
-// --- ОБРАБОТКА КОНТАКТА с валидацией ---
-bot.on('contact', async (ctx) => {
-  try {
-    const user = await getCachedUser(ctx.from.id);
-    if (!user) return;
-    
-    const session = await prisma.quizSession.findFirst({
-      where: { user_id: user.id, is_completed: false },
-      orderBy: { created_at: 'desc' },
-    });
-    
-    if (!session) return;
-    
-    const currentAnswers = (session.answers as any) || {};
-    const phoneNumber = ctx.message.contact.phone_number;
-    
-    if (currentAnswers.contacts && !currentAnswers.contacts.phone) {
-      // Валидация номера телефона
-      if (!validatePhone(phoneNumber)) {
-        await ctx.reply(
-          '⚠️ Некорректный номер телефона. Попробуйте поделиться контактом еще раз или введите номер вручную.',
-          Markup.removeKeyboard()
-        );
-        return;
-      }
-      
-      currentAnswers.contacts.phone = phoneNumber;
-      
-      await prisma.quizSession.update({ 
-        data: { answers: currentAnswers }, 
-        where: { id: session.id } 
-      });
-      
-      logUserAction(ctx.from.id, 'quiz_phone_saved', { 
-        phone: phoneNumber.slice(0, 8) + '***',
-        isValid: validatePhone(phoneNumber)
-      });
-      
-      await ctx.reply('✅ Контакт получен!', Markup.removeKeyboard());
-      
-      await ctx.reply(
-        '✍️ Есть комментарий к заказу?\n\n💡 Расскажите о ваших пожеланиях, сроках или особенностях проекта.\n\nИли нажмите кнопку ниже:',
-        {
-          reply_markup: {
-            inline_keyboard: [[
-              { text: '✅ Нет комментария', callback_data: 'no_comment' }
-            ]]
-          }
+
+        body {
+            background-color: #ffffff !important;
+            overflow-x: hidden;
         }
-      );
-    }
-  } catch (error) {
-    logError(error, 'contact_processing', ctx.from?.id);
-    await ctx.reply('⚠️ Ошибка обработки контакта. Попробуйте еще раз.');
-  }
-});
-  
-// --- КОМАНДА УДАЛЕНИЯ ДАННЫХ ---
-bot.command('delete_data', async (ctx) => {
-  try {
-    const userId = ctx.from.id;
-    logUserAction(userId, 'delete_data_requested');
-    
-    const userToDelete = await prisma.user.findUnique({ 
-      where: { telegram_id: userId }
-    });
-    
-    if (userToDelete) {
-      // Удаляем данные в правильном порядке (из-за внешних ключей)
-      await prisma.quizSession.deleteMany({ where: { user_id: userToDelete.id } });
-      await prisma.application.deleteMany({ where: { user_id: userToDelete.id } });
-      await prisma.user.delete({ where: { telegram_id: userId } });
-      
-      // Очищаем кеш
-      userCache.delete(userId);
-      
-      logUserAction(userId, 'user_data_deleted');
-      console.log(`🗑️ Удалены данные пользователя: ${userId}`);
-      
-      await ctx.reply(
-        `✅ Ваши персональные данные полностью удалены из нашей системы.\n\n` +
-        `Удалено:\n` +
-        `• Профиль пользователя\n` +
-        `• История опросов\n` +
-        `• Заявки и контакты\n\n` +
-        `Спасибо за использование нашего сервиса!`
-      );
-    } else {
-      await ctx.reply(`ℹ️ Ваши данные не найдены в системе.`);
-    }
-  } catch (error) {
-    logError(error, 'delete_data_command', ctx.from.id);
-    await ctx.reply('❌ Ошибка при удалении данных. Обратитесь к администратору.');
-  }
-});
 
-// --- УЛУЧШЕННАЯ ФУНКЦИЯ УВЕДОМЛЕНИЙ В КАНАЛ ---
-async function notifyChannelNewApplication(application: any) {
-  try {
-    const { user, answers } = application;
-    const contact = answers.contacts || {};
-    
-    const isValidPhone = contact.phone ? validatePhone(contact.phone) : false;
-    const phoneStatus = isValidPhone ? '✅' : '⚠️';
-    
-    const message = 
-      `🔔 НОВАЯ ЗАЯВКА #${application.id}\n\n` +
-      `👤 Клиент: ${user.first_name || 'Аноним'} (@${user.username || 'без username'})\n` +
-      `📞 Контакты: ${contact.name}, ${contact.phone} ${phoneStatus}\n` +
-      `🆔 Telegram ID: ${user.telegram_id}\n\n` +
-      `--- Ответы на квиз ---\n` +
-      `🌐 Тип сайта: ${answers.site_type || 'Не указано'}\n` +
-      `🏢 Ниша: ${answers.niche || 'Не указано'}\n` +
-      `🎨 Фирменный стиль: ${answers.brand_style || 'Не указано'}\n` +
-      `💬 Комментарий: ${contact.comment || 'Нет'}\n\n` +
-      `📊 Время: ${new Date().toLocaleString('ru-RU')}`;
-    
-    if (CHANNEL_ID) {
-      await bot.telegram.sendMessage(CHANNEL_ID, message);
-      console.log(`✅ Уведомление о заявке #${application.id} отправлено в канал`);
-    } else {
-      console.error('❌ CHANNEL_ID не найден в .env файле!');
-    }
-  } catch (error) { 
-    logError(error, 'notifyChannelNewApplication', application?.user?.telegram_id);
-  }
-}
-
-// --- ОБРАБОТКА НЕПЕРЕХВАЧЕННЫХ ОШИБОК ---
-process.on('uncaughtException', (error) => {
-  logError(error, 'uncaughtException');
-  console.error('🚨 КРИТИЧЕСКАЯ ОШИБКА - перезапуск приложения может потребоваться');
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  logError(reason, 'unhandledRejection');
-  console.error('🚨 Необработанное отклонение промиса:', promise);
-});
-
-// --- ЗАПУСК БОТА ---
-bot.launch().then(async () => {
-  console.log('🚀 Production bot v2.0 запущен успешно!');
-  
-  // Устанавливаем кнопку "Кейсы"
-  try {
-    const result = await bot.telegram.callApi('setChatMenuButton', {
-      menu_button: {
-        type: 'web_app',
-        text: 'Кейсы',
-        web_app: {
-          url: 'https://polli-digital.ru/portfolio'
+        .screen {
+            background-color: #ffffff !important;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            width: 100%;
+            min-height: 100vh;
+            padding: 0 var(--container-padding);
+            box-sizing: border-box;
+            overflow-x: hidden;
         }
-      }
-    });
-    console.log('🔥 КНОПКА "КЕЙСЫ" УСТАНОВЛЕНА НА ОСНОВНОЙ САЙТ!', result);
-  } catch (error) {
-    logError(error, 'setChatMenuButton');
+
+        .screen .div {
+            background-color: #ffffff !important;
+            overflow-x: hidden;
+            width: 100%;
+            max-width: 375px;
+            height: auto;
+            position: relative;
+            padding-bottom: 0;
+        }
+
+        /* ИСПРАВЛЕНИЕ ДЛЯ МОБИЛЬНЫХ - ВАЖНО */
+        .overlap {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            height: 419px;
+            margin-top: 14px;
+            margin-left: 0;
+            overflow: hidden;
+        }
+
+        .team-photo {
+            position: absolute;
+            width: 100%;
+            max-width: 100%;
+            height: 265px;
+            top: 34px;
+            left: 0;
+            object-fit: cover;
+        }
+
+        .logo-image {
+            position: absolute;
+            width: 85px;
+            height: 55px;
+            top: 0;
+            left: 31px;
+            object-fit: cover;
+        }
+
+        /* Текстовый блок */
+        .element-2 {
+            position: absolute;
+            width: 356px;
+            height: 135px;
+            top: 323px;
+            left: 25px;
+        }
+
+        .text-wrapper {
+            width: 234px;
+            height: 30px;
+            top: 0;
+            left: 0;
+            font-family: "Benzin-Medium", Helvetica;
+            font-weight: 400;
+            color: var(--main-text-color);
+            font-size: 36px;
+            text-align: center;
+            line-height: 29.9px;
+            white-space: nowrap;
+            position: absolute;
+            letter-spacing: 0;
+        }
+
+        .text-wrapper-2 {
+            width: 156px;
+            height: 30px;
+            top: 39px;
+            left: 87px;
+            font-family: "Benzin-Medium", Helvetica;
+            font-weight: 400;
+            color: var(--main-text-color);
+            font-size: 36px;
+            text-align: center;
+            line-height: 29.9px;
+            white-space: nowrap;
+            position: absolute;
+            letter-spacing: 0;
+        }
+
+        .text-wrapper-3 {
+            width: 268px;
+            height: 30px;
+            top: 78px;
+            left: 80px;
+            font-family: "Benzin-Medium", Helvetica;
+            font-weight: 400;
+            color: var(--main-text-color);
+            font-size: 36px;
+            text-align: center;
+            line-height: 29.9px;
+            white-space: nowrap;
+            position: absolute;
+            letter-spacing: 0;
+        }
+
+        .text-wrapper-4 {
+            width: 229px;
+            height: 22px;
+            top: 113px;
+            left: 88px;
+            font-family: "Helvetica-Regular", Helvetica;
+            font-weight: 400;
+            color: #353434;
+            font-size: 17px;
+            text-align: center;
+            line-height: 21.9px;
+            white-space: nowrap;
+            position: absolute;
+            letter-spacing: 0;
+        }
+
+        /* Декоративные элементы */
+        .img {
+            position: absolute;
+            width: 52px;
+            height: 54px;
+            top: 399px;
+            left: 29px;
+        }
+
+        .image-2 {
+            position: absolute;
+            width: 93px;
+            height: 93px;
+            top: 299px;
+            left: 277px;
+        }
+
+        /* ===== КНОПКИ - ФИНАЛЬНАЯ ВЕРСИЯ ===== */
+        
+        /* Главные кнопки на первом экране */
+        .view {
+            position: absolute;
+            width: 306px;
+            height: 72px;
+            top: 556px;
+            left: 33px;
+        }
+
+        .view-secondary {
+            position: absolute;
+            width: 306px;
+            height: 72px;
+            top: 643px; /* отступ 15px от первой кнопки */
+            left: 33px;
+        }
+
+        /* Стили кнопок */
+        .div-wrapper {
+            width: 100%;
+            height: 72px;
+            border-radius: 32.79px;
+            background: linear-gradient(90deg, #9272e6, #B777FF 52%, #9272e6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .div-wrapper-secondary {
+            width: 100%;
+            height: 72px;
+            border-radius: 32.79px;
+            background: white;
+            border: 2px solid #9272e6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .group-6 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        /* Тексты кнопок */
+        .text-wrapper-8 {
+            font-family: "HelveticaNeueCyr-Medium", Helvetica;
+            font-weight: 500;
+            color: #ffffff;
+            font-size: 23px;
+            text-align: center;
+            line-height: normal;
+            letter-spacing: 0;
+        }
+
+        .text-wrapper-8-secondary {
+            font-family: "HelveticaNeueCyr-Medium", Helvetica;
+            font-weight: 500;
+            color: #181818;
+            font-size: 23px;
+            text-align: center;
+            line-height: normal;
+            letter-spacing: 0;
+        }
+
+        /* Стрелки в кружочках - УНИВЕРСАЛЬНЫЕ СТИЛИ */
+        .arrow-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        /* Белые стрелки для фиолетовых кнопок */
+        .arrow-white {
+            background: transparent;
+            border: 2px solid #ffffff;
+            color: #ffffff;
+        }
+
+        /* Черные стрелки для белых кнопок */
+        .arrow-black {
+            background: rgba(0, 0, 0, 0.05);
+            border: 2px solid #000000;
+            color: #000000;
+        }
+
+        /* Маленькие стрелки */
+        .arrow-small {
+            width: 24px;
+            height: 24px;
+            font-size: 14px;
+        }
+
+        /* Заголовок статистики */
+        .p {
+            width: 318px;
+            height: 90px;
+            position: absolute;
+            top: 750px; /* сдвинул вниз из-за увеличенного отступа кнопок */
+            left: 27px;
+            font-family: "Benzin-Medium", Helvetica;
+            font-weight: 400;
+            color: var(--main-text-color);
+            font-size: 28px;
+            text-align: center;
+            line-height: 29.9px;
+            letter-spacing: 0;
+        }
+
+        /* Секция статистики */
+        .group-wrapper {
+            position: absolute;
+            width: 372px;
+            height: 171px;
+            top: 870px;
+            left: 2px;
+        }
+
+        .img-wrapper {
+            position: absolute;
+            width: 372px;
+            height: 171px;
+            top: 1063px;
+            left: 2px;
+        }
+
+        .overlap-2 {
+            position: absolute;
+            width: 372px;
+            height: 171px;
+            top: 1256px;
+            left: 2px;
+        }
+
+        .stat-card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 0;
+        }
+
+        .stat-overlay-icon {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: 19px;
+            left: 37px;
+            color: white;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Секция отзывов */
+        .overlap-group {
+            position: absolute;
+            width: 318px;
+            height: 83px;
+            top: 1447px;
+            left: 29px;
+        }
+
+        .text-wrapper-5 {
+            width: 318px;
+            height: 60px;
+            top: 23px;
+            left: 0;
+            font-family: "Benzin-Medium", Helvetica;
+            font-weight: 400;
+            color: var(--main-text-color);
+            font-size: 28px;
+            text-align: center;
+            line-height: 29.9px;
+            position: absolute;
+            letter-spacing: 0;
+        }
+
+        .group-2 {
+            position: absolute;
+            width: 49px;
+            height: 48px;
+            top: 0;
+            left: 229px;
+            transform: rotate(90deg);
+        }
+
+        .view-3 {
+            position: absolute;
+            width: 128px;
+            height: 28px;
+            top: 1542px;
+            left: 124px;
+        }
+
+        .overlap-group-2 {
+            position: absolute;
+            width: 71px;
+            height: 28px;
+            top: 0;
+            left: 0;
+        }
+
+        .ellipse {
+            left: 0;
+            background-color: #9272e6;
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            top: 0;
+            border-radius: 14px;
+        }
+
+        .ellipse-2 {
+            left: 21px;
+            background-color: #c1aafb;
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            top: 0;
+            border-radius: 14px;
+        }
+
+        .ellipse-3 {
+            left: 43px;
+            background-color: #eceaf4;
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            top: 0;
+            border-radius: 14px;
+        }
+
+        .text-wrapper-9 {
+            height: 22px;
+            top: 4px;
+            left: 78px;
+            font-family: "Benzin-Medium", Helvetica;
+            font-weight: 400;
+            color: #000000;
+            font-size: 14px;
+            line-height: 21.9px;
+            white-space: nowrap;
+            position: absolute;
+            letter-spacing: 0;
+        }
+
+        /* Контейнер отзывов */
+        .reviews-container {
+            position: absolute;
+            top: 1595px;
+            left: 20px;
+            width: 335px;
+            height: 321px;
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            gap: 15px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .reviews-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .review-image {
+            flex: 0 0 306px;
+            width: 306px;
+            height: 321px;
+            scroll-snap-align: start;
+            border-radius: 0;
+            object-fit: cover;
+        }
+
+        /* Кнопка отзывов - ИСПРАВЛЕНО: сдвинута правее */
+        .review-more-btn {
+            position: absolute;
+            top: 1946px;
+            left: 60%; /* было 50%, сдвинули правее */
+            transform: translateX(-50%);
+            background: linear-gradient(90deg, #9272e6, #B777FF 52%, #9272e6);
+            color: white;
+            height: 48px;
+            border-radius: 24px;
+            font-family: "HelveticaNeueCyr-Medium", Helvetica;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0 24px;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Заголовок проектов */
+        .text-wrapper-6 {
+            width: 318px;
+            height: 30px;
+            position: absolute;
+            top: 2012px;
+            left: 29px;
+            font-family: "Benzin-Medium", Helvetica;
+            font-weight: 400;
+            color: var(--main-text-color);
+            font-size: 28px;
+            text-align: center;
+            line-height: 29.9px;
+            letter-spacing: 0;
+        }
+
+        /* Контейнер проектов */
+        .projects-container {
+            position: absolute;
+            top: 2066px;
+            left: 20px;
+            width: 335px;
+            height: 484px;
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            gap: 15px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .projects-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .element-3 {
+            flex: 0 0 240px;
+            width: 240px;
+            height: 484px;
+            scroll-snap-align: start;
+            border-radius: 0;
+            object-fit: cover;
+        }
+
+        /* Кнопка проектов */
+        .view-5 {
+            position: absolute;
+            width: 232px;
+            height: 55px;
+            top: 2563px;
+            left: 72px;
+        }
+
+        .group-15 {
+            width: 100%;
+            height: 55px;
+            border-radius: 24.87px;
+            background: white;
+            border: 2px solid #9272e6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .text-wrapper-13 {
+            font-family: "HelveticaNeueCyr-Medium", Helvetica;
+            font-weight: 500;
+            color: #181818;
+            font-size: 18px;
+            text-align: center;
+            line-height: normal;
+            letter-spacing: 0;
+        }
+
+        /* Заголовок контактов */
+        .text-wrapper-7 {
+            width: 214px;
+            height: 60px;
+            position: absolute;
+            top: 2661px;
+            left: 80px;
+            font-family: "Benzin-Medium", Helvetica;
+            font-weight: 400;
+            color: var(--main-text-color);
+            font-size: 28px;
+            text-align: center;
+            line-height: 29.9px;
+            letter-spacing: 0;
+        }
+
+        /* Кнопки контактов */
+        .view-4 {
+            position: absolute;
+            width: 306px;
+            height: 73px;
+            top: 2751px;
+            left: 34px;
+            border-radius: 32.79px;
+            box-shadow: 0px 1.46px 5.47px #0b001e40;
+            background: linear-gradient(90deg, #9272e6, #B777FF 52%, #9272e6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            cursor: pointer;
+        }
+
+        .view-2 {
+            position: absolute;
+            width: 306px;
+            height: 73px;
+            top: 2839px;
+            left: 34px;
+            border-radius: 32.79px;
+            background: white;
+            border: 2px solid #9272e6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            cursor: pointer;
+        }
+
+        .text-wrapper-12 {
+            font-family: "Helvetica-Regular", Helvetica;
+            font-weight: 400;
+            color: #ffffff;
+            font-size: 23px;
+            text-align: center;
+            line-height: normal;
+            letter-spacing: 0;
+        }
+
+        /* Контактная информация */
+        .view-7 {
+            position: absolute;
+            width: 202px;
+            height: 22px;
+            top: 2955px;
+            left: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .img-2 {
+            width: 19px;
+            height: 19px;
+        }
+
+        .text-wrapper-15 {
+            font-family: "Benzin-Medium", Helvetica;
+            font-weight: 400;
+            color: var(--main-text-color);
+            font-size: 15px;
+            letter-spacing: 0;
+            line-height: 21.9px;
+        }
+
+        .view-8 {
+            position: absolute;
+            width: 250px;
+            height: 22px;
+            top: 2994px;
+            left: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .vector {
+            width: 19px;
+            height: 13px;
+        }
+
+        .text-wrapper-16 {
+            font-family: "Benzin-Medium", Helvetica;
+            font-weight: 400;
+            color: var(--main-text-color);
+            font-size: 15px;
+            letter-spacing: 0;
+            line-height: 21.9px;
+        }
+
+        /* Интерактивная карта Яндекс */
+        .yandex-map-container {
+            position: absolute;
+            width: 335px;
+            height: 291px;
+            top: 3045px;
+            left: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .yandex-map-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 8px;
+        }
+
+        .yandex-map-container a {
+            color: #666;
+            font-size: 11px;
+            position: absolute;
+            background: rgba(255,255,255,0.9);
+            padding: 2px 4px;
+            border-radius: 3px;
+            text-decoration: none;
+            z-index: 10;
+        }
+
+        /* Адрес */
+        .view-6 {
+            position: absolute;
+            width: 334px;
+            height: 44px;
+            top: 3356px;
+            left: 19px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .text-wrapper-14 {
+            font-family: "Benzin-Medium", Helvetica;
+            font-weight: 400;
+            color: var(--main-text-color);
+            font-size: 15px;
+            line-height: 21.9px;
+            letter-spacing: 0;
+        }
+
+        /* Социальные сети - НОВЫЙ ДИЗАЙН */
+        .social-icons-container {
+            position: absolute;
+            width: 133px;
+            height: 60px;
+            top: 3438px;
+            left: 122px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .social-icon {
+            width: 40px; /* было 35px */
+            height: 40px; /* было 35px */
+            cursor: pointer;
+            border-radius: 8px;
+            transition: transform 0.2s ease;
+        }
+
+        .social-icon:hover {
+            transform: scale(1.1);
+        }
+
+        /* ФУТЕР В ОБЫЧНОМ ПОТОКЕ - НАДЕЖНО */
+        .footer {
+            width: 100%;
+            background: linear-gradient(135deg, #2c2c2c, #1a1a1a);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-radius: 16px 16px 0 0;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+            margin-top: 50px; /* отступ от контента выше */
+        }
+
+        .footer-link {
+            font-family: "Helvetica-Regular", Helvetica;
+            font-size: 15px;
+            color: #ffffff;
+            text-decoration: underline;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .footer-link:hover {
+            color: #B777FF;
+            transform: translateY(-2px);
+        }
+        @media (max-width: 480px) {
+            .screen .div {
+                width: calc(100vw - (var(--container-padding) * 2));
+                max-width: calc(375px - (var(--container-padding) * 2));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="screen">
+        <div class="div">
+            <div class="view-7">
+                <img class="img-2" src="call_icon.png" alt="Телефон">
+                <div class="text-wrapper-15">+7 (911) 184-80-08</div>
+            </div>
+
+            <div class="view-8">
+                <img class="vector" src="mail.png" alt="Email">
+                <div class="text-wrapper-16">info@newdigital.moscow</div>
+            </div>
+
+            <!-- ИНТЕРАКТИВНАЯ ЯНДЕКС КАРТА -->
+            <div class="yandex-map-container">
+                <a href="https://yandex.ru/maps/213/moscow/?utm_medium=mapframe&utm_source=maps" style="top:0px;">Москва</a>
+                <a href="https://yandex.ru/maps/213/moscow/house/armyanskiy_pereulok_11_2a/Z04YcARoS0cCQFtvfXt0eH1qZw==/?ll=37.638772%2C55.759208&utm_medium=mapframe&utm_source=maps&z=17" style="top:14px;">Армянский переулок, 11/2А — Яндекс Карты</a>
+                <iframe src="https://yandex.ru/map-widget/v1/?ll=37.638772%2C55.759208&mode=whatshere&whatshere%5Bpoint%5D=37.638225%2C55.759193&whatshere%5Bzoom%5D=17&z=17" allowfullscreen="true"></iframe>
+            </div>
+
+            <div class="view-6">
+                <img class="img-2" src="igolka.png" alt="Адрес">
+                <div class="text-wrapper-14">Москва, Армянский переулок, 11/2А, 101000</div>
+            </div>
+
+            <!-- НОВЫЕ ОТДЕЛЬНЫЕ ИКОНКИ СОЦСЕТЕЙ -->
+            <div class="social-icons-container">
+                <img src="vk_icon.png" alt="VKontakte" class="social-icon" id="vkIcon">
+                <img src="whatsapp_icon.png" alt="WhatsApp" class="social-icon" id="whatsappIcon">
+                <img src="telegram_icon.png" alt="Telegram" class="social-icon" id="telegramIcon">
+            </div>
+        </div>
+    </div>
+
+    <!-- ФУТЕР ВНЕ ОСНОВНОГО КОНТЕЙНЕРА -->
+    <div style="width: 100%; background: linear-gradient(135deg, #2c2c2c, #1a1a1a); padding: 20px; text-align: center; color: white;">
+        <a href="policy.html" target="_blank" style="color: #ffffff; text-decoration: underline; font-family: 'Helvetica-Regular', Helvetica; font-size: 15px;">Политика конфиденциальности</a>
+    </div>
     
-    // Альтернативный способ
-    try {
-      // @ts-ignore
-      await bot.telegram.setChatMenuButton(undefined, {
-        type: 'web_app', 
-        text: 'Кейсы',
-        web_app: { url: 'https://polli-digital.ru/portfolio' }
-      });
-      console.log('🔥 КНОПКА "КЕЙСЫ" УСТАНОВЛЕНА НА ОСНОВНОЙ САЙТ (способ 2)!');
-    } catch (error2) {
-      logError(error2, 'setChatMenuButton_fallback');
-    }
-  }
-  
-  // Логируем состояние системы
-  const memUsage = process.memoryUsage();
-  console.log(`💾 Память: ${(memUsage.heapUsed / 1024 / 1024).toFixed(2)} MB`);
-  console.log(`📊 Кеш пользователей: ${userCache.size} записей`);
-  console.log('✅ Все системы готовы к работе!');
-});
+    <script>
+        // Инициализация Telegram Web App
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        
+        // Обработчики для основных кнопок
+        document.getElementById('orderButton').addEventListener('click', function() {
+            window.open('https://t.me/polli_woww', '_blank');
+        });
+        
+        // ИСПРАВЛЕННЫЕ КНОПКИ ЗВОНКОВ
+        document.getElementById('callButton').addEventListener('click', function() {
+            // Попробуем несколько способов
+            if (window.Telegram && window.Telegram.WebApp) {
+                // В Telegram WebApp используем openLink
+                window.Telegram.WebApp.openLink('tel:+79111848008');
+            } else {
+                // Обычный браузер
+                window.location.href = 'tel:+79111848008';
+            }
+        });
 
-process.once('SIGINT', () => {
-  console.log('🛑 Получен сигнал SIGINT - корректное завершение...');
-  bot.stop('SIGINT');
-});
+        document.getElementById('yandexMapsButton').addEventListener('click', function() {
+            const mapsUrl = 'https://yandex.ru/maps/org/polli_dizhital/235246933847?si=gfeb8uk83w8xk7mcr4rp0mak3r';
+            window.open(mapsUrl, '_blank');
+        });
 
-process.once('SIGTERM', () => {
-  console.log('🛑 Получен сигнал SIGTERM - корректное завершение...');
-  bot.stop('SIGTERM');
-});
+        // Обработчики для контактных кнопок
+        document.getElementById('contactOrderButton').addEventListener('click', function() {
+            window.open('https://t.me/polli_woww', '_blank');
+        });
+        
+        // ИСПРАВЛЕННАЯ ВТОРАЯ КНОПКА ЗВОНКА
+        document.getElementById('contactCallButton').addEventListener('click', function() {
+            // Попробуем несколько способов для второй кнопки
+            if (window.Telegram && window.Telegram.WebApp) {
+                // В Telegram WebApp используем openLink
+                window.Telegram.WebApp.openLink('tel:+79111848008');
+            } else {
+                // Обычный браузер
+                window.location.href = 'tel:+79111848008';
+            }
+        });
+
+        // НОВЫЕ ОБРАБОТЧИКИ для отдельных соцсетей
+        document.getElementById('vkIcon').addEventListener('click', function() {
+            window.open('https://vk.com/polli_digital', '_blank');
+        });
+
+        document.getElementById('whatsappIcon').addEventListener('click', function() {
+            window.open('https://wa.me/79111848008', '_blank');
+        });
+
+        document.getElementById('telegramIcon').addEventListener('click', function() {
+            window.open('https://t.me/polli_woww', '_blank');
+        });
+    </script>
+</body>
+</html>="overlap">
+                <img class="team-photo" src="фото.jpg" alt="Команда Polli Digital" />
+                <img class="logo-image" src="logo.png" alt="Polli Digital Logo" />
+                
+                <div class="element-2">
+                    <div class="text-wrapper">Брендинг</div>
+                    <div class="text-wrapper-2">Сайты</div>
+                    <div class="text-wrapper-3">Маркетинг</div>
+                    <div class="text-wrapper-4">Скорость. Эстетика. Смысл</div>
+                </div>
+                
+                <img class="img" src="arrow.svg" alt="Декоративная линия" />
+                <img class="image-2" src="circle-badge.svg" alt="Создаем цифровую репутацию" />
+            </div>
+
+            <div class="view">
+                <div class="div-wrapper" id="orderButton">
+                    <div class="group-6">
+                        <div class="text-wrapper-8">Заказать</div>
+                        <i class="fas fa-arrow-right arrow-circle arrow-white"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="view-secondary">
+                <div class="div-wrapper-secondary" id="callButton">
+                    <div class="group-6">
+                        <div class="text-wrapper-8-secondary">Позвонить</div>
+                        <i class="fas fa-arrow-right arrow-circle arrow-black"></i>
+                    </div>
+                </div>
+            </div>
+
+            <p class="p">Мы любим свое дело и дорожим репутацией</p>
+
+            <div class="group-wrapper">
+                <img src="500_case.png" alt="500+ клиентов" class="stat-card-image">
+            </div>
+
+            <div class="img-wrapper">
+                <img src="15age_2.png" alt="15+ лет опыта" class="stat-card-image">
+            </div>
+
+            <div class="overlap-2">
+                <img src="partners_2.png" alt="Партнерство с фондами" class="stat-card-image">
+            </div>
+
+            <div class="overlap-group">
+                <div class="text-wrapper-5">Нас<br>рекомендуют</div>
+                <img class="group-2" src="arrow.svg" alt="Декоративная стрелка" />
+            </div>
+
+            <div class="view-3">
+                <div class="overlap-group-2">
+                    <div class="ellipse"></div>
+                    <div class="ellipse-2"></div>
+                    <div class="ellipse-3"></div>
+                </div>
+                <div class="text-wrapper-9">500+</div>
+            </div>
+
+            <div class="reviews-container">
+                <img src="client (1).png" alt="Отзыв Оксаны Л." class="review-image">
+                <img src="client (2).png" alt="Отзыв Григория М." class="review-image">
+                <img src="client (3).png" alt="Отзыв Ирины Тищенко" class="review-image">
+                <img src="client (4).png" alt="Отзыв Yana" class="review-image">
+                <img src="client (5).png" alt="Отзыв ООО Никойл" class="review-image">
+                <img src="client (6).png" alt="Отзыв Петра Маркова" class="review-image">
+            </div>
+
+            <!-- ИСПРАВЛЕНО: кнопка сдвинута правее + добавлена PNG иконка -->
+            <button class="review-more-btn" id="yandexMapsButton">
+                Смотреть на Яндекс.Картах 
+                <img src="mapsy_icon.png" alt="Maps" style="width: 18px; height: 18px;">
+            </button>
+
+            <div class="text-wrapper-6">Наши проекты</div>
+
+            <div class="projects-container">
+                <img src="project_1.png" alt="Проект UGG приложение" class="element-3">
+                <img src="project_2.png" alt="Проект 2" class="element-3">
+                <img src="project_3.png" alt="Проект 3" class="element-3">
+                <img src="project_4.png" alt="Проект 4" class="element-3">
+                <img src="project_5.png" alt="Проект 5" class="element-3">
+                <img src="project_6.png" alt="Проект 6" class="element-3">
+                <img src="project_7.png" alt="Проект 7" class="element-3">
+                <img src="project_8.png" alt="Проект 8" class="element-3">
+            </div>
+
+            <div class="view-5">
+                <div class="group-15">
+                    <div class="text-wrapper-13">Смотреть</div>
+                    <i class="fas fa-arrow-right arrow-circle arrow-black arrow-small"></i>
+                </div>
+            </div>
+
+            <div class="text-wrapper-7">Связаться<br>с нами</div>
+
+            <div class="view-4" id="contactOrderButton">
+                <div class="text-wrapper-12">Оставить заявку</div>
+                <i class="fas fa-arrow-right arrow-circle arrow-white"></i>
+            </div>
+
+            <div class="view-2" id="contactCallButton">
+                <div class="text-wrapper-8-secondary">Позвонить</div>
+                <i class="fas fa-arrow-right arrow-circle arrow-black"></i>
+            </div>
+
+            <div class
