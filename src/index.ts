@@ -563,15 +563,35 @@ async function notifyChannelNewApplication(application: any) {
 }
 
 // --- ЗАПУСК БОТА ---
-bot.launch().then(() => {
+bot.launch().then(async () => {
   console.log('✅ Бот успешно запущен!');
   
-  // Устанавливаем персистентную кнопку "Кейсы"
-  bot.telegram.setChatMenuButton({
-    type: 'web_app',
-    text: 'Кейсы',
-    web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
-  }).catch(err => console.log('Ошибка установки кнопки меню:', err));
+  // Устанавливаем персистентную кнопку "Кейсы" для всех пользователей
+  try {
+    await bot.telegram.setChatMenuButton({
+      menu_button: {
+        type: 'web_app',
+        text: 'Кейсы',
+        web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
+      }
+    });
+    console.log('✅ Кнопка "Кейсы" установлена!');
+  } catch (err) {
+    console.log('❌ Ошибка установки кнопки:', err);
+    
+    // Альтернативный способ
+    try {
+      await bot.telegram.setMyDefaultAdministratorRights({});
+      await bot.telegram.setChatMenuButton({
+        type: 'web_app',
+        text: 'Кейсы', 
+        web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
+      });
+      console.log('✅ Кнопка "Кейсы" установлена (способ 2)!');
+    } catch (err2) {
+      console.log('❌ Кнопка меню не поддерживается:', err2.message);
+    }
+  }
 });
 
 process.once('SIGINT', () => bot.stop('SIGINT'));
