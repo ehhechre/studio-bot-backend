@@ -1,4 +1,4 @@
-// src/index.ts - ИСПРАВЛЕНО ПОД РЕАЛЬНУЮ СХЕМУ БД
+// src/index.ts - PRODUCTION BOT v2.5 - ИСПРАВЛЕНО ПОД РЕАЛЬНУЮ СХЕМУ БД
 
 import { Telegraf, Context, Markup } from 'telegraf';
 import dotenv from 'dotenv';
@@ -78,7 +78,7 @@ bot.start(async (ctx: TelegramContext) => {
 
     logUserAction(telegramUser.id, 'start_command');
 
-    // ИСПРАВЛЕНО: используем правильные названия моделей
+    // ИСПРАВЛЕНО: используем правильные названия моделей (lowercase)
     const userInDb = await prisma.users.upsert({
       where: { telegram_id: BigInt(telegramUser.id) },
       update: {
@@ -468,7 +468,7 @@ process.once('SIGTERM', () => {
 
 // --- Запуск бота ---
 bot.launch().then(() => {
-  console.log('🚀 Production bot v2.4 запущен успешно!');
+  console.log('🚀 Production bot v2.5 запущен успешно!');
   console.log(`🔥 КНОПКА "КЕЙСЫ" УСТАНОВЛЕНА НА ОСНОВНОЙ САЙТ!`, CASES_BUTTON_TO_SITE);
   console.log(`💾 Память: ${formatMemoryUsage()}`);
   console.log(`📊 Кеш пользователей: ${Object.keys(userCache).length} записей`);
