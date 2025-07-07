@@ -950,10 +950,22 @@
         callButton.addEventListener('click', function(event) {
             event.preventDefault(); // Отменяем переход по ссылке
 
-            // Даем команду Telegram без каких-либо пауз и алертов
-            tg.openLink(`tel:${phoneNumber}`);
+            // 1. Создаем в памяти компьютера элемент ссылки
+            const link = document.createElement('a');
+
+            // 2. Устанавливаем ему нужный адрес для звонка
+            link.href = `tel:${phoneNumber}`;
+
+            // 3. Добавляем невидимую ссылку на страницу
+            document.body.appendChild(link);
+
+            // 4. Программно "нажимаем" на эту ссылку
+            link.click();
+
+            // 5. Сразу же удаляем ее, чтобы она не мешала
+            document.body.removeChild(link);
         });
-    } 
+    }
 });
     </script>
 </body>
