@@ -123,7 +123,7 @@ async function getStats() {
 }
 const mainMenuKeyboard = telegraf_1.Markup.inlineKeyboard([
     [telegraf_1.Markup.button.callback('💰 Рассчитать стоимость', 'start_quiz')],
-    [telegraf_1.Markup.button.callback('👁 Посмотреть работы', 'view_works')],
+    [telegraf_1.Markup.button.webApp('👁 Посмотреть работы', 'https://ehhechre.github.io/studio-bot-backend/webapp/')],
     [telegraf_1.Markup.button.callback('📞 Связаться с нами', 'contact')]
 ]);
 const mainMenuText = `🚀 Добро пожаловать в нашу студию!\n\n` +
@@ -159,6 +159,48 @@ bot.start(async (ctx) => {
     catch (error) {
         log('error', 'Error in start command', { error: error.message });
         await ctx.reply('❌ Произошла ошибка. Попробуйте позже.');
+    }
+});
+bot.command('cases', async (ctx) => {
+    try {
+        if (!ctx.from)
+            return;
+        log('info', 'Cases command used', { userId: ctx.from.id });
+        await ctx.reply('👁 Посмотрите наши работы:', {
+            reply_markup: {
+                inline_keyboard: [[
+                        {
+                            text: '🎨 Портфолио Polli Digital',
+                            web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
+                        }
+                    ]]
+            }
+        });
+    }
+    catch (error) {
+        log('error', 'Error in cases command', { error: error.message });
+        await ctx.reply('⚠️ Ошибка загрузки портфолио. Попробуйте позже.');
+    }
+});
+bot.command('app', async (ctx) => {
+    try {
+        if (!ctx.from)
+            return;
+        log('info', 'App command used', { userId: ctx.from.id });
+        await ctx.reply('🚀 Откройте наше приложение:', {
+            reply_markup: {
+                inline_keyboard: [[
+                        {
+                            text: '🎨 Polli Digital App',
+                            web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
+                        }
+                    ]]
+            }
+        });
+    }
+    catch (error) {
+        log('error', 'Error in app command', { error: error.message });
+        await ctx.reply('⚠️ Ошибка запуска приложения. Попробуйте позже.');
     }
 });
 bot.command('admin', async (ctx) => {
@@ -280,24 +322,6 @@ bot.action('consent_decline', async (ctx) => {
         log('error', 'Error in consent_decline', { error: error.message });
     }
 });
-bot.action('view_works', async (ctx) => {
-    try {
-        if (!ctx.from)
-            return;
-        log('info', 'User viewing works', { userId: ctx.from.id });
-        await ctx.reply(`👁 Наши работы\n\n` +
-            `🌟 Более 500 успешных проектов!\n\n` +
-            `🎯 Посмотрите примеры работ на нашем сайте.\n` +
-            `После изучения портфолио вы можете вернуться и рассчитать стоимость вашего проекта.`, telegraf_1.Markup.inlineKeyboard([
-            [telegraf_1.Markup.button.url('🌐 Открыть портфолио', `${WEBSITE_URL}/portfolio`)],
-            [telegraf_1.Markup.button.callback('💰 Рассчитать стоимость', 'start_quiz')],
-            [telegraf_1.Markup.button.callback('◀️ Главное меню', 'main_menu')]
-        ]));
-    }
-    catch (error) {
-        log('error', 'Error in view_works', { error: error.message });
-    }
-});
 bot.action('contact', async (ctx) => {
     try {
         if (!ctx.from)
@@ -328,6 +352,12 @@ bot.action('main_menu', async (ctx) => {
 });
 async function sendQuestion1(ctx) {
     try {
+        if (!ctx.from)
+            return;
+        const session = memoryQuizSessions.get(ctx.from.id);
+        if (session) {
+            session.currentStep = 1;
+        }
         await ctx.reply(`❓ 1/4: Какой сайт вам нужен?`, telegraf_1.Markup.inlineKeyboard([
             [telegraf_1.Markup.button.callback('📄 Лендинг', 'q1_landing')],
             [telegraf_1.Markup.button.callback('🌐 Многостраничный сайт', 'q1_multipage')],
@@ -342,6 +372,12 @@ async function sendQuestion1(ctx) {
 }
 async function sendQuestion2(ctx) {
     try {
+        if (!ctx.from)
+            return;
+        const session = memoryQuizSessions.get(ctx.from.id);
+        if (session) {
+            session.currentStep = 2;
+        }
         await ctx.reply(`❓ 2/4: В какой нише вы работаете?`, telegraf_1.Markup.inlineKeyboard([
             [telegraf_1.Markup.button.callback('⚙️ Услуги', 'q2_services')],
             [telegraf_1.Markup.button.callback('🎓 Образование', 'q2_education')],
@@ -350,7 +386,7 @@ async function sendQuestion2(ctx) {
             [telegraf_1.Markup.button.callback('🏠 Недвижимость', 'q2_realestate')],
             [telegraf_1.Markup.button.callback('✏️ Другое', 'q2_other')]
         ]));
-        log('info', 'Question 2 shown', { userId: ctx.from?.id });
+        log('info', 'Question 2 shown', { userId: ctx.from?.id, step: 2 });
     }
     catch (error) {
         log('error', 'Error in sendQuestion2', { error: error.message });
@@ -358,12 +394,18 @@ async function sendQuestion2(ctx) {
 }
 async function sendQuestion3(ctx) {
     try {
+        if (!ctx.from)
+            return;
+        const session = memoryQuizSessions.get(ctx.from.id);
+        if (session) {
+            session.currentStep = 3;
+        }
         await ctx.reply(`❓ 3/4: Есть ли у вас фирменный стиль или логотип?`, telegraf_1.Markup.inlineKeyboard([
             [telegraf_1.Markup.button.callback('✅ Да, всё готово', 'q3_ready')],
             [telegraf_1.Markup.button.callback('🔄 Частично', 'q3_partial')],
             [telegraf_1.Markup.button.callback('❌ Нет, нужно создать с нуля', 'q3_none')]
         ]));
-        log('info', 'Question 3 shown', { userId: ctx.from?.id });
+        log('info', 'Question 3 shown', { userId: ctx.from?.id, step: 3 });
     }
     catch (error) {
         log('error', 'Error in sendQuestion3', { error: error.message });
@@ -371,8 +413,14 @@ async function sendQuestion3(ctx) {
 }
 async function sendQuestion4(ctx) {
     try {
+        if (!ctx.from)
+            return;
+        const session = memoryQuizSessions.get(ctx.from.id);
+        if (session) {
+            session.currentStep = 4;
+        }
         await ctx.reply(`❓ 4/4: Как с вами связаться?\n\n📛 Напишите ваше имя:`);
-        log('info', 'Question 4 shown', { userId: ctx.from?.id });
+        log('info', 'Question 4 shown', { userId: ctx.from?.id, step: 4 });
     }
     catch (error) {
         log('error', 'Error in sendQuestion4', { error: error.message });
@@ -390,12 +438,11 @@ async function saveAnswerAndNext(ctx, field, value, nextFunction) {
         }
         const sanitizedValue = typeof value === 'string' ? sanitizeInput(value) : value;
         session.answers[field] = sanitizedValue;
-        session.currentStep++;
         log('info', 'Answer saved', {
             userId: ctx.from.id,
             field,
             value: typeof value === 'string' ? value.slice(0, 50) : value,
-            step: session.currentStep
+            currentStep: session.currentStep
         });
         setTimeout(() => nextFunction(ctx), 300);
     }
@@ -505,7 +552,7 @@ bot.on('text', async (ctx) => {
                 return;
             }
             session.answers.niche = sanitizedText;
-            session.currentStep++;
+            session.currentStep = 3;
             await ctx.reply('✅ Ниша сохранена');
             await sendQuestion3(ctx);
             return;
@@ -521,7 +568,7 @@ bot.on('text', async (ctx) => {
             await ctx.reply('📱 Поделитесь вашим контактом для связи:', telegraf_1.Markup.keyboard([
                 telegraf_1.Markup.button.contactRequest('📞 Поделиться контактом')
             ]).resize().oneTime());
-            log('info', 'Name saved', { userId: ctx.from.id, name: sanitizedText.slice(0, 20) });
+            log('info', 'Name saved', { userId: ctx.from.id, name: sanitizedText.slice(0, 20), step: 4 });
             return;
         }
         if (session.currentStep === 4 &&
@@ -534,7 +581,10 @@ bot.on('text', async (ctx) => {
             }
             await ctx.reply('✅ Комментарий сохранен. Оформляю заявку...');
             await completeApplication(ctx, sanitizedText);
+            return;
         }
+        await ctx.reply(`🤔 Не понял ваше сообщение на текущем этапе (шаг ${session.currentStep}).\n\n` +
+            `Попробуйте начать заново: /start`);
     }
     catch (error) {
         log('error', 'Error handling text message', { error: error.message });
@@ -602,7 +652,7 @@ async function completeApplication(ctx, comment) {
         await ctx.reply(`🎉 Спасибо! Ваша заявка${application ? ` #${application.id}` : ''} принята.\n\n` +
             `📞 Мы свяжемся с вами в течение 2 часов!\n\n` +
             `Пока ждете — посмотрите наши работы:`, telegraf_1.Markup.inlineKeyboard([
-            [telegraf_1.Markup.button.url('👁 Посмотреть портфолио', `${WEBSITE_URL}/portfolio`)],
+            [telegraf_1.Markup.button.webApp('👁 Посмотреть портфолио', 'https://ehhechre.github.io/studio-bot-backend/webapp/')],
             [telegraf_1.Markup.button.callback('🏠 Главное меню', 'main_menu')]
         ]));
     }
@@ -769,6 +819,9 @@ async function start() {
     try {
         await prisma.$connect();
         log('info', 'Database connected successfully');
+        await bot.telegram.setMyCommands([
+            { command: 'app', description: 'Кейсы' }
+        ]);
         await bot.launch();
         log('info', '🚀 Production Stable Bot v3.0 started successfully!');
         log('info', `📊 Active sessions: ${memoryQuizSessions.size}`);

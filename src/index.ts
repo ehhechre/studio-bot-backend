@@ -442,6 +442,13 @@ bot.action('main_menu', async (ctx: TelegramContext) => {
 // --- Вопросы опроса ---
 async function sendQuestion1(ctx: TelegramContext) {
   try {
+    if (!ctx.from) return;
+    
+    const session = memoryQuizSessions.get(ctx.from.id);
+    if (session) {
+      session.currentStep = 1; // Устанавливаем правильный шаг
+    }
+    
     await ctx.reply(
       `❓ 1/4: Какой сайт вам нужен?`,
       Markup.inlineKeyboard([
@@ -460,6 +467,13 @@ async function sendQuestion1(ctx: TelegramContext) {
 
 async function sendQuestion2(ctx: TelegramContext) {
   try {
+    if (!ctx.from) return;
+    
+    const session = memoryQuizSessions.get(ctx.from.id);
+    if (session) {
+      session.currentStep = 2; // Устанавливаем правильный шаг
+    }
+    
     await ctx.reply(
       `❓ 2/4: В какой нише вы работаете?`,
       Markup.inlineKeyboard([
@@ -472,7 +486,7 @@ async function sendQuestion2(ctx: TelegramContext) {
       ])
     );
     
-    log('info', 'Question 2 shown', { userId: ctx.from?.id });
+    log('info', 'Question 2 shown', { userId: ctx.from?.id, step: 2 });
   } catch (error) {
     log('error', 'Error in sendQuestion2', { error: (error as Error).message });
   }
@@ -480,6 +494,13 @@ async function sendQuestion2(ctx: TelegramContext) {
 
 async function sendQuestion3(ctx: TelegramContext) {
   try {
+    if (!ctx.from) return;
+    
+    const session = memoryQuizSessions.get(ctx.from.id);
+    if (session) {
+      session.currentStep = 3; // Устанавливаем правильный шаг
+    }
+    
     await ctx.reply(
       `❓ 3/4: Есть ли у вас фирменный стиль или логотип?`,
       Markup.inlineKeyboard([
@@ -489,7 +510,7 @@ async function sendQuestion3(ctx: TelegramContext) {
       ])
     );
     
-    log('info', 'Question 3 shown', { userId: ctx.from?.id });
+    log('info', 'Question 3 shown', { userId: ctx.from?.id, step: 3 });
   } catch (error) {
     log('error', 'Error in sendQuestion3', { error: (error as Error).message });
   }
@@ -497,8 +518,15 @@ async function sendQuestion3(ctx: TelegramContext) {
 
 async function sendQuestion4(ctx: TelegramContext) {
   try {
+    if (!ctx.from) return;
+    
+    const session = memoryQuizSessions.get(ctx.from.id);
+    if (session) {
+      session.currentStep = 4; // Устанавливаем правильный шаг
+    }
+    
     await ctx.reply(`❓ 4/4: Как с вами связаться?\n\n📛 Напишите ваше имя:`);
-    log('info', 'Question 4 shown', { userId: ctx.from?.id });
+    log('info', 'Question 4 shown', { userId: ctx.from?.id, step: 4 });
   } catch (error) {
     log('error', 'Error in sendQuestion4', { error: (error as Error).message });
   }
@@ -521,17 +549,18 @@ async function saveAnswerAndNext(
       return;
     }
 
+    // Сохраняем ответ БЕЗ изменения шага здесь
     const sanitizedValue = typeof value === 'string' ? sanitizeInput(value) : value;
     session.answers[field] = sanitizedValue;
-    session.currentStep++;
     
     log('info', 'Answer saved', { 
       userId: ctx.from.id,
       field, 
       value: typeof value === 'string' ? value.slice(0, 50) : value,
-      step: session.currentStep 
+      currentStep: session.currentStep 
     });
     
+    // Переходим к следующему вопросу ТОЛЬКО через функцию
     setTimeout(() => nextFunction(ctx), 300);
     
   } catch (error) {
@@ -657,7 +686,7 @@ bot.on('text', async (ctx: TelegramContext) => {
       }
       
       session.answers.niche = sanitizedText;
-      session.currentStep++;
+      session.currentStep = 3; // Явно переходим к шагу 3
       await ctx.reply('✅ Ниша сохранена');
       await sendQuestion3(ctx);
       return;
@@ -683,11 +712,11 @@ bot.on('text', async (ctx: TelegramContext) => {
         ]).resize().oneTime()
       );
       
-      log('info', 'Name saved', { userId: ctx.from.id, name: sanitizedText.slice(0, 20) });
+      log('info', 'Name saved', { userId: ctx.from.id, name: sanitizedText.slice(0, 20), step: 4 });
       return;
     }
     
-    // Обработка комментария после получения контакта
+    // Обработка комментария после получения контакта (остаемся на шаге 4)
     if (session.currentStep === 4 && 
         session.answers.contacts && 
         session.answers.contacts.phone && 
@@ -700,7 +729,14 @@ bot.on('text', async (ctx: TelegramContext) => {
       
       await ctx.reply('✅ Комментарий сохранен. Оформляю заявку...');
       await completeApplication(ctx, sanitizedText);
+      return;
     }
+
+    // Если ничего не подошло
+    await ctx.reply(
+      `🤔 Не понял ваше сообщение на текущем этапе (шаг ${session.currentStep}).\n\n` +
+      `Попробуйте начать заново: /start`
+    );
 
   } catch (error) {
     log('error', 'Error handling text message', { error: (error as Error).message });
