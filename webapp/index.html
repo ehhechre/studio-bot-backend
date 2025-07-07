@@ -812,14 +812,14 @@
             </div>
 
             <!-- Стало так (для теста) -->
-<a href="#" class="view-secondary" id="callButton">
-    <div class="div-wrapper-secondary">
-        <div class="group-6">
-            <div class="text-wrapper-8-secondary">Позвонить</div>
-            <i class="fas fa-arrow-right arrow-circle arrow-black"></i>
-        </div>
-    </div>
-</a>
+            <a href="#" class="view-secondary" id="callButton">
+                <div class="div-wrapper-secondary">
+                    <div class="group-6">
+                        <div class="text-wrapper-8-secondary">Позвонить</div>
+                        <i class="fas fa-arrow-right arrow-circle arrow-black"></i>
+                    </div>
+                </div>
+            </a>
 
             <p class="p">Мы любим свое дело и дорожим репутацией</p>
 
@@ -939,44 +939,21 @@
     </div>
     
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+       document.addEventListener('DOMContentLoaded', function() {
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    // Номер телефона, на который будем звонить
     const phoneNumber = '+79111848008';
-    
-    // Находим нашу тестовую кнопку
     const callButton = document.getElementById('callButton');
 
-    // Проверяем, что кнопка нашлась
     if (callButton) {
-        // Вешаем на нее обработчик клика
         callButton.addEventListener('click', function(event) {
-            // Отменяем стандартное поведение ссылки (переход по #)
-            event.preventDefault();
+            event.preventDefault(); // Отменяем переход по ссылке
 
-            // 1. Показываем пользователю всплывающее окно, что мы получили команду
-            // Это поможет нам понять, работает ли вообще скрипт.
-            tg.showAlert(`Кнопка "Позвонить" нажата. Пытаюсь открыть окно набора номера...`);
-
-            try {
-                // 2. Это и есть та самая команда, которая должна работать.
-                // Она просит Telegram открыть системную ссылку.
-                tg.openLink(`tel:${phoneNumber}`);
-                
-            } catch (e) {
-                // 3. Если произошла ошибка при вызове openLink, покажем ее
-                tg.showAlert(`Произошла ошибка: ${e.message}`);
-            }
+            // Даем команду Telegram без каких-либо пауз и алертов
+            tg.openLink(`tel:${phoneNumber}`);
         });
-    } else {
-        // Если кнопка не нашлась, это тоже будет видно
-        tg.showAlert('Ошибка: не удалось найти кнопку с id "callButton"');
     }
-    
-    // Остальные кнопки пока для чистоты теста не трогаем,
-    // чтобы не было конфликтов.
 });
     </script>
 </body>
