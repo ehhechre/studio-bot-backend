@@ -158,7 +158,7 @@ async function getStats() {
 // --- Главное меню ---
 const mainMenuKeyboard = Markup.inlineKeyboard([
   [Markup.button.callback('💰 Рассчитать стоимость', 'start_quiz')],
-  [Markup.button.callback('👁 Посмотреть работы', 'view_works')],
+  [Markup.button.webApp('👁 Посмотреть работы', 'https://ehhechre.github.io/studio-bot-backend/webapp/')],
   [Markup.button.callback('📞 Связаться с нами', 'contact')]
 ]);
 
@@ -209,7 +209,50 @@ bot.start(async (ctx: TelegramContext) => {
   }
 });
 
-// --- Админские команды ---
+// --- Дополнительные команды (как в оригинальном коде) ---
+bot.command('cases', async (ctx: TelegramContext) => {
+  try {
+    if (!ctx.from) return;
+    
+    log('info', 'Cases command used', { userId: ctx.from.id });
+    
+    await ctx.reply('👁 Посмотрите наши работы:', {
+      reply_markup: {
+        inline_keyboard: [[
+          { 
+            text: '🎨 Портфолио Polli Digital', 
+            web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
+          }
+        ]]
+      }
+    });
+  } catch (error) {
+    log('error', 'Error in cases command', { error: (error as Error).message });
+    await ctx.reply('⚠️ Ошибка загрузки портфолио. Попробуйте позже.');
+  }
+});
+
+bot.command('app', async (ctx: TelegramContext) => {
+  try {
+    if (!ctx.from) return;
+    
+    log('info', 'App command used', { userId: ctx.from.id });
+    
+    await ctx.reply('🚀 Откройте наше приложение:', {
+      reply_markup: {
+        inline_keyboard: [[
+          { 
+            text: '🎨 Polli Digital App', 
+            web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
+          }
+        ]]
+      }
+    });
+  } catch (error) {
+    log('error', 'Error in app command', { error: (error as Error).message });
+    await ctx.reply('⚠️ Ошибка запуска приложения. Попробуйте позже.');
+  }
+});
 bot.command('admin', async (ctx: TelegramContext) => {
   try {
     if (!ctx.from || !isAdmin(ctx.from.id)) {
@@ -361,28 +404,7 @@ bot.action('consent_decline', async (ctx: TelegramContext) => {
   }
 });
 
-bot.action('view_works', async (ctx: TelegramContext) => {
-  try {
-    if (!ctx.from) return;
-
-    log('info', 'User viewing works', { userId: ctx.from.id });
-
-    await ctx.reply(
-      `👁 Наши работы\n\n` +
-      `🌟 Более 500 успешных проектов!\n\n` +
-      `🎯 Посмотрите примеры работ на нашем сайте.\n` +
-      `После изучения портфолио вы можете вернуться и рассчитать стоимость вашего проекта.`,
-      Markup.inlineKeyboard([
-        [Markup.button.url('🌐 Открыть портфолио', `${WEBSITE_URL}/portfolio`)],
-        [Markup.button.callback('💰 Рассчитать стоимость', 'start_quiz')],
-        [Markup.button.callback('◀️ Главное меню', 'main_menu')]
-      ])
-    );
-
-  } catch (error) {
-    log('error', 'Error in view_works', { error: (error as Error).message });
-  }
-});
+// Удалена функция view_works - теперь используется прямой webApp
 
 bot.action('contact', async (ctx: TelegramContext) => {
   try {
@@ -774,7 +796,7 @@ async function completeApplication(ctx: TelegramContext, comment: string) {
       `📞 Мы свяжемся с вами в течение 2 часов!\n\n` +
       `Пока ждете — посмотрите наши работы:`,
       Markup.inlineKeyboard([
-        [Markup.button.url('👁 Посмотреть портфолио', `${WEBSITE_URL}/portfolio`)],
+        [Markup.button.webApp('👁 Посмотреть портфолио', 'https://ehhechre.github.io/studio-bot-backend/webapp/')],
         [Markup.button.callback('🏠 Главное меню', 'main_menu')]
       ])
     );
@@ -973,6 +995,11 @@ async function start() {
     // Проверяем подключение к БД
     await prisma.$connect();
     log('info', 'Database connected successfully');
+
+    // Устанавливаем команды меню
+    await bot.telegram.setMyCommands([
+      { command: 'app', description: 'Кейсы' }
+    ]);
 
     // Запускаем бота
     await bot.launch();
