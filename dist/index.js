@@ -230,7 +230,7 @@ bot.action('start_quiz', async (ctx) => {
         log('info', 'User started quiz', { userId: ctx.from.id });
         const existingSession = memoryQuizSessions.get(ctx.from.id);
         if (existingSession) {
-            await ctx.editMessageText(`📋 У вас уже есть незавершенный опрос!\n\n` +
+            await ctx.reply(`📋 У вас уже есть незавершенный опрос!\n\n` +
                 `📍 Текущий вопрос: ${existingSession.currentStep}/4\n\n` +
                 `Хотите продолжить или начать заново?`, telegraf_1.Markup.inlineKeyboard([
                 [telegraf_1.Markup.button.callback('▶️ Продолжить', 'continue_quiz')],
@@ -239,7 +239,7 @@ bot.action('start_quiz', async (ctx) => {
             ]));
             return;
         }
-        await ctx.editMessageText(`📋 СОГЛАСИЕ НА ОБРАБОТКУ ПЕРСОНАЛЬНЫХ ДАННЫХ\n\n` +
+        await ctx.reply(`📋 СОГЛАСИЕ НА ОБРАБОТКУ ПЕРСОНАЛЬНЫХ ДАННЫХ\n\n` +
             `Я даю согласие на обработку моих персональных данных (имя, телефон, Telegram ID) с целью предоставления услуг веб-разработки и связи со мной.\n\n` +
             `Срок хранения данных - 3 года. Я могу отозвать согласие командой /delete_data.`, telegraf_1.Markup.inlineKeyboard([
             [telegraf_1.Markup.button.callback('✅ Согласен', 'consent_agree')],
@@ -285,7 +285,7 @@ bot.action('view_works', async (ctx) => {
         if (!ctx.from)
             return;
         log('info', 'User viewing works', { userId: ctx.from.id });
-        await ctx.editMessageText(`👁 Наши работы\n\n` +
+        await ctx.reply(`👁 Наши работы\n\n` +
             `🌟 Более 500 успешных проектов!\n\n` +
             `🎯 Посмотрите примеры работ на нашем сайте.\n` +
             `После изучения портфолио вы можете вернуться и рассчитать стоимость вашего проекта.`, telegraf_1.Markup.inlineKeyboard([
@@ -303,7 +303,7 @@ bot.action('contact', async (ctx) => {
         if (!ctx.from)
             return;
         log('info', 'User viewing contacts', { userId: ctx.from.id });
-        await ctx.editMessageText(`📞 Связаться с нами\n\n` +
+        await ctx.reply(`📞 Связаться с нами\n\n` +
             `💬 Telegram: @polli_woww\n` +
             `📱 WhatsApp: +7 (911) 184-80-08\n` +
             `📧 Email: info@newdigital.moscow\n\n` +
@@ -320,7 +320,7 @@ bot.action('contact', async (ctx) => {
 });
 bot.action('main_menu', async (ctx) => {
     try {
-        await ctx.editMessageText(mainMenuText, mainMenuKeyboard);
+        await ctx.reply(mainMenuText, mainMenuKeyboard);
     }
     catch (error) {
         log('error', 'Error returning to main menu', { error: error.message });
@@ -328,7 +328,7 @@ bot.action('main_menu', async (ctx) => {
 });
 async function sendQuestion1(ctx) {
     try {
-        await ctx.editMessageText(`❓ 1/4: Какой сайт вам нужен?`, telegraf_1.Markup.inlineKeyboard([
+        await ctx.reply(`❓ 1/4: Какой сайт вам нужен?`, telegraf_1.Markup.inlineKeyboard([
             [telegraf_1.Markup.button.callback('📄 Лендинг', 'q1_landing')],
             [telegraf_1.Markup.button.callback('🌐 Многостраничный сайт', 'q1_multipage')],
             [telegraf_1.Markup.button.callback('🛒 Интернет-магазин', 'q1_shop')],
@@ -342,7 +342,7 @@ async function sendQuestion1(ctx) {
 }
 async function sendQuestion2(ctx) {
     try {
-        await ctx.editMessageText(`❓ 2/4: В какой нише вы работаете?`, telegraf_1.Markup.inlineKeyboard([
+        await ctx.reply(`❓ 2/4: В какой нише вы работаете?`, telegraf_1.Markup.inlineKeyboard([
             [telegraf_1.Markup.button.callback('⚙️ Услуги', 'q2_services')],
             [telegraf_1.Markup.button.callback('🎓 Образование', 'q2_education')],
             [telegraf_1.Markup.button.callback('🏗 Строительство', 'q2_construction')],
@@ -358,7 +358,7 @@ async function sendQuestion2(ctx) {
 }
 async function sendQuestion3(ctx) {
     try {
-        await ctx.editMessageText(`❓ 3/4: Есть ли у вас фирменный стиль или логотип?`, telegraf_1.Markup.inlineKeyboard([
+        await ctx.reply(`❓ 3/4: Есть ли у вас фирменный стиль или логотип?`, telegraf_1.Markup.inlineKeyboard([
             [telegraf_1.Markup.button.callback('✅ Да, всё готово', 'q3_ready')],
             [telegraf_1.Markup.button.callback('🔄 Частично', 'q3_partial')],
             [telegraf_1.Markup.button.callback('❌ Нет, нужно создать с нуля', 'q3_none')]
@@ -371,7 +371,7 @@ async function sendQuestion3(ctx) {
 }
 async function sendQuestion4(ctx) {
     try {
-        await ctx.editMessageText(`❓ 4/4: Как с вами связаться?\n\n📛 Напишите ваше имя:`);
+        await ctx.reply(`❓ 4/4: Как с вами связаться?\n\n📛 Напишите ваше имя:`);
         log('info', 'Question 4 shown', { userId: ctx.from?.id });
     }
     catch (error) {
@@ -404,6 +404,50 @@ async function saveAnswerAndNext(ctx, field, value, nextFunction) {
         await ctx.reply('❌ Ошибка сохранения ответа. Попробуйте начать сначала: /start');
     }
 }
+bot.action('continue_quiz', async (ctx) => {
+    try {
+        if (!ctx.from)
+            return;
+        const session = memoryQuizSessions.get(ctx.from.id);
+        if (!session) {
+            await ctx.reply('❌ Сессия не найдена. Начните заново: /start');
+            return;
+        }
+        if (session.currentStep === 1) {
+            await sendQuestion1(ctx);
+        }
+        else if (session.currentStep === 2) {
+            await sendQuestion2(ctx);
+        }
+        else if (session.currentStep === 3) {
+            await sendQuestion3(ctx);
+        }
+        else {
+            await sendQuestion4(ctx);
+        }
+    }
+    catch (error) {
+        log('error', 'Error continuing quiz', { error: error.message });
+    }
+});
+bot.action('restart_quiz', async (ctx) => {
+    try {
+        if (!ctx.from)
+            return;
+        memoryQuizSessions.delete(ctx.from.id);
+        const session = {
+            userId: ctx.from.id.toString(),
+            currentStep: 1,
+            answers: {},
+            startedAt: new Date()
+        };
+        memoryQuizSessions.set(ctx.from.id, session);
+        await sendQuestion1(ctx);
+    }
+    catch (error) {
+        log('error', 'Error restarting quiz', { error: error.message });
+    }
+});
 bot.action('q1_landing', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Лендинг', sendQuestion2));
 bot.action('q1_multipage', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Многостраничный сайт', sendQuestion2));
 bot.action('q1_shop', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Интернет-магазин', sendQuestion2));
@@ -636,7 +680,7 @@ bot.action('admin_stats', async (ctx) => {
         if (!ctx.from || !isAdmin(ctx.from.id))
             return;
         const stats = await getStats();
-        await ctx.editMessageText(`📊 Детальная статистика\n\n` +
+        await ctx.reply(`📊 Детальная статистика\n\n` +
             `👥 Пользователи: ${stats.totalUsers}\n` +
             `📋 Заявки: ${stats.totalApplications}\n` +
             `🆕 Сегодня: ${stats.todayApplications}\n` +
@@ -661,7 +705,7 @@ bot.action('admin_status', async (ctx) => {
         catch {
             dbStatus = '❌';
         }
-        await ctx.editMessageText(`⚙️ Статус системы\n\n` +
+        await ctx.reply(`⚙️ Статус системы\n\n` +
             `🗄️ БД: ${dbStatus}\n` +
             `💾 RAM: ${Math.round(process.memoryUsage().rss / 1024 / 1024)}MB\n` +
             `🔄 Сессии: ${memoryQuizSessions.size}\n` +
@@ -678,7 +722,7 @@ bot.action('admin_back', async (ctx) => {
     try {
         if (!ctx.from || !isAdmin(ctx.from.id))
             return;
-        await ctx.editMessageText(`👨‍💼 Админ панель\n\n` +
+        await ctx.reply(`👨‍💼 Админ панель\n\n` +
             `Доступные команды:\n` +
             `/stats - статистика\n` +
             `/status - статус системы`, telegraf_1.Markup.inlineKeyboard([

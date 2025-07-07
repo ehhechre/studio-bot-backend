@@ -296,7 +296,7 @@ bot.action('start_quiz', async (ctx: TelegramContext) => {
     const existingSession = memoryQuizSessions.get(ctx.from.id);
     
     if (existingSession) {
-      await ctx.editMessageText(
+      await ctx.reply(
         `📋 У вас уже есть незавершенный опрос!\n\n` +
         `📍 Текущий вопрос: ${existingSession.currentStep}/4\n\n` +
         `Хотите продолжить или начать заново?`,
@@ -310,7 +310,7 @@ bot.action('start_quiz', async (ctx: TelegramContext) => {
     }
 
     // Согласие на обработку данных
-    await ctx.editMessageText(
+    await ctx.reply(
       `📋 СОГЛАСИЕ НА ОБРАБОТКУ ПЕРСОНАЛЬНЫХ ДАННЫХ\n\n` +
       `Я даю согласие на обработку моих персональных данных (имя, телефон, Telegram ID) с целью предоставления услуг веб-разработки и связи со мной.\n\n` +
       `Срок хранения данных - 3 года. Я могу отозвать согласие командой /delete_data.`,
@@ -367,7 +367,7 @@ bot.action('view_works', async (ctx: TelegramContext) => {
 
     log('info', 'User viewing works', { userId: ctx.from.id });
 
-    await ctx.editMessageText(
+    await ctx.reply(
       `👁 Наши работы\n\n` +
       `🌟 Более 500 успешных проектов!\n\n` +
       `🎯 Посмотрите примеры работ на нашем сайте.\n` +
@@ -390,7 +390,7 @@ bot.action('contact', async (ctx: TelegramContext) => {
 
     log('info', 'User viewing contacts', { userId: ctx.from.id });
 
-    await ctx.editMessageText(
+    await ctx.reply(
       `📞 Связаться с нами\n\n` +
       `💬 Telegram: @polli_woww\n` +
       `📱 WhatsApp: +7 (911) 184-80-08\n` +
@@ -411,7 +411,7 @@ bot.action('contact', async (ctx: TelegramContext) => {
 
 bot.action('main_menu', async (ctx: TelegramContext) => {
   try {
-    await ctx.editMessageText(mainMenuText, mainMenuKeyboard);
+    await ctx.reply(mainMenuText, mainMenuKeyboard);
   } catch (error) {
     log('error', 'Error returning to main menu', { error: (error as Error).message });
   }
@@ -420,7 +420,7 @@ bot.action('main_menu', async (ctx: TelegramContext) => {
 // --- Вопросы опроса ---
 async function sendQuestion1(ctx: TelegramContext) {
   try {
-    await ctx.editMessageText(
+    await ctx.reply(
       `❓ 1/4: Какой сайт вам нужен?`,
       Markup.inlineKeyboard([
         [Markup.button.callback('📄 Лендинг', 'q1_landing')],
@@ -438,7 +438,7 @@ async function sendQuestion1(ctx: TelegramContext) {
 
 async function sendQuestion2(ctx: TelegramContext) {
   try {
-    await ctx.editMessageText(
+    await ctx.reply(
       `❓ 2/4: В какой нише вы работаете?`,
       Markup.inlineKeyboard([
         [Markup.button.callback('⚙️ Услуги', 'q2_services')],
@@ -458,7 +458,7 @@ async function sendQuestion2(ctx: TelegramContext) {
 
 async function sendQuestion3(ctx: TelegramContext) {
   try {
-    await ctx.editMessageText(
+    await ctx.reply(
       `❓ 3/4: Есть ли у вас фирменный стиль или логотип?`,
       Markup.inlineKeyboard([
         [Markup.button.callback('✅ Да, всё готово', 'q3_ready')],
@@ -475,7 +475,7 @@ async function sendQuestion3(ctx: TelegramContext) {
 
 async function sendQuestion4(ctx: TelegramContext) {
   try {
-    await ctx.editMessageText(`❓ 4/4: Как с вами связаться?\n\n📛 Напишите ваше имя:`);
+    await ctx.reply(`❓ 4/4: Как с вами связаться?\n\n📛 Напишите ваше имя:`);
     log('info', 'Question 4 shown', { userId: ctx.from?.id });
   } catch (error) {
     log('error', 'Error in sendQuestion4', { error: (error as Error).message });
@@ -518,7 +518,51 @@ async function saveAnswerAndNext(
   }
 }
 
-// --- Обработчики ответов ---
+bot.action('continue_quiz', async (ctx: TelegramContext) => {
+  try {
+    if (!ctx.from) return;
+
+    const session = memoryQuizSessions.get(ctx.from.id);
+    if (!session) {
+      await ctx.reply('❌ Сессия не найдена. Начните заново: /start');
+      return;
+    }
+
+    // Показываем текущий вопрос в зависимости от шага
+    if (session.currentStep === 1) {
+      await sendQuestion1(ctx);
+    } else if (session.currentStep === 2) {
+      await sendQuestion2(ctx);
+    } else if (session.currentStep === 3) {
+      await sendQuestion3(ctx);
+    } else {
+      await sendQuestion4(ctx);
+    }
+  } catch (error) {
+    log('error', 'Error continuing quiz', { error: (error as Error).message });
+  }
+});
+
+bot.action('restart_quiz', async (ctx: TelegramContext) => {
+  try {
+    if (!ctx.from) return;
+    
+    // Удаляем старую сессию и создаем новую
+    memoryQuizSessions.delete(ctx.from.id);
+    
+    const session: QuizSession = {
+      userId: ctx.from.id.toString(),
+      currentStep: 1,
+      answers: {},
+      startedAt: new Date()
+    };
+
+    memoryQuizSessions.set(ctx.from.id, session);
+    await sendQuestion1(ctx);
+  } catch (error) {
+    log('error', 'Error restarting quiz', { error: (error as Error).message });
+  }
+});
 bot.action('q1_landing', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Лендинг', sendQuestion2));
 bot.action('q1_multipage', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Многостраничный сайт', sendQuestion2));
 bot.action('q1_shop', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Интернет-магазин', sendQuestion2));
@@ -823,7 +867,7 @@ bot.action('admin_stats', async (ctx: TelegramContext) => {
     
     const stats = await getStats();
     
-    await ctx.editMessageText(
+    await ctx.reply(
       `📊 Детальная статистика\n\n` +
       `👥 Пользователи: ${stats.totalUsers}\n` +
       `📋 Заявки: ${stats.totalApplications}\n` +
@@ -851,7 +895,7 @@ bot.action('admin_status', async (ctx: TelegramContext) => {
       dbStatus = '❌';
     }
 
-    await ctx.editMessageText(
+    await ctx.reply(
       `⚙️ Статус системы\n\n` +
       `🗄️ БД: ${dbStatus}\n` +
       `💾 RAM: ${Math.round(process.memoryUsage().rss / 1024 / 1024)}MB\n` +
@@ -871,7 +915,7 @@ bot.action('admin_back', async (ctx: TelegramContext) => {
   try {
     if (!ctx.from || !isAdmin(ctx.from.id)) return;
     
-    await ctx.editMessageText(
+    await ctx.reply(
       `👨‍💼 Админ панель\n\n` +
       `Доступные команды:\n` +
       `/stats - статистика\n` +
