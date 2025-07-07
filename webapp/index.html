@@ -50,6 +50,12 @@
             padding: 0;
             box-sizing: border-box;
         }
+        
+        /* Убираем стандартное подчеркивание у ссылок */
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
 
         html, body {
             width: 100%;
@@ -811,14 +817,15 @@
                 </div>
             </div>
 
-            <div class="view-secondary">
-                <div class="div-wrapper-secondary" id="callButton">
+            <!-- ИЗМЕНЕНИЕ: div заменен на a -->
+            <a href="#" class="view-secondary" id="callButton">
+                <div class="div-wrapper-secondary">
                     <div class="group-6">
                         <div class="text-wrapper-8-secondary">Позвонить</div>
                         <i class="fas fa-arrow-right arrow-circle arrow-black"></i>
                     </div>
                 </div>
-            </div>
+            </a>
 
             <p class="p">Мы любим свое дело и дорожим репутацией</p>
 
@@ -893,16 +900,18 @@
                 <i class="fas fa-arrow-right arrow-circle arrow-white"></i>
             </div>
 
-            <div class="view-2" id="contactCallButton">
+            <!-- ИЗМЕНЕНИЕ: div заменен на a -->
+            <a href="#" class="view-2" id="contactCallButton">
                 <div class="text-wrapper-8-secondary">Позвонить</div>
                 <i class="fas fa-arrow-right arrow-circle arrow-black"></i>
-            </div>
+            </a>
 
             <!-- Контактная информация -->
-            <div class="view-7">
+            <!-- ИЗМЕНЕНИЕ: номер телефона стал кликабельной ссылкой -->
+            <a href="#" class="view-7" id="phoneTextLink">
                 <img class="img-2" src="call_icon.png" alt="Телефон">
                 <div class="text-wrapper-15">+7 (911) 184-80-08</div>
-            </div>
+            </a>
 
             <div class="view-8">
                 <img class="vector" src="mail.png" alt="Email">
@@ -937,74 +946,62 @@
         </div>
     </div>
     
+    <!-- ИЗМЕНЕНИЕ: Полностью переписанный блок script -->
     <script>
-        // Инициализация Telegram Web App
-        let tg = window.Telegram.WebApp;
-        tg.expand();
-        
-        // Обработчики для основных кнопок
-        document.getElementById('orderButton').addEventListener('click', function() {
-            window.open('https://t.me/polli_woww', '_blank');
-        });
-        
-        document.getElementById('callButton').addEventListener('click', function() {
-            // Попробуем разные способы
+        document.addEventListener('DOMContentLoaded', function() {
+            // Инициализация Telegram Web App
+            const tg = window.Telegram.WebApp;
+            tg.expand();
+
             const phoneNumber = '+79111848008';
+            const telegramUsernameUrl = 'https://t.me/polli_woww';
+            const yandexMapsUrl = 'https://yandex.ru/maps/org/polli_dizhital/235246933847?si=gfeb8uk83w8xk7mcr4rp0mak3r';
+            const vkUrl = 'https://vk.com/polli_digital';
+            const whatsappUrl = 'https://wa.me/79111848008';
+
+            // Функция для совершения звонка
+            function makePhoneCall(event) {
+                event.preventDefault(); // Предотвращаем переход по ссылке href="#"
+                
+                // Проверяем, запущено ли приложение внутри Telegram
+                if (tg.platform !== 'unknown') {
+                    // Используем официальный метод Telegram для открытия tel: ссылок
+                    tg.openLink('tel:' + phoneNumber);
+                } else {
+                    // Запасной вариант для обычных браузеров
+                    window.location.href = 'tel:' + phoneNumber;
+                }
+            }
+
+            // Функция для открытия ссылки в новом окне
+            function openExternalLink(url) {
+                // Внутри Telegram используем его метод для надежности
+                if (tg.platform !== 'unknown') {
+                    tg.openLink(url);
+                } else {
+                    // В обычном браузере открываем в новой вкладке
+                    window.open(url, '_blank');
+                }
+            }
             
-            try {
-                if (window.Telegram && window.Telegram.WebApp) {
-                    // В Telegram WebApp
-                    window.Telegram.WebApp.openLink('tel:' + phoneNumber);
-                } else if (navigator.userAgent.match(/iPhone|iPad|iPod/)) {
-                    // iOS
-                    window.location.href = 'tel:' + phoneNumber;
-                } else if (navigator.userAgent.match(/Android/)) {
-                    // Android
-                    window.location.href = 'tel:' + phoneNumber;
-                } else {
-                    // Обычный браузер
-                    window.open('tel:' + phoneNumber, '_self');
-                }
-            } catch (error) {
-                // Если ничего не работает, попробуем копировать номер
-                if (navigator.clipboard) {
-                    navigator.clipboard.writeText(phoneNumber);
-                    alert('Номер телефона скопирован: ' + phoneNumber);
-                } else {
-                    alert('Позвоните по номеру: ' + phoneNumber);
-                }
-            }
-        });
+            // --- Назначаем обработчики событий ---
 
-        document.getElementById('yandexMapsButton').addEventListener('click', function() {
-            const mapsUrl = 'https://yandex.ru/maps/org/polli_dizhital/235246933847?si=gfeb8uk83w8xk7mcr4rp0mak3r';
-            window.open(mapsUrl, '_blank');
-        });
+            // Кнопки "Заказать" и "Оставить заявку"
+            document.getElementById('orderButton').addEventListener('click', () => openExternalLink(telegramUsernameUrl));
+            document.getElementById('contactOrderButton').addEventListener('click', () => openExternalLink(telegramUsernameUrl));
 
-        // Обработчики для контактных кнопок
-        document.getElementById('contactOrderButton').addEventListener('click', function() {
-            window.open('https://t.me/polli_woww', '_blank');
-        });
-        
-        document.getElementById('contactCallButton').addEventListener('click', function() {
-            if (window.Telegram && window.Telegram.WebApp) {
-                window.Telegram.WebApp.openLink('tel:+79111848008');
-            } else {
-                window.location.href = 'tel:+79111848008';
-            }
-        });
+            // Кнопки "Позвонить"
+            document.getElementById('callButton').addEventListener('click', makePhoneCall);
+            document.getElementById('contactCallButton').addEventListener('click', makePhoneCall);
+            document.getElementById('phoneTextLink').addEventListener('click', makePhoneCall);
 
-        // Обработчики соцсетей
-        document.getElementById('vkIcon').addEventListener('click', function() {
-            window.open('https://vk.com/polli_digital', '_blank');
-        });
+            // Кнопка "Смотреть на Яндекс.Картах"
+            document.getElementById('yandexMapsButton').addEventListener('click', () => openExternalLink(yandexMapsUrl));
 
-        document.getElementById('whatsappIcon').addEventListener('click', function() {
-            window.open('https://wa.me/79111848008', '_blank');
-        });
-
-        document.getElementById('telegramIcon').addEventListener('click', function() {
-            window.open('https://t.me/polli_woww', '_blank');
+            // Иконки социальных сетей
+            document.getElementById('vkIcon').addEventListener('click', () => openExternalLink(vkUrl));
+            document.getElementById('whatsappIcon').addEventListener('click', () => openExternalLink(whatsappUrl));
+            document.getElementById('telegramIcon').addEventListener('click', () => openExternalLink(telegramUsernameUrl));
         });
     </script>
 </body>
