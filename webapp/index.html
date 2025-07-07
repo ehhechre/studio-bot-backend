@@ -948,10 +948,31 @@
         });
         
         document.getElementById('callButton').addEventListener('click', function() {
-            if (window.Telegram && window.Telegram.WebApp) {
-                window.Telegram.WebApp.openLink('tel:+79111848008');
-            } else {
-                window.location.href = 'tel:+79111848008';
+            // Попробуем разные способы
+            const phoneNumber = '+79111848008';
+            
+            try {
+                if (window.Telegram && window.Telegram.WebApp) {
+                    // В Telegram WebApp
+                    window.Telegram.WebApp.openLink('tel:' + phoneNumber);
+                } else if (navigator.userAgent.match(/iPhone|iPad|iPod/)) {
+                    // iOS
+                    window.location.href = 'tel:' + phoneNumber;
+                } else if (navigator.userAgent.match(/Android/)) {
+                    // Android
+                    window.location.href = 'tel:' + phoneNumber;
+                } else {
+                    // Обычный браузер
+                    window.open('tel:' + phoneNumber, '_self');
+                }
+            } catch (error) {
+                // Если ничего не работает, попробуем копировать номер
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(phoneNumber);
+                    alert('Номер телефона скопирован: ' + phoneNumber);
+                } else {
+                    alert('Позвоните по номеру: ' + phoneNumber);
+                }
             }
         });
 
