@@ -50,6 +50,12 @@
             padding: 0;
             box-sizing: border-box;
         }
+        
+        /* Убираем стандартное подчеркивание у ссылок */
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
 
         html, body {
             width: 100%;
@@ -630,6 +636,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            cursor: pointer; /* Делаем текстовый номер телефона кликабельным */
         }
 
         .img-2 {
@@ -811,15 +818,14 @@
                 </div>
             </div>
 
-            <!-- Стало так (для теста) -->
-            <a href="#" class="view-secondary" id="callButton">
+            <div class="view-secondary" id="callButton">
                 <div class="div-wrapper-secondary">
                     <div class="group-6">
                         <div class="text-wrapper-8-secondary">Позвонить</div>
                         <i class="fas fa-arrow-right arrow-circle arrow-black"></i>
                     </div>
                 </div>
-            </a>
+            </div>
 
             <p class="p">Мы любим свое дело и дорожим репутацией</p>
 
@@ -893,14 +899,13 @@
                 <div class="text-wrapper-12">Оставить заявку</div>
                 <i class="fas fa-arrow-right arrow-circle arrow-white"></i>
             </div>
-
+            
             <div class="view-2" id="contactCallButton">
                 <div class="text-wrapper-8-secondary">Позвонить</div>
                 <i class="fas fa-arrow-right arrow-circle arrow-black"></i>
             </div>
 
-            <!-- Контактная информация -->
-            <div class="view-7">
+            <div class="view-7" id="phoneTextLink">
                 <img class="img-2" src="call_icon.png" alt="Телефон">
                 <div class="text-wrapper-15">+7 (911) 184-80-08</div>
             </div>
@@ -938,35 +943,69 @@
         </div>
     </div>
     
+    <!-- === ФИНАЛЬНЫЙ РАБОЧИЙ JAVASCRIPT === -->
     <script>
-       document.addEventListener('DOMContentLoaded', function() {
-    const tg = window.Telegram.WebApp;
-    tg.expand();
+        document.addEventListener('DOMContentLoaded', function() {
+            const tg = window.Telegram.WebApp;
+            tg.expand();
 
-    const phoneNumber = '+79111848008';
-    const callButton = document.getElementById('callButton');
+            // --- КОНСТАНТЫ ---
+            const phoneNumber = '+79111848008';
+            const telegramUsernameUrl = 'https://t.me/polli_woww';
+            const yandexMapsUrl = 'https://yandex.ru/maps/org/polli_dizhital/235246933847';
+            const vkUrl = 'https://vk.com/polli_digital';
+            const whatsappUrl = 'https://wa.me/79111848008';
+            const portfolioUrl = 'https://polli-digital.ru/portfolio';
+            const policyUrl = 'policy.html';
+            
+            // --- ФУНКЦИИ ---
 
-    if (callButton) {
-        callButton.addEventListener('click', function(event) {
-            event.preventDefault(); // Отменяем переход по ссылке
+            // Функция для звонка (метод "План Б", который сработал)
+            function makePhoneCall(event) {
+                event.preventDefault();
+                const link = document.createElement('a');
+                link.href = `tel:${phoneNumber}`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
 
-            // 1. Создаем в памяти компьютера элемент ссылки
-            const link = document.createElement('a');
+            // Функция для открытия внешних ссылок
+            function openExternalLink(url) {
+                if (tg.openLink) {
+                    tg.openLink(url);
+                } else {
+                    window.open(url, '_blank');
+                }
+            }
+            
+            // --- НАЗНАЧАЕМ ОБРАБОТЧИКИ СОБЫТИЙ ---
 
-            // 2. Устанавливаем ему нужный адрес для звонка
-            link.href = `tel:${phoneNumber}`;
+            // Обработчики для всех кнопок и ссылок, которые должны звонить
+            document.getElementById('callButton').addEventListener('click', makePhoneCall);
+            document.getElementById('contactCallButton').addEventListener('click', makePhoneCall);
+            document.getElementById('phoneTextLink').addEventListener('click', makePhoneCall);
 
-            // 3. Добавляем невидимую ссылку на страницу
-            document.body.appendChild(link);
+            // Обработчики для всех остальных интерактивных элементов
+            document.getElementById('orderButton').addEventListener('click', () => openExternalLink(telegramUsernameUrl));
+            document.getElementById('contactOrderButton').addEventListener('click', () => openExternalLink(telegramUsernameUrl));
+            document.getElementById('yandexMapsButton').addEventListener('click', () => openExternalLink(yandexMapsUrl));
+            document.getElementById('vkIcon').addEventListener('click', () => openExternalLink(vkUrl));
+            document.getElementById('whatsappIcon').addEventListener('click', () => openExternalLink(whatsappUrl));
+            document.getElementById('telegramIcon').addEventListener('click', () => openExternalLink(telegramUsernameUrl));
 
-            // 4. Программно "нажимаем" на эту ссылку
-            link.click();
-
-            // 5. Сразу же удаляем ее, чтобы она не мешала
-            document.body.removeChild(link);
+            // Для ссылок, которые уже являются тегом <a>, тоже используем统一的 функцию для консистентности
+            const portfolioLink = document.querySelector('.group-15');
+            if(portfolioLink) portfolioLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                openExternalLink(portfolioUrl);
+            });
+            const policyLink = document.querySelector('.footer a');
+            if(policyLink) policyLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                openExternalLink(policyUrl);
+            });
         });
-    }
-});
     </script>
 </body>
 </html>
