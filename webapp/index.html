@@ -50,12 +50,6 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
-        /* Убираем стандартное подчеркивание у ссылок */
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
 
         html, body {
             width: 100%;
@@ -817,15 +811,15 @@
                 </div>
             </div>
 
-            <!-- ИЗМЕНЕНИЕ: div заменен на a -->
-            <a href="#" class="view-secondary" id="callButton">
-                <div class="div-wrapper-secondary">
-                    <div class="group-6">
-                        <div class="text-wrapper-8-secondary">Позвонить</div>
-                        <i class="fas fa-arrow-right arrow-circle arrow-black"></i>
-                    </div>
-                </div>
-            </a>
+            <!-- Стало так (для теста) -->
+<a href="#" class="view-secondary" id="callButton">
+    <div class="div-wrapper-secondary">
+        <div class="group-6">
+            <div class="text-wrapper-8-secondary">Позвонить</div>
+            <i class="fas fa-arrow-right arrow-circle arrow-black"></i>
+        </div>
+    </div>
+</a>
 
             <p class="p">Мы любим свое дело и дорожим репутацией</p>
 
@@ -900,18 +894,16 @@
                 <i class="fas fa-arrow-right arrow-circle arrow-white"></i>
             </div>
 
-            <!-- ИЗМЕНЕНИЕ: div заменен на a -->
-            <a href="#" class="view-2" id="contactCallButton">
+            <div class="view-2" id="contactCallButton">
                 <div class="text-wrapper-8-secondary">Позвонить</div>
                 <i class="fas fa-arrow-right arrow-circle arrow-black"></i>
-            </a>
+            </div>
 
             <!-- Контактная информация -->
-            <!-- ИЗМЕНЕНИЕ: номер телефона стал кликабельной ссылкой -->
-            <a href="#" class="view-7" id="phoneTextLink">
+            <div class="view-7">
                 <img class="img-2" src="call_icon.png" alt="Телефон">
                 <div class="text-wrapper-15">+7 (911) 184-80-08</div>
-            </a>
+            </div>
 
             <div class="view-8">
                 <img class="vector" src="mail.png" alt="Email">
@@ -946,63 +938,46 @@
         </div>
     </div>
     
-    <!-- ИЗМЕНЕНИЕ: Полностью переписанный блок script -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Инициализация Telegram Web App
-            const tg = window.Telegram.WebApp;
-            tg.expand();
+    const tg = window.Telegram.WebApp;
+    tg.expand();
 
-            const phoneNumber = '+79111848008';
-            const telegramUsernameUrl = 'https://t.me/polli_woww';
-            const yandexMapsUrl = 'https://yandex.ru/maps/org/polli_dizhital/235246933847?si=gfeb8uk83w8xk7mcr4rp0mak3r';
-            const vkUrl = 'https://vk.com/polli_digital';
-            const whatsappUrl = 'https://wa.me/79111848008';
+    // Номер телефона, на который будем звонить
+    const phoneNumber = '+79111848008';
+    
+    // Находим нашу тестовую кнопку
+    const callButton = document.getElementById('callButton');
 
-            // Функция для совершения звонка
-            function makePhoneCall(event) {
-                event.preventDefault(); // Предотвращаем переход по ссылке href="#"
+    // Проверяем, что кнопка нашлась
+    if (callButton) {
+        // Вешаем на нее обработчик клика
+        callButton.addEventListener('click', function(event) {
+            // Отменяем стандартное поведение ссылки (переход по #)
+            event.preventDefault();
+
+            // 1. Показываем пользователю всплывающее окно, что мы получили команду
+            // Это поможет нам понять, работает ли вообще скрипт.
+            tg.showAlert(`Кнопка "Позвонить" нажата. Пытаюсь открыть окно набора номера...`);
+
+            try {
+                // 2. Это и есть та самая команда, которая должна работать.
+                // Она просит Telegram открыть системную ссылку.
+                tg.openLink(`tel:${phoneNumber}`);
                 
-                // Проверяем, запущено ли приложение внутри Telegram
-                if (tg.platform !== 'unknown') {
-                    // Используем официальный метод Telegram для открытия tel: ссылок
-                    tg.openLink('tel:' + phoneNumber);
-                } else {
-                    // Запасной вариант для обычных браузеров
-                    window.location.href = 'tel:' + phoneNumber;
-                }
+            } catch (e) {
+                // 3. Если произошла ошибка при вызове openLink, покажем ее
+                tg.showAlert(`Произошла ошибка: ${e.message}`);
             }
-
-            // Функция для открытия ссылки в новом окне
-            function openExternalLink(url) {
-                // Внутри Telegram используем его метод для надежности
-                if (tg.platform !== 'unknown') {
-                    tg.openLink(url);
-                } else {
-                    // В обычном браузере открываем в новой вкладке
-                    window.open(url, '_blank');
-                }
-            }
-            
-            // --- Назначаем обработчики событий ---
-
-            // Кнопки "Заказать" и "Оставить заявку"
-            document.getElementById('orderButton').addEventListener('click', () => openExternalLink(telegramUsernameUrl));
-            document.getElementById('contactOrderButton').addEventListener('click', () => openExternalLink(telegramUsernameUrl));
-
-            // Кнопки "Позвонить"
-            document.getElementById('callButton').addEventListener('click', makePhoneCall);
-            document.getElementById('contactCallButton').addEventListener('click', makePhoneCall);
-            document.getElementById('phoneTextLink').addEventListener('click', makePhoneCall);
-
-            // Кнопка "Смотреть на Яндекс.Картах"
-            document.getElementById('yandexMapsButton').addEventListener('click', () => openExternalLink(yandexMapsUrl));
-
-            // Иконки социальных сетей
-            document.getElementById('vkIcon').addEventListener('click', () => openExternalLink(vkUrl));
-            document.getElementById('whatsappIcon').addEventListener('click', () => openExternalLink(whatsappUrl));
-            document.getElementById('telegramIcon').addEventListener('click', () => openExternalLink(telegramUsernameUrl));
         });
+    } else {
+        // Если кнопка не нашлась, это тоже будет видно
+        tg.showAlert('Ошибка: не удалось найти кнопку с id "callButton"');
+    }
+    
+    // Остальные кнопки пока для чистоты теста не трогаем,
+    // чтобы не было конфликтов.
+});
     </script>
 </body>
 </html>
