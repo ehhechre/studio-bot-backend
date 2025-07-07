@@ -202,77 +202,78 @@ async function getStats() {
 
 // --- НОВАЯ функция генерации тестовых заявок ---
 async function generateTestApplications(count: number = 5) {
-  const results = [];
-  
-  for (let i = 0; i < count; i++) {
-    try {
-      // Случайные данные для тестовой заявки
-      const randomIndex = Math.floor(Math.random() * testUsernames.length);
-      const testUsername = testUsernames[randomIndex];
-      const testName = testNames[randomIndex];
-      const testTelegramId = Math.floor(Math.random() * 1000000) + 100000; // Случайный ID
-      
-      const testAnswers = {
-        site_type: testSiteTypes[Math.floor(Math.random() * testSiteTypes.length)],
-        niche: testNiches[Math.floor(Math.random() * testNiches.length)],
-        brand_style: testBrandStyles[Math.floor(Math.random() * testBrandStyles.length)],
-        contacts: {
-          name: testName,
-          phone: '+7' + Math.floor(Math.random() * 9000000000 + 1000000000).toString(),
-          comment: testComments[Math.floor(Math.random() * testComments.length)]
-        }
-      };
-      
-      // Создаем тестового пользователя
-      const testUser = await safeDbOperation(async () => {
-        return await prisma.users.create({
-          data: {
-            telegram_id: testTelegramId.toString(),
-            username: testUsername,
-            first_name: testName.split(' ')[0],
-            last_name: testName.split(' ')[1] || null
-          }
-        });
-      });
-      
-      if (!testUser) {
-        log('error', 'Failed to create test user', { username: testUsername });
-        continue;
-      }
-      
-      // Создаем тестовую заявку
-      const testApplication = await safeDbOperation(async () => {
-        return await prisma.applications.create({
-          data: {
-            user_id: testUser.id,
-            answers: testAnswers,
-            status: 'new'
-          }
-        });
-      });
-      
-      if (testApplication) {
-        // Уведомляем в канал
-        await notifyChannelNewApplication(testApplication, testAnswers, testUser);
-        results.push({ username: testUsername, applicationId: testApplication.id });
+    const results = [];
+    
+    for (let i = 0; i < count; i++) {
+      try {
+        // Случайные данные для тестовой заявки
+        const randomIndex = Math.floor(Math.random() * testUsernames.length);
+        const testUsername = testUsernames[randomIndex];
+        const testName = testNames[randomIndex];
+        const testTelegramId = Math.floor(Math.random() * 1000000) + 100000; // Случайный ID
         
-        log('info', 'Test application created', { 
-          username: testUsername, 
-          applicationId: testApplication.id 
+        const testAnswers = {
+          site_type: testSiteTypes[Math.floor(Math.random() * testSiteTypes.length)],
+          niche: testNiches[Math.floor(Math.random() * testNiches.length)],
+          brand_style: testBrandStyles[Math.floor(Math.random() * testBrandStyles.length)],
+          contacts: {
+            name: testName,
+            phone: '+7' + Math.floor(Math.random() * 9000000000 + 1000000000).toString(),
+            comment: testComments[Math.floor(Math.random() * testComments.length)]
+          }
+        };
+        
+        // Создаем тестового пользователя
+        const testUser = await safeDbOperation(async () => {
+          return await prisma.users.create({
+            data: {
+              telegram_id: testTelegramId.toString(),
+              username: testUsername,
+              first_name: testName.split(' ')[0],
+              last_name: testName.split(' ')[1] || null
+            }
+          });
         });
+        
+        if (!testUser) {
+          log('error', 'Failed to create test user', { username: testUsername });
+          continue;
+        }
+        
+        // Создаем тестовую заявку
+        const testApplication = await safeDbOperation(async () => {
+          return await prisma.applications.create({
+            data: {
+              user_id: testUser.id,
+              answers: testAnswers,
+              status: 'new'
+            }
+          });
+        });
+        
+        if (testApplication) {
+          // Уведомляем в канал
+          await notifyChannelNewApplication(testApplication, testAnswers, testUser);
+          results.push({ username: testUsername, applicationId: testApplication.id });
+          
+          log('info', 'Test application created', { 
+            username: testUsername, 
+            applicationId: testApplication.id 
+          });
+        }
+        
+        // ИЗМЕНЯЕМ задержку с 2 секунд на 30 секунд
+        if (i < count - 1) { // Не ждем после последней заявки
+          await new Promise(resolve => setTimeout(resolve, 30000)); // 30 секунд
+        }
+        
+      } catch (error) {
+        log('error', 'Error creating test application', { error: (error as Error).message });
       }
-      
-      // Небольшая задержка между заявками
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-    } catch (error) {
-      log('error', 'Error creating test application', { error: (error as Error).message });
     }
+    
+    return results;
   }
-  
-  return results;
-}
-
 // --- Главное меню ---
 const mainMenuKeyboard = Markup.inlineKeyboard([
   [Markup.button.callback('💰 Рассчитать стоимость', 'start_quiz')],
@@ -371,28 +372,28 @@ bot.command('app', async (ctx: TelegramContext) => {
 
 // --- Админские команды ---
 bot.command('admin', async (ctx: TelegramContext) => {
-  try {
-    if (!ctx.from || !isAdmin(ctx.from.id)) {
-      await ctx.reply('❌ У вас нет прав доступа');
-      return;
+    try {
+      if (!ctx.from || !isAdmin(ctx.from.id)) {
+        await ctx.reply('❌ У вас нет прав доступа');
+        return;
+      }
+  
+      await ctx.reply(
+        `👨‍💼 Админ панель\n\n` +
+        `Доступные команды:\n` +
+        `/stats - статистика бота\n` +
+        `/status - статус системы`,
+        Markup.inlineKeyboard([
+          [Markup.button.callback('📊 Статистика', 'admin_stats')],
+          [Markup.button.callback('⚙️ Статус системы', 'admin_status')],
+          [Markup.button.callback('🧪 Тестовые заявки', 'admin_test_apps')]  // ← ЭТА СТРОКА БЫЛА ПРОПУЩЕНА!
+        ])
+      );
+  
+    } catch (error) {
+      log('error', 'Error in admin command', { error: (error as Error).message });
     }
-
-    await ctx.reply(
-      `👨‍💼 Админ панель\n\n` +
-      `Доступные команды:\n` +
-      `/stats - статистика бота\n` +
-      `/status - статус системы`,
-      Markup.inlineKeyboard([
-        [Markup.button.callback('📊 Статистика', 'admin_stats')],
-        [Markup.button.callback('⚙️ Статус системы', 'admin_status')],
-        [Markup.button.callback('🧪 Тестовые заявки', 'admin_test_apps')]
-      ])
-    );
-
-  } catch (error) {
-    log('error', 'Error in admin command', { error: (error as Error).message });
-  }
-});
+  });
 
 bot.command('stats', async (ctx: TelegramContext) => {
   try {
@@ -1044,120 +1045,123 @@ bot.on('contact', async (ctx: TelegramContext) => {
 
 // --- ИСПРАВЛЕННАЯ функция завершения заявки ---
 async function completeApplication(ctx: TelegramContext, comment: string) {
-  try {
-    if (!ctx.from) return;
-    
-    const session = memoryQuizSessions.get(ctx.from.id);
-    if (!session) {
-      await ctx.reply('❌ Сессия завершена. Начните заново: /start');
-      return;
-    }
-    
-    // Проверяем что есть контакты
-    if (!session.answers.contacts || !session.answers.contacts.phone) {
-      await ctx.reply('❌ Не хватает контактных данных. Начните заново: /start');
-      return;
-    }
-    
-    session.answers.contacts.comment = comment;
-    
-    // Получаем пользователя
-    let user = await getCachedUser(ctx.from.id);
-    if (!user) {
-      // Создаем пользователя если его нет
-      const telegramUser = ctx.from;
-      const newUser = await safeDbOperation(async () => {
-        return await prisma.users.create({
+    try {
+      if (!ctx.from) return;
+      
+      const session = memoryQuizSessions.get(ctx.from.id);
+      if (!session) {
+        await ctx.reply('❌ Сессия завершена. Начните заново: /start');
+        return;
+      }
+      
+      // Проверяем что есть контакты
+      if (!session.answers.contacts || !session.answers.contacts.phone) {
+        await ctx.reply('❌ Не хватает контактных данных. Начните заново: /start');
+        return;
+      }
+      
+      session.answers.contacts.comment = comment;
+      
+      // Получаем пользователя
+      let user = await getCachedUser(ctx.from.id);
+      if (!user) {
+        // Создаем пользователя если его нет
+        const telegramUser = ctx.from;
+        const newUser = await safeDbOperation(async () => {
+          return await prisma.users.create({
+            data: {
+              telegram_id: telegramUser.id.toString(),
+              username: telegramUser.username || null,
+              first_name: telegramUser.first_name || null,
+              last_name: telegramUser.last_name || null
+            }
+          });
+        });
+        
+        if (!newUser) {
+          await ctx.reply('❌ Ошибка создания пользователя. Свяжитесь с нами напрямую.');
+          return;
+        }
+        userCache.set(ctx.from.id, newUser);
+        user = newUser;
+      }
+      
+      // Сохраняем заявку в БД
+      const application = await safeDbOperation(async () => {
+        return await prisma.applications.create({
           data: {
-            telegram_id: telegramUser.id.toString(),
-            username: telegramUser.username || null,
-            first_name: telegramUser.first_name || null,
-            last_name: telegramUser.last_name || null
-          }
+            user_id: user.id,
+            answers: session.answers,
+            status: 'new'
+          },
+          include: { user: true }
         });
       });
       
-      if (!newUser) {
-        await ctx.reply('❌ Ошибка создания пользователя. Свяжитесь с нами напрямую.');
-        return;
-      }
-      userCache.set(ctx.from.id, newUser);
-      user = newUser;
-    }
-    
-    // Сохраняем заявку в БД
-    const application = await safeDbOperation(async () => {
-      return await prisma.applications.create({
-        data: {
-          user_id: user.id,
-          answers: session.answers,
-          status: 'new'
-        },
-        include: { user: true }
+      // Удаляем сессию из памяти
+      memoryQuizSessions.delete(ctx.from.id);
+      
+      // Уведомляем в канал
+      await notifyChannelNewApplication(application, session.answers, user);
+      
+      log('info', 'Application completed', { 
+        userId: ctx.from.id, 
+        applicationId: application?.id,
+        hasComment: comment !== 'Без комментария'
       });
-    });
-    
-    // Удаляем сессию из памяти
-    memoryQuizSessions.delete(ctx.from.id);
-    
-    // Уведомляем в канал
-    await notifyChannelNewApplication(application, session.answers, user);
-    
-    log('info', 'Application completed', { 
-      userId: ctx.from.id, 
-      applicationId: application?.id,
-      hasComment: comment !== 'Без комментария'
-    });
-    
-    await ctx.reply(
-      `🎉 Спасибо! Ваша заявка${application ? ` #${application.id}` : ''} принята.\n\n` +
-      `📞 Мы свяжемся с вами в течение 2 часов!\n\n` +
-      `Пока ждете — посмотрите наши работы:`,
-      Markup.inlineKeyboard([
-        [Markup.button.webApp('👁 Посмотреть портфолио', 'https://ehhechre.github.io/studio-bot-backend/webapp/')],
-        [Markup.button.callback('🏠 Главное меню', 'main_menu')]
-      ])
-    );
-    
-  } catch (error) {
-    log('error', 'Error completing application', { error: (error as Error).message });
-    memoryQuizSessions.delete(ctx.from?.id);
-    await ctx.reply('❌ Ошибка при сохранении заявки. Свяжитесь с нами напрямую: @polli_woww');
-  }
+      
+      // УБИРАЕМ номер заявки из ответа пользователю
+      await ctx.reply(
+        `🎉 Спасибо! Ваша заявка принята.\n\n` +
+        `📞 Мы свяжемся с вами в течение 2 часов!\n\n` +
+        `Пока ждете — посмотрите наши работы:`,
+        Markup.inlineKeyboard([
+          [Markup.button.webApp('👁 Посмотреть портфолио', 'https://ehhechre.github.io/studio-bot-backend/webapp/')],
+          [Markup.button.callback('🏠 Главное меню', 'main_menu')]
+        ])
+      );
+      
+    } catch (error) {
+      log('error', 'Error completing application', { error: (error as Error).message });
+      if (ctx.from?.id) {
+        memoryQuizSessions.delete(ctx.from.id);
+      }
+      await ctx.reply('❌ Ошибка при сохранении заявки. Свяжитесь с нами напрямую: @polli_woww');
+    }
 }
-
 // --- Уведомление в канал (адаптированное из вашего кода) ---
 async function notifyChannelNewApplication(application: any, answers: any, user: any) {
-  try {
-    const contact = answers.contacts || {};
-    const isValidPhone = contact.phone ? validatePhone(contact.phone) : false;
-    const phoneStatus = isValidPhone ? '✅' : '⚠️';
-    
-    const message = 
-      `🔔 НОВАЯ ЗАЯВКА${application ? ` #${application.id}` : ''}\n\n` +
-      `👤 Клиент: ${user.first_name || 'Аноним'} (@${user.username || 'без username'})\n` +
-      `📞 Контакты: ${contact.name}, ${contact.phone} ${phoneStatus}\n` +
-      `🆔 Telegram ID: ${user.telegram_id}\n\n` +
-      `--- Ответы на квиз ---\n` +
-      `🌐 Тип сайта: ${answers.site_type || 'Не указано'}\n` +
-      `🏢 Ниша: ${answers.niche || 'Не указано'}\n` +
-      `🎨 Фирменный стиль: ${answers.brand_style || 'Не указано'}\n` +
-      `💬 Комментарий: ${contact.comment || 'Нет'}\n\n` +
-      `📊 Время: ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })}`;
-    
-    if (CHANNEL_ID) {
-      await bot.telegram.sendMessage(CHANNEL_ID, message);
-      log('info', 'Application sent to channel', { 
-        channelId: CHANNEL_ID,
-        applicationId: application?.id 
-      });
-    } else {
-      log('error', 'CHANNEL_ID not found', {});
+    try {
+      const contact = answers.contacts || {};
+      const isValidPhone = contact.phone ? validatePhone(contact.phone) : false;
+      const phoneStatus = isValidPhone ? '✅' : '⚠️';
+      
+      // УПРОЩЕННОЕ сообщение без времени и ID
+      const message = 
+        `🔔 НОВАЯ ЗАЯВКА\n\n` +
+        `👤 Клиент: ${user.first_name || 'Аноним'} (@${user.username || 'без username'})\n` +
+        `📞 Контакты: ${contact.name}, ${contact.phone} ${phoneStatus}\n` +
+        `🆔 Telegram ID: ${user.telegram_id}\n\n` +
+        `--- Ответы на квиз ---\n` +
+        `🌐 Тип сайта: ${answers.site_type || 'Не указано'}\n` +
+        `🏢 Ниша: ${answers.niche || 'Не указано'}\n` +
+        `🎨 Фирменный стиль: ${answers.brand_style || 'Не указано'}\n` +
+        `💬 Комментарий: ${contact.comment || 'Нет'}`;
+        // Убираем время и application.id
+      
+      if (CHANNEL_ID) {
+        await bot.telegram.sendMessage(CHANNEL_ID, message);
+        log('info', 'Application sent to channel', { 
+          channelId: CHANNEL_ID,
+          applicationId: application?.id 
+        });
+      } else {
+        log('error', 'CHANNEL_ID not found', {});
+      }
+    } catch (error) { 
+      log('error', 'Failed to notify channel', { error: (error as Error).message });
     }
-  } catch (error) { 
-    log('error', 'Failed to notify channel', { error: (error as Error).message });
   }
-}
 
 // --- Команда удаления данных ---
 bot.command('delete_data', async (ctx: TelegramContext) => {
