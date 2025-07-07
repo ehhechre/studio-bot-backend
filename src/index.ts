@@ -349,26 +349,26 @@ bot.command('cases', async (ctx: TelegramContext) => {
 });
 
 bot.command('app', async (ctx: TelegramContext) => {
-  try {
-    if (!ctx.from) return;
-    
-    log('info', 'App command used', { userId: ctx.from.id });
-    
-    await ctx.reply('🚀 Откройте наше приложение:', {
-      reply_markup: {
-        inline_keyboard: [[
-          { 
-            text: '🎨 Polli Digital App', 
-            web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
-          }
-        ]]
-      }
-    });
-  } catch (error) {
-    log('error', 'Error in app command', { error: (error as Error).message });
-    await ctx.reply('⚠️ Ошибка запуска приложения. Попробуйте позже.');
-  }
-});
+    try {
+      if (!ctx.from) return;
+      
+      log('info', 'App command used', { userId: ctx.from.id });
+      
+      // Отправляем WebApp кнопку которая СРАЗУ откроется
+      await ctx.reply('🎨 Портфолио:', {
+        reply_markup: {
+          inline_keyboard: [[
+            { 
+              text: '🚀 Открыть', 
+              web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' }
+            }
+          ]]
+        }
+      });
+    } catch (error) {
+      log('error', 'Error in app command', { error: (error as Error).message });
+    }
+  });
 
 // --- Админские команды ---
 bot.command('admin', async (ctx: TelegramContext) => {
@@ -1338,8 +1338,10 @@ async function start() {
 
     // Устанавливаем команды меню
     await bot.telegram.setMyCommands([
-      { command: 'app', description: 'Кейсы' }
-    ]);
+        { command: 'app', description: 'Кейсы' }
+      ], {
+        scope: { type: 'default' }
+      });
 
     // Запускаем бота
     await bot.launch();
