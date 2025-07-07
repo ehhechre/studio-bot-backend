@@ -1,4 +1,4 @@
-// src/bot.ts - PRODUCTION STABLE BOT v3.0 - Адаптированный под рабочую логику
+// src/index.ts - PRODUCTION STABLE BOT v3.0 - ИСПРАВЛЕНО
 import { Telegraf, Context, Markup } from 'telegraf';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
@@ -267,6 +267,8 @@ bot.command('app', async (ctx: TelegramContext) => {
     await ctx.reply('⚠️ Ошибка запуска приложения. Попробуйте позже.');
   }
 });
+
+// --- Админские команды ---
 bot.command('admin', async (ctx: TelegramContext) => {
   try {
     if (!ctx.from || !isAdmin(ctx.from.id)) {
@@ -410,15 +412,13 @@ bot.action('consent_decline', async (ctx: TelegramContext) => {
     if (!ctx.from) return;
     
     log('info', 'User declined consent', { userId: ctx.from.id });
-    await ctx.editMessageText(
+    await ctx.reply(
       `❌ Понял вас. Без согласия мы не можем начать опрос.\n\nЕсли передумаете - нажмите /start`
     );
   } catch (error) {
     log('error', 'Error in consent_decline', { error: (error as Error).message });
   }
 });
-
-// Удалена функция view_works - теперь используется прямой webApp
 
 bot.action('contact', async (ctx: TelegramContext) => {
   try {
@@ -603,6 +603,22 @@ async function saveAnswerAndNext(
   }
 }
 
+// --- Обработчики ответов (с защитой от спама) ---
+bot.action('q1_landing', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Лендинг', 2, sendQuestion2));
+bot.action('q1_multipage', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Многостраничный сайт', 2, sendQuestion2));
+bot.action('q1_shop', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Интернет-магазин', 2, sendQuestion2));
+bot.action('q1_consultation', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Нужна консультация', 2, sendQuestion2));
+
+bot.action('q2_services', (ctx) => saveAnswerAndNext(ctx, 'niche', 'Услуги', 3, sendQuestion3));
+bot.action('q2_education', (ctx) => saveAnswerAndNext(ctx, 'niche', 'Образование', 3, sendQuestion3));
+bot.action('q2_construction', (ctx) => saveAnswerAndNext(ctx, 'niche', 'Строительство', 3, sendQuestion3));
+bot.action('q2_beauty', (ctx) => saveAnswerAndNext(ctx, 'niche', 'Красота/мода', 3, sendQuestion3));
+bot.action('q2_realestate', (ctx) => saveAnswerAndNext(ctx, 'niche', 'Недвижимость', 3, sendQuestion3));
+
+bot.action('q3_ready', (ctx) => saveAnswerAndNext(ctx, 'brand_style', 'Да, всё готово', 4, sendQuestion4));
+bot.action('q3_partial', (ctx) => saveAnswerAndNext(ctx, 'brand_style', 'Частично', 4, sendQuestion4));
+bot.action('q3_none', (ctx) => saveAnswerAndNext(ctx, 'brand_style', 'Нет, нужно создать с нуля', 4, sendQuestion4));
+
 bot.action('continue_quiz', async (ctx: TelegramContext) => {
   try {
     if (!ctx.from) return;
@@ -665,32 +681,30 @@ bot.action('restart_quiz', async (ctx: TelegramContext) => {
     log('error', 'Error restarting quiz', { error: (error as Error).message });
   }
 });
-bot.action('q1_landing', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Лендинг', sendQuestion2));
-bot.action('q1_multipage', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Многостраничный сайт', sendQuestion2));
-bot.action('q1_shop', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Интернет-магазин', sendQuestion2));
-bot.action('q1_consultation', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Нужна консультация', sendQuestion2));
-
-bot.action('q2_services', (ctx) => saveAnswerAndNext(ctx, 'niche', 'Услуги', sendQuestion3));
-bot.action('q2_education', (ctx) => saveAnswerAndNext(ctx, 'niche', 'Образование', sendQuestion3));
-bot.action('q2_construction', (ctx) => saveAnswerAndNext(ctx, 'niche', 'Строительство', sendQuestion3));
-bot.action('q2_beauty', (ctx) => saveAnswerAndNext(ctx, 'niche', 'Красота/мода', sendQuestion3));
-bot.action('q2_realestate', (ctx) => saveAnswerAndNext(ctx, 'niche', 'Недвижимость', sendQuestion3));
 
 bot.action('q2_other', async (ctx) => {
   try {
     if (!ctx.from) return;
     
+    // Проверяем спам
+    if (!checkButtonCooldown(ctx.from.id)) {
+      await ctx.answerCbQuery('⏳ Подождите секунду...');
+      return;
+    }
+
+    const session = memoryQuizSessions.get(ctx.from.id);
+    if (!session || session.currentStep !== 2) {
+      await ctx.answerCbQuery('⚠️ Неактуальная кнопка');
+      return;
+    }
+    
     await ctx.answerCbQuery('✏️ Укажите нишу');
-    await ctx.editMessageText('✏️ Напишите вашу нишу текстом (например: "IT", "Медицина", "Юриспруденция"):');
+    await ctx.reply('✏️ Напишите вашу нишу текстом (например: "IT", "Медицина", "Юриспруденция"):');
     log('info', 'Custom niche requested', { userId: ctx.from.id });
   } catch (error) {
     log('error', 'Error in q2_other', { error: (error as Error).message });
   }
 });
-
-bot.action('q3_ready', (ctx) => saveAnswerAndNext(ctx, 'brand_style', 'Да, всё готово', sendQuestion4));
-bot.action('q3_partial', (ctx) => saveAnswerAndNext(ctx, 'brand_style', 'Частично', sendQuestion4));
-bot.action('q3_none', (ctx) => saveAnswerAndNext(ctx, 'brand_style', 'Нет, нужно создать с нуля', sendQuestion4));
 
 // --- Обработка кнопки "нет комментария" ---
 bot.action('no_comment', async (ctx) => {
@@ -1124,4 +1138,4 @@ async function start() {
   }
 }
 
-start();    
+start();
