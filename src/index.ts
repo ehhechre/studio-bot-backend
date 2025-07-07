@@ -1,4 +1,4 @@
-// src/index.ts - PRODUCTION STABLE BOT v3.0 - ИСПРАВЛЕНО
+// src/index.ts - PRODUCTION STABLE BOT v3.0 - ИСПРАВЛЕНО + ТЕСТОВЫЕ ЗАЯВКИ
 import { Telegraf, Context, Markup } from 'telegraf';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
@@ -15,6 +15,34 @@ interface QuizSession {
   startedAt: Date;
 }
 
+// --- Тестовые данные для генерации заявок ---
+const testUsernames = [
+  'dmitriy_lavrukhin', 'NikitaEgamoff', 'casino_money_casino', 'lyaminvl',
+  'Ftmrgn24', 'aarbiq', 'RomkaMironov', 'Remi4', 'Sevex228', 'kovstiv',
+  'CoachKM', 'melaniomani', 'Ssharikdivision', 'fotique', 'notview', 'brain4Qs'
+];
+
+const testNames = [
+  'Дмитрий Лаврухин', 'Никита Егамов', 'Алексей Казанов', 'Владимир Лямин',
+  'Артем Моргунов', 'Арбик Селимов', 'Роман Миронов', 'Реми Волков',
+  'Сева Дивизион', 'Константин Ковальчук', 'Максим Коуч', 'Мелания Романова',
+  'Шарик Дивизион', 'Фотик Студийный', 'Антон Нотвью', 'Брейн Квестер'
+];
+
+const testSiteTypes = ['Лендинг', 'Многостраничный сайт', 'Интернет-магазин', 'Нужна консультация'];
+const testNiches = ['Услуги', 'Образование', 'Строительство', 'Красота/мода', 'Недвижимость', 'IT-технологии'];
+const testBrandStyles = ['Да, всё готово', 'Частично', 'Нет, нужно создать с нуля'];
+
+const testComments = [
+  'Нужен современный дизайн и быстрая загрузка',
+  'Хочу что-то минималистичное и стильное',
+  'Нужна интеграция с соцсетями',
+  'Важна мобильная версия',
+  'Нужен онлайн-чат и форма заявок',
+  'Хочу уникальный дизайн под мой бренд',
+  'Без комментария'
+];
+
 // --- Валидация и безопасность ---
 const sanitizeInput = (input: string): string => {
   return input.trim().slice(0, 500).replace(/[<>\"']/g, '');
@@ -25,8 +53,11 @@ const validatePhone = (phone: string): boolean => {
   return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''));
 };
 
+// ИСПРАВЛЕННАЯ валидация имени - убираем строгую проверку regex
 const validateName = (name: string): boolean => {
-  return name.length >= 2 && name.length <= 50 && /^[a-zA-Zа-яА-Я\s]+$/.test(name);
+  const cleaned = name.trim();
+  return cleaned.length >= 2 && cleaned.length <= 50;
+  // Убираем жесткую проверку regex - принимаем любые символы
 };
 
 // --- Конфигурация ---
@@ -169,6 +200,79 @@ async function getStats() {
   }
 }
 
+// --- НОВАЯ функция генерации тестовых заявок ---
+async function generateTestApplications(count: number = 5) {
+  const results = [];
+  
+  for (let i = 0; i < count; i++) {
+    try {
+      // Случайные данные для тестовой заявки
+      const randomIndex = Math.floor(Math.random() * testUsernames.length);
+      const testUsername = testUsernames[randomIndex];
+      const testName = testNames[randomIndex];
+      const testTelegramId = Math.floor(Math.random() * 1000000) + 100000; // Случайный ID
+      
+      const testAnswers = {
+        site_type: testSiteTypes[Math.floor(Math.random() * testSiteTypes.length)],
+        niche: testNiches[Math.floor(Math.random() * testNiches.length)],
+        brand_style: testBrandStyles[Math.floor(Math.random() * testBrandStyles.length)],
+        contacts: {
+          name: testName,
+          phone: '+7' + Math.floor(Math.random() * 9000000000 + 1000000000).toString(),
+          comment: testComments[Math.floor(Math.random() * testComments.length)]
+        }
+      };
+      
+      // Создаем тестового пользователя
+      const testUser = await safeDbOperation(async () => {
+        return await prisma.users.create({
+          data: {
+            telegram_id: testTelegramId.toString(),
+            username: testUsername,
+            first_name: testName.split(' ')[0],
+            last_name: testName.split(' ')[1] || null
+          }
+        });
+      });
+      
+      if (!testUser) {
+        log('error', 'Failed to create test user', { username: testUsername });
+        continue;
+      }
+      
+      // Создаем тестовую заявку
+      const testApplication = await safeDbOperation(async () => {
+        return await prisma.applications.create({
+          data: {
+            user_id: testUser.id,
+            answers: testAnswers,
+            status: 'new'
+          }
+        });
+      });
+      
+      if (testApplication) {
+        // Уведомляем в канал
+        await notifyChannelNewApplication(testApplication, testAnswers, testUser);
+        results.push({ username: testUsername, applicationId: testApplication.id });
+        
+        log('info', 'Test application created', { 
+          username: testUsername, 
+          applicationId: testApplication.id 
+        });
+      }
+      
+      // Небольшая задержка между заявками
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+    } catch (error) {
+      log('error', 'Error creating test application', { error: (error as Error).message });
+    }
+  }
+  
+  return results;
+}
+
 // --- Главное меню ---
 const mainMenuKeyboard = Markup.inlineKeyboard([
   [Markup.button.callback('💰 Рассчитать стоимость', 'start_quiz')],
@@ -176,12 +280,9 @@ const mainMenuKeyboard = Markup.inlineKeyboard([
   [Markup.button.callback('📞 Связаться с нами', 'contact')]
 ]);
 
-const mainMenuText = `🚀 Добро пожаловать в нашу студию!\n\n` +
-  `🎯 Мы создаем:\n` +
-  `• Современные сайты и лендинги\n` +
-  `• Мобильные приложения\n` +
-  `• Брендинг и дизайн\n` +
-  `• Digital-маркетинг\n\n` +
+const mainMenuText = `Здравствуйте! Меня зовут Полина, я консультант студии Polli Digital.\n\n` +
+  `Мы создаём бренды, сайты и маркетинг, которые работают на результат и узнаваемость.\n\n` +
+  `Буду рада обсудить ваш проект и помочь найти лучшее решение для вашего бизнеса.\n\n` +
   `✨ Выберите действие:`;
 
 // --- Команды ---
@@ -203,9 +304,9 @@ bot.start(async (ctx: TelegramContext) => {
       await ctx.replyWithPhoto(
         'AgACAgIAAxkBAAICRWhpw6XXPrldcv1IK2YUf2boX6mxAAL99jEbaHNQS0g_hguljSVZAQADAgADeQADNgQ',
         {
-          caption: `🚀 Добро пожаловать в Polli Digital!\n\n` +
-                  `Привет, ${telegramUser.first_name}! Мы создаем сайты, которые продают.\n\n` +
-                  `🎯 Что можем для вас сделать?`,
+          caption: `Здравствуйте! Меня зовут Полина, я консультант студии Polli Digital.\n\n` +
+                  `Мы создаём бренды, сайты и маркетинг, которые работают на результат и узнаваемость.\n\n` +
+                  `Буду рада обсудить ваш проект и помочь найти лучшее решение для вашего бизнеса.`,
           reply_markup: mainMenuKeyboard.reply_markup
         }
       );
@@ -283,7 +384,8 @@ bot.command('admin', async (ctx: TelegramContext) => {
       `/status - статус системы`,
       Markup.inlineKeyboard([
         [Markup.button.callback('📊 Статистика', 'admin_stats')],
-        [Markup.button.callback('⚙️ Статус системы', 'admin_status')]
+        [Markup.button.callback('⚙️ Статус системы', 'admin_status')],
+        [Markup.button.callback('🧪 Тестовые заявки', 'admin_test_apps')]
       ])
     );
 
@@ -383,6 +485,89 @@ bot.action('start_quiz', async (ctx: TelegramContext) => {
     log('error', 'Error in start_quiz', { error: (error as Error).message });
     await ctx.reply('❌ Ошибка при запуске опроса');
   }
+});
+
+// --- НОВЫЕ обработчики для тестовых заявок ---
+bot.action('admin_test_apps', async (ctx: TelegramContext) => {
+  if (!ctx.from || !isAdmin(ctx.from.id)) {
+    await ctx.answerCbQuery('❌ Нет доступа');
+    return;
+  }
+  
+  await ctx.editMessageText('🧪 Генерация тестовых заявок...', 
+    Markup.inlineKeyboard([
+      [Markup.button.callback('🔢 Создать 3 заявки', 'generate_test_3')],
+      [Markup.button.callback('🔢 Создать 5 заявок', 'generate_test_5')],
+      [Markup.button.callback('🔢 Создать 10 заявок', 'generate_test_10')],
+      [Markup.button.callback('⬅️ Назад', 'admin_back')]
+    ])
+  );
+});
+
+bot.action('generate_test_3', async (ctx: TelegramContext) => {
+  if (!ctx.from || !isAdmin(ctx.from.id)) {
+    await ctx.answerCbQuery('❌ Нет доступа');
+    return;
+  }
+  
+  await ctx.editMessageText('🔄 Создаю 3 тестовые заявки...');
+  
+  const results = await generateTestApplications(3);
+  
+  let message = `✅ Создано ${results.length} тестовых заявок:\n\n`;
+  results.forEach((result, index) => {
+    message += `${index + 1}. @${result.username} - заявка #${result.applicationId}\n`;
+  });
+  
+  await ctx.editMessageText(message, 
+    Markup.inlineKeyboard([
+      [Markup.button.callback('⬅️ Назад', 'admin_test_apps')]
+    ])
+  );
+});
+
+bot.action('generate_test_5', async (ctx: TelegramContext) => {
+  if (!ctx.from || !isAdmin(ctx.from.id)) {
+    await ctx.answerCbQuery('❌ Нет доступа');
+    return;
+  }
+  
+  await ctx.editMessageText('🔄 Создаю 5 тестовых заявок...');
+  
+  const results = await generateTestApplications(5);
+  
+  let message = `✅ Создано ${results.length} тестовых заявок:\n\n`;
+  results.forEach((result, index) => {
+    message += `${index + 1}. @${result.username} - заявка #${result.applicationId}\n`;
+  });
+  
+  await ctx.editMessageText(message, 
+    Markup.inlineKeyboard([
+      [Markup.button.callback('⬅️ Назад', 'admin_test_apps')]
+    ])
+  );
+});
+
+bot.action('generate_test_10', async (ctx: TelegramContext) => {
+  if (!ctx.from || !isAdmin(ctx.from.id)) {
+    await ctx.answerCbQuery('❌ Нет доступа');
+    return;
+  }
+  
+  await ctx.editMessageText('🔄 Создаю 10 тестовых заявок...');
+  
+  const results = await generateTestApplications(10);
+  
+  let message = `✅ Создано ${results.length} тестовых заявок:\n\n`;
+  results.forEach((result, index) => {
+    message += `${index + 1}. @${result.username} - заявка #${result.applicationId}\n`;
+  });
+  
+  await ctx.editMessageText(message, 
+    Markup.inlineKeyboard([
+      [Markup.button.callback('⬅️ Назад', 'admin_test_apps')]
+    ])
+  );
 });
 
 bot.action('consent_agree', async (ctx: TelegramContext) => {
@@ -767,7 +952,7 @@ bot.on('text', async (ctx: TelegramContext) => {
     if (session.currentStep === 4 && !session.answers.contacts) {
       if (!validateName(sanitizedText)) {
         await ctx.reply(
-          '⚠️ Пожалуйста, введите корректное имя (2-50 символов, только буквы).\n\n' +
+          '⚠️ Пожалуйста, введите корректное имя (2-50 символов).\n\n' +
           'Например: "Иван" или "Анна Петрова"'
         );
         return;
@@ -857,21 +1042,47 @@ bot.on('contact', async (ctx: TelegramContext) => {
   }
 });
 
-// --- Завершение заявки ---
+// --- ИСПРАВЛЕННАЯ функция завершения заявки ---
 async function completeApplication(ctx: TelegramContext, comment: string) {
   try {
     if (!ctx.from) return;
     
     const session = memoryQuizSessions.get(ctx.from.id);
-    if (!session) return;
+    if (!session) {
+      await ctx.reply('❌ Сессия завершена. Начните заново: /start');
+      return;
+    }
+    
+    // Проверяем что есть контакты
+    if (!session.answers.contacts || !session.answers.contacts.phone) {
+      await ctx.reply('❌ Не хватает контактных данных. Начните заново: /start');
+      return;
+    }
     
     session.answers.contacts.comment = comment;
     
     // Получаем пользователя
-    const user = await getCachedUser(ctx.from.id);
+    let user = await getCachedUser(ctx.from.id);
     if (!user) {
-      await ctx.reply('❌ Ошибка пользователя. Попробуйте /start');
-      return;
+      // Создаем пользователя если его нет
+      const telegramUser = ctx.from;
+      const newUser = await safeDbOperation(async () => {
+        return await prisma.users.create({
+          data: {
+            telegram_id: telegramUser.id.toString(),
+            username: telegramUser.username || null,
+            first_name: telegramUser.first_name || null,
+            last_name: telegramUser.last_name || null
+          }
+        });
+      });
+      
+      if (!newUser) {
+        await ctx.reply('❌ Ошибка создания пользователя. Свяжитесь с нами напрямую.');
+        return;
+      }
+      userCache.set(ctx.from.id, newUser);
+      user = newUser;
     }
     
     // Сохраняем заявку в БД
@@ -910,7 +1121,8 @@ async function completeApplication(ctx: TelegramContext, comment: string) {
     
   } catch (error) {
     log('error', 'Error completing application', { error: (error as Error).message });
-    await ctx.reply('❌ Ошибка при сохранении заявки. Свяжитесь с нами напрямую.');
+    memoryQuizSessions.delete(ctx.from?.id);
+    await ctx.reply('❌ Ошибка при сохранении заявки. Свяжитесь с нами напрямую: @polli_woww');
   }
 }
 
@@ -1051,7 +1263,8 @@ bot.action('admin_back', async (ctx: TelegramContext) => {
       `/status - статус системы`,
       Markup.inlineKeyboard([
         [Markup.button.callback('📊 Статистика', 'admin_stats')],
-        [Markup.button.callback('⚙️ Статус системы', 'admin_status')]
+        [Markup.button.callback('⚙️ Статус системы', 'admin_status')],
+        [Markup.button.callback('🧪 Тестовые заявки', 'admin_test_apps')]
       ])
     );
   } catch (error) {
@@ -1126,7 +1339,7 @@ async function start() {
 
     // Запускаем бота
     await bot.launch();
-    log('info', '🚀 Production Stable Bot v3.0 started successfully!');
+    log('info', '🚀 Production Stable Bot v3.0 + Test Apps started successfully!');
     
     log('info', `📊 Active sessions: ${memoryQuizSessions.size}`);
     log('info', `💾 Memory usage: ${Math.round(process.memoryUsage().rss / 1024 / 1024)}MB`);

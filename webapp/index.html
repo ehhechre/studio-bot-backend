@@ -45,66 +45,81 @@
         }
 
         /* Базовые стили как в Figma */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-        .screen {
-            background-color: #ffffff;
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            width: 100%;
-            padding: 0 var(--container-padding);
-            box-sizing: border-box;
-        }
+/* Добавить в самое начало CSS, после базовых стилей */
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+}
 
-        .screen .div {
-            background-color: #ffffff;
-            overflow: hidden;
-            width: calc(375px - (var(--container-padding) * 2));
-            max-width: calc(100vw - (var(--container-padding) * 2));
-            height: 3670px;
-            position: relative;
-        }
+.screen {
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    width: 100%;
+    padding: 0; /* ИСПРАВЛЕНИЕ: убрать var(--container-padding) */
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
 
-        /* Главная секция с фото и заголовками */
-        .overlap {
-            position: relative;
-            width: 375px;
-            height: 419px;
-            margin-top: 14px;
-            margin-left: -9px;
-        }
+.screen .div {
+    background-color: #ffffff;
+    overflow-x: hidden;
+    width: 100%; /* ИСПРАВЛЕНИЕ: заменить calc() на 100% */
+    max-width: 100vw; /* ИСПРАВЛЕНИЕ: убрать calc() */
+    height: 3670px;
+    position: relative;
+    border: none; /* ИСПРАВЛЕНИЕ: убрать любые границы */
+    box-shadow: none; /* ИСПРАВЛЕНИЕ: убрать тени */
+}
 
-        .team-photo {
-            position: absolute;
-            width: 375px;
-            height: 265px;
-            top: 34px;
-            left: 9px;
-            object-fit: cover;
-        }
+/* Главная секция с фото и заголовками */
+/* ИСПРАВИТЬ: убрать ограничение ширины */
+.overlap {
+    position: relative;
+    width: 100%;
+    /* max-width: 375px; УБРАТЬ эту строку */
+    height: 419px;
+    margin-top: 14px;
+    margin-left: 0;
+    overflow: hidden;
+}
 
-        .logo-image {
-            position: absolute;
-            width: 85px;
-            height: 55px;
-            top: 0;
-            left: 31px;
-            object-fit: cover;
-        }
+.team-photo {
+    position: absolute;
+    width: 100%;
+    /* max-width: 375px; УБРАТЬ эту строку */
+    height: 265px;
+    top: 34px;
+    left: 0;
+    object-fit: cover;
+}
+
+.logo-image {
+    position: absolute;
+    width: 85px;
+    height: 55px;
+    top: 0;
+    left: 31px;
+    object-fit: cover;
+}
 
         /* Текстовый блок */
         .element-2 {
-            position: absolute;
-            width: 356px;
-            height: 135px;
-            top: 323px;
-            left: 25px;
-        }
+    position: absolute;
+    width: calc(100% - 50px); /* ИСПРАВЛЕНИЕ: адаптивная ширина */
+    max-width: 356px; /* максимальная ширина как было */
+    height: 135px;
+    top: 323px;
+    left: 25px;
+}
 
         .text-wrapper {
             width: 234px;
@@ -180,13 +195,13 @@
         }
 
         .image-2 {
-            position: absolute;
-            width: 93px;
-            height: 93px;
-            top: 299px;
-            left: 277px;
-        }
-
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    top: 299px;
+    right: 20px; /* ИСПРАВЛЕНИЕ: привязать к правому краю */
+    max-width: 80px;
+}
         /* ===== КНОПКИ - ФИНАЛЬНАЯ ВЕРСИЯ ===== */
         
         /* Главные кнопки на первом экране */
@@ -310,28 +325,28 @@
 
         /* Секция статистики */
         .group-wrapper {
-            position: absolute;
-            width: 372px;
-            height: 171px;
-            top: 870px;
-            left: 2px;
-        }
+    position: absolute;
+    width: 100%; /* ИСПРАВЛЕНИЕ */
+    height: 171px;
+    top: 870px;
+    left: 0; /* ИСПРАВЛЕНИЕ: было 20px */
+}
 
-        .img-wrapper {
-            position: absolute;
-            width: 372px;
-            height: 171px;
-            top: 1063px;
-            left: 2px;
-        }
+.img-wrapper {
+    position: absolute;
+    width: 100%; /* ИСПРАВЛЕНИЕ */
+    height: 171px;
+    top: 1063px;
+    left: 0; /* ИСПРАВЛЕНИЕ: было 20px */
+}
 
-        .overlap-2 {
-            position: absolute;
-            width: 372px;
-            height: 171px;
-            top: 1256px;
-            left: 2px;
-        }
+.overlap-2 {
+    position: absolute;
+    width: 100%; /* ИСПРАВЛЕНИЕ */
+    height: 171px;
+    top: 1256px;
+    left: 0; /* ИСПРАВЛЕНИЕ: было 20px */
+}
 
         .stat-card-image {
             width: 100%;
@@ -448,19 +463,20 @@
 
         /* Контейнер отзывов */
         .reviews-container {
-            position: absolute;
-            top: 1595px;
-            left: 20px;
-            width: 335px;
-            height: 321px;
-            display: flex;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            gap: 15px;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
+    position: absolute;
+    top: 1595px;
+    left: 0; /* ИСПРАВЛЕНИЕ: было 20px */
+    width: 100%; /* ИСПРАВЛЕНИЕ: было 335px */
+    height: 321px;
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 15px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 0 20px; /* ИСПРАВЛЕНИЕ: добавить внутренний отступ */
+}
 
         .reviews-container::-webkit-scrollbar {
             display: none;
@@ -515,19 +531,20 @@
 
         /* Контейнер проектов */
         .projects-container {
-            position: absolute;
-            top: 2066px;
-            left: 20px;
-            width: 335px;
-            height: 484px;
-            display: flex;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            gap: 15px;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
+    position: absolute;
+    top: 2066px;
+    left: 0; /* ИСПРАВЛЕНИЕ: было 20px */
+    width: 100%; /* ИСПРАВЛЕНИЕ: было 335px */
+    height: 484px;
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 15px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 0 20px; /* ИСПРАВЛЕНИЕ: добавить внутренний отступ */
+}
 
         .projects-container::-webkit-scrollbar {
             display: none;
@@ -762,13 +779,13 @@
 
         /* Футер */
         .overlap-4 {
-            position: absolute;
-            width: 375px;
-            height: 137px;
-            top: 3539px;
-            left: 0;
-            background-color: #000000;
-        }
+    position: absolute;
+    width: 100%; /* ИСПРАВЛЕНИЕ: было 375px */
+    height: 137px;
+    top: 3539px;
+    left: 0;
+    background-color: #000000;
+}
 
         .text-wrapper-17 {
             height: 22px;
@@ -802,16 +819,18 @@
 
         /* Адаптивность */
         @media (max-width: 480px) {
-            .screen .div {
-                width: calc(100vw - (var(--container-padding) * 2));
-                max-width: calc(375px - (var(--container-padding) * 2));
-            }
-        }
+    .screen .div {
+        width: 100%; /* ИСПРАВЛЕНИЕ */
+        max-width: 100vw; /* ИСПРАВЛЕНИЕ */
+    }
+}
+        
     </style>
 </head>
 <body>
     <div class="screen">
         <div class="div">
+            <!-- Контактная информация -->
             <div class="view-7">
                 <img class="img-2" src="call_icon.png" alt="Телефон">
                 <div class="text-wrapper-15">+7 (911) 184-80-08</div>
@@ -822,7 +841,7 @@
                 <div class="text-wrapper-16">info@newdigital.moscow</div>
             </div>
 
-            <!-- ИНТЕРАКТИВНАЯ ЯНДЕКС КАРТА -->
+            <!-- Яндекс карта -->
             <div class="yandex-map-container">
                 <a href="https://yandex.ru/maps/213/moscow/?utm_medium=mapframe&utm_source=maps" style="top:0px;">Москва</a>
                 <a href="https://yandex.ru/maps/213/moscow/house/armyanskiy_pereulok_11_2a/Z04YcARoS0cCQFtvfXt0eH1qZw==/?ll=37.638772%2C55.759208&utm_medium=mapframe&utm_source=maps&z=17" style="top:14px;">Армянский переулок, 11/2А — Яндекс Карты</a>
@@ -834,16 +853,16 @@
                 <div class="text-wrapper-14">Москва, Армянский переулок, 11/2А, 101000</div>
             </div>
 
-            <!-- НОВЫЕ ОТДЕЛЬНЫЕ ИКОНКИ СОЦСЕТЕЙ -->
+            <!-- Социальные сети -->
             <div class="social-icons-container">
                 <img src="vk_icon.png" alt="VKontakte" class="social-icon" id="vkIcon">
                 <img src="whatsapp_icon.png" alt="WhatsApp" class="social-icon" id="whatsappIcon">
                 <img src="telegram_icon.png" alt="Telegram" class="social-icon" id="telegramIcon">
             </div>
 
+            <!-- Футер БЕЗ "Договор-офферты" -->
             <div class="overlap-4">
-                <div class="text-wrapper-17">Договор-офферты</div>
-                <a href="policy.html" target="_blank" class="text-wrapper-18" style="text-decoration: underline;">
+                <a href="policy.html" target="_blank" class="text-wrapper-18">
                     Политика конфиденциальности
                 </a>
             </div>
@@ -1016,4 +1035,6 @@
                 <i class="fas fa-arrow-right arrow-circle arrow-black"></i>
             </div>
 
-            <div class
+            </div>
+            
+            
