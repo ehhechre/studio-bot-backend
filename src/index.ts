@@ -60,6 +60,20 @@ const prisma = new PrismaClient({
 // Сессии в памяти (fallback если БД недоступна)
 const memoryQuizSessions = new Map<number, QuizSession>();
 const userCache = new Map<number, any>();
+const buttonCooldowns = new Map<number, number>(); // Защита от спама кнопок
+
+// --- Защита от спама кнопок ---
+function checkButtonCooldown(userId: number): boolean {
+  const now = Date.now();
+  const lastClick = buttonCooldowns.get(userId) || 0;
+  
+  if (now - lastClick < 1000) { // 1 секунда между нажатиями
+    return false; // Блокируем
+  }
+  
+  buttonCooldowns.set(userId, now);
+  return true; // Разрешаем
+}
 
 // --- Утилиты ---
 function log(level: 'info' | 'error' | 'warn', message: string, meta?: any) {
@@ -536,32 +550,52 @@ async function saveAnswerAndNext(
   ctx: TelegramContext, 
   field: string, 
   value: any, 
+  nextStep: number,
   nextFunction: (ctx: TelegramContext) => Promise<void>
 ) {
   try {
     if (!ctx.from) return;
     
-    await ctx.answerCbQuery('✅ Ответ сохранен');
+    // Проверяем спам
+    if (!checkButtonCooldown(ctx.from.id)) {
+      await ctx.answerCbQuery('⏳ Подождите секунду...');
+      return;
+    }
     
     const session = memoryQuizSessions.get(ctx.from.id);
     if (!session) {
+      await ctx.answerCbQuery('❌ Сессия не найдена');
       await ctx.reply('❌ Сессия не найдена. Начните заново: /start');
       return;
     }
 
-    // Сохраняем ответ БЕЗ изменения шага здесь
+    // Проверяем что мы на правильном шаге
+    if (session.currentStep !== nextStep - 1) {
+      await ctx.answerCbQuery('⚠️ Неактуальная кнопка');
+      log('warn', 'Wrong step click', { 
+        userId: ctx.from.id, 
+        currentStep: session.currentStep, 
+        expectedStep: nextStep - 1 
+      });
+      return;
+    }
+
+    await ctx.answerCbQuery('✅ Ответ сохранен');
+    
+    // Сохраняем ответ и переходим к следующему шагу
     const sanitizedValue = typeof value === 'string' ? sanitizeInput(value) : value;
     session.answers[field] = sanitizedValue;
+    session.currentStep = nextStep;
     
     log('info', 'Answer saved', { 
       userId: ctx.from.id,
       field, 
       value: typeof value === 'string' ? value.slice(0, 50) : value,
-      currentStep: session.currentStep 
+      newStep: nextStep 
     });
     
-    // Переходим к следующему вопросу ТОЛЬКО через функцию
-    setTimeout(() => nextFunction(ctx), 300);
+    // Переходим к следующему вопросу
+    await nextFunction(ctx);
     
   } catch (error) {
     log('error', 'Error in saveAnswerAndNext', { error: (error as Error).message });
@@ -573,11 +607,20 @@ bot.action('continue_quiz', async (ctx: TelegramContext) => {
   try {
     if (!ctx.from) return;
 
+    // Проверяем спам
+    if (!checkButtonCooldown(ctx.from.id)) {
+      await ctx.answerCbQuery('⏳ Подождите секунду...');
+      return;
+    }
+
     const session = memoryQuizSessions.get(ctx.from.id);
     if (!session) {
+      await ctx.answerCbQuery('❌ Сессия не найдена');
       await ctx.reply('❌ Сессия не найдена. Начните заново: /start');
       return;
     }
+
+    await ctx.answerCbQuery('▶️ Продолжаем...');
 
     // Показываем текущий вопрос в зависимости от шага
     if (session.currentStep === 1) {
@@ -597,6 +640,14 @@ bot.action('continue_quiz', async (ctx: TelegramContext) => {
 bot.action('restart_quiz', async (ctx: TelegramContext) => {
   try {
     if (!ctx.from) return;
+    
+    // Проверяем спам
+    if (!checkButtonCooldown(ctx.from.id)) {
+      await ctx.answerCbQuery('⏳ Подождите секунду...');
+      return;
+    }
+    
+    await ctx.answerCbQuery('🔄 Начинаем заново...');
     
     // Удаляем старую сессию и создаем новую
     memoryQuizSessions.delete(ctx.from.id);
@@ -645,6 +696,12 @@ bot.action('q3_none', (ctx) => saveAnswerAndNext(ctx, 'brand_style', 'Нет, н
 bot.action('no_comment', async (ctx) => {
   try {
     if (!ctx.from) return;
+    
+    // Проверяем спам
+    if (!checkButtonCooldown(ctx.from.id)) {
+      await ctx.answerCbQuery('⏳ Подождите секунду...');
+      return;
+    }
     
     await ctx.answerCbQuery('✅ Завершаю оформление заявки...');
     await completeApplication(ctx, 'Без комментария');
@@ -997,11 +1054,27 @@ bot.catch((err: unknown, ctx: Context) => {
   });
 });
 
-// --- Health Check ---
+// --- Health Check + очистка кулдаунов ---
 setInterval(async () => {
   try {
     await prisma.$queryRaw`SELECT 1`;
     log('info', 'Database health check: OK');
+    
+    // Очищаем старые кулдауны (старше 10 минут)
+    const now = Date.now();
+    const tenMinutesAgo = now - 10 * 60 * 1000;
+    
+    for (const [userId, lastClick] of buttonCooldowns.entries()) {
+      if (lastClick < tenMinutesAgo) {
+        buttonCooldowns.delete(userId);
+      }
+    }
+    
+    log('info', 'Cleanup completed', { 
+      activeSessions: memoryQuizSessions.size,
+      activeCooldowns: buttonCooldowns.size 
+    });
+    
   } catch (error) {
     log('error', 'Database health check failed', { error: (error as Error).message });
   }

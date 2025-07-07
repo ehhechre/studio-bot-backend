@@ -39,6 +39,16 @@ const prisma = new client_1.PrismaClient({
 });
 const memoryQuizSessions = new Map();
 const userCache = new Map();
+const buttonCooldowns = new Map();
+function checkButtonCooldown(userId) {
+    const now = Date.now();
+    const lastClick = buttonCooldowns.get(userId) || 0;
+    if (now - lastClick < 1000) {
+        return false;
+    }
+    buttonCooldowns.set(userId, now);
+    return true;
+}
 function log(level, message, meta) {
     const timestamp = new Date().toISOString();
     const emoji = level === 'error' ? '❌' : level === 'warn' ? '⚠️' : '📊';
@@ -426,25 +436,40 @@ async function sendQuestion4(ctx) {
         log('error', 'Error in sendQuestion4', { error: error.message });
     }
 }
-async function saveAnswerAndNext(ctx, field, value, nextFunction) {
+async function saveAnswerAndNext(ctx, field, value, nextStep, nextFunction) {
     try {
         if (!ctx.from)
             return;
-        await ctx.answerCbQuery('✅ Ответ сохранен');
+        if (!checkButtonCooldown(ctx.from.id)) {
+            await ctx.answerCbQuery('⏳ Подождите секунду...');
+            return;
+        }
         const session = memoryQuizSessions.get(ctx.from.id);
         if (!session) {
+            await ctx.answerCbQuery('❌ Сессия не найдена');
             await ctx.reply('❌ Сессия не найдена. Начните заново: /start');
             return;
         }
+        if (session.currentStep !== nextStep - 1) {
+            await ctx.answerCbQuery('⚠️ Неактуальная кнопка');
+            log('warn', 'Wrong step click', {
+                userId: ctx.from.id,
+                currentStep: session.currentStep,
+                expectedStep: nextStep - 1
+            });
+            return;
+        }
+        await ctx.answerCbQuery('✅ Ответ сохранен');
         const sanitizedValue = typeof value === 'string' ? sanitizeInput(value) : value;
         session.answers[field] = sanitizedValue;
+        session.currentStep = nextStep;
         log('info', 'Answer saved', {
             userId: ctx.from.id,
             field,
             value: typeof value === 'string' ? value.slice(0, 50) : value,
-            currentStep: session.currentStep
+            newStep: nextStep
         });
-        setTimeout(() => nextFunction(ctx), 300);
+        await nextFunction(ctx);
     }
     catch (error) {
         log('error', 'Error in saveAnswerAndNext', { error: error.message });
@@ -455,11 +480,17 @@ bot.action('continue_quiz', async (ctx) => {
     try {
         if (!ctx.from)
             return;
+        if (!checkButtonCooldown(ctx.from.id)) {
+            await ctx.answerCbQuery('⏳ Подождите секунду...');
+            return;
+        }
         const session = memoryQuizSessions.get(ctx.from.id);
         if (!session) {
+            await ctx.answerCbQuery('❌ Сессия не найдена');
             await ctx.reply('❌ Сессия не найдена. Начните заново: /start');
             return;
         }
+        await ctx.answerCbQuery('▶️ Продолжаем...');
         if (session.currentStep === 1) {
             await sendQuestion1(ctx);
         }
@@ -481,6 +512,11 @@ bot.action('restart_quiz', async (ctx) => {
     try {
         if (!ctx.from)
             return;
+        if (!checkButtonCooldown(ctx.from.id)) {
+            await ctx.answerCbQuery('⏳ Подождите секунду...');
+            return;
+        }
+        await ctx.answerCbQuery('🔄 Начинаем заново...');
         memoryQuizSessions.delete(ctx.from.id);
         const session = {
             userId: ctx.from.id.toString(),
@@ -523,6 +559,10 @@ bot.action('no_comment', async (ctx) => {
     try {
         if (!ctx.from)
             return;
+        if (!checkButtonCooldown(ctx.from.id)) {
+            await ctx.answerCbQuery('⏳ Подождите секунду...');
+            return;
+        }
         await ctx.answerCbQuery('✅ Завершаю оформление заявки...');
         await completeApplication(ctx, 'Без комментария');
     }
@@ -795,6 +835,17 @@ setInterval(async () => {
     try {
         await prisma.$queryRaw `SELECT 1`;
         log('info', 'Database health check: OK');
+        const now = Date.now();
+        const tenMinutesAgo = now - 10 * 60 * 1000;
+        for (const [userId, lastClick] of buttonCooldowns.entries()) {
+            if (lastClick < tenMinutesAgo) {
+                buttonCooldowns.delete(userId);
+            }
+        }
+        log('info', 'Cleanup completed', {
+            activeSessions: memoryQuizSessions.size,
+            activeCooldowns: buttonCooldowns.size
+        });
     }
     catch (error) {
         log('error', 'Database health check failed', { error: error.message });
