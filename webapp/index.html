@@ -579,6 +579,8 @@ html, body {
             justify-content: center;
             gap: 10px;
             cursor: pointer;
+            text-decoration: none; /* убирает подчеркивание */
+    color: inherit; /* сохраняет цвет текста */
         }
 
         .text-wrapper-13 {
@@ -766,16 +768,23 @@ html, body {
         }
 
         .social-icon {
-            width: 40px; /* было 35px */
-            height: 40px; /* было 35px */
-            cursor: pointer;
-            border-radius: 8px;
-            transition: transform 0.2s ease;
-        }
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+    object-fit: cover;
+    object-position: center; /* центрирует изображение */
+    min-width: 40px; /* ДОБАВИТЬ: фиксирует минимальный размер */
+    min-height: 40px; /* ДОБАВИТЬ: фиксирует минимальный размер */
+    flex-shrink: 0; /* ДОБАВИТЬ: не сжимается */
+}
 
-        .social-icon:hover {
-            transform: scale(1.1);
-        }
+/* ДОБАВИТЬ: убрать квадратную область при наведении */
+.social-icon:hover {
+    transform: scale(1.1);
+    border-radius: 50%; /* сохраняет круглость при увеличении */
+}
 
         /* Футер */
         .overlap-4 {
@@ -1017,10 +1026,10 @@ html, body {
             </div>
 
             <div class="view-5">
-                <div class="group-15">
-                    <div class="text-wrapper-13">Смотреть</div>
+                <a href="https://polli-digital.ru/portfolio" target="_blank" class="group-15">
+                    <div class="text-wrapper-13">Еще больше кейсов</div>
                     <i class="fas fa-arrow-right arrow-circle arrow-black arrow-small"></i>
-                </div>
+                </a>
             </div>
 
             <div class="text-wrapper-7">Связаться<br>с нами</div>
