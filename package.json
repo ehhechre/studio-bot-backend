@@ -1,30 +1,30 @@
 {
-    "name": "studio-bot-backend",
-    "version": "1.0.0",
-    "engines": {
-      "node": ">=18.0.0"
-    },
+    "name": "telegram-bot-stable",
+    "version": "3.0.0",
+    "description": "Stable production Telegram bot",
+    "main": "dist/bot.js",
     "scripts": {
-      "dev": "ts-node src/index.ts",
+      "dev": "ts-node src/bot.ts",
       "build": "tsc",
-      "start": "node dist/index.js",
-      "test": "echo \"Error: no test specified\" && exit 1"
+      "start": "node dist/bot.js",
+      "deploy": "npm run build && git add . && git commit -m \"feat: обновлена логика бота\" && git push origin main",
+      "db:generate": "prisma generate",
+      "db:push": "prisma db push",
+      "db:migrate": "prisma migrate deploy",
+      "postinstall": "prisma generate"
     },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
-    "description": "",
     "dependencies": {
-      "@prisma/client": "^6.10.1",
-      "dotenv": "^16.5.0",
-      "express": "^5.1.0",
-      "telegraf": "^4.16.3"
+      "telegraf": "^4.15.0",
+      "dotenv": "^16.3.1",
+      "@prisma/client": "^5.7.0",
+      "prisma": "^5.7.0"
     },
     "devDependencies": {
-      "@types/express": "^5.0.3",
-      "@types/node": "^24.0.4",
-      "prisma": "^6.10.1",
-      "ts-node": "^10.9.2",
-      "typescript": "^5.8.3"
+      "typescript": "^5.3.0",
+      "ts-node": "^10.9.0",
+      "@types/node": "^20.10.0"
+    },
+    "engines": {
+      "node": ">=18.0.0"
     }
   }

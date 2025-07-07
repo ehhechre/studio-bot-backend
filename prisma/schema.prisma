@@ -1,3 +1,4 @@
+// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,62 +8,40 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// === НАЧАЛО НАШИХ МОДЕЛЕЙ ===
-
-model User {
-  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  telegram_id     BigInt   @unique @db.BigInt
-  username        String?
-  first_name      String?
-  last_name       String?
-  language_code   String?
-  created_at      DateTime? @default(now()) @db.Timestamptz(6)
-
-  applications    Application[]
-  quiz_sessions   QuizSession[]
-
+model users {
+  id            String   @id @default(cuid())
+  telegram_id   String   @unique
+  username      String?
+  first_name    String?
+  last_name     String?
+  language_code String?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now()) @updatedAt
+  
+  // Связи
+  applications applications[]
+  
   @@map("users")
 }
 
-model Application {
-  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id         String            @db.Uuid
-  status          ApplicationStatus @default(new)
-  answers         Json
-  contact_info    String?
-  source          String?           @default("bot")
-  is_test         Boolean?          @default(false)
-  created_at      DateTime?         @default(now()) @db.Timestamptz(6)
+model applications {
+  id           String   @id @default(cuid())
+  user_id      String
+  answers      Json     // Все ответы квиза в JSON
+  status       Status   @default(new)
+  contact_info String?  // Дополнительная контактная информация
+  created_at   DateTime @default(now())
+  updated_at   DateTime @default(now()) @updatedAt
   
-  priority     String?           @default("normal")
-  assigned_to  String?
-  notes        String?
-  user            User              @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
+  // Связь с пользователем
+  user users @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
   @@map("applications")
 }
 
-model QuizSession {
-  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id         String    @db.Uuid
-  current_step    Int?      @default(0)
-  answers         Json?     @default("{}")
-  is_completed    Boolean?  @default(false)
-  started_at      DateTime? @default(now()) @db.Timestamptz(6)
-  completed_at    DateTime? @db.Timestamptz(6)
-  completion_time_minutes Int?
-  quiz_type       String?   @default("website_brief")
-  updated_at      DateTime? @default(now()) @db.Timestamptz(6)
-  created_at      DateTime? @default(now()) @db.Timestamptz(6)
-
-  user            User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@map("quiz_sessions")
-}
-
-enum ApplicationStatus {
+enum Status {
   new
-  in_progress
-  closed
-  rejected
+  processing
+  completed
+  cancelled
 }

@@ -1,13 +1,19 @@
-// src/index.ts - PRODUCTION VERSION С ИСПРАВЛЕННЫМИ МОДЕЛЯМИ PRISMA
+// src/bot.ts - PRODUCTION STABLE BOT v3.0 - Адаптированный под рабочую логику
 import { Telegraf, Context, Markup } from 'telegraf';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 
 // --- Типы ---
 interface TelegramContext extends Context {
-  from: NonNullable<Context['from']>;
+  // Наследуем стандартный Context без переопределения from
 }
-type QuizAnswers = { [key: string]: any };
+
+interface QuizSession {
+  userId: string;
+  currentStep: number;
+  answers: Record<string, any>;
+  startedAt: Date;
+}
 
 // --- Валидация и безопасность ---
 const sanitizeInput = (input: string): string => {
@@ -23,455 +29,500 @@ const validateName = (name: string): boolean => {
   return name.length >= 2 && name.length <= 50 && /^[a-zA-Zа-яА-Я\s]+$/.test(name);
 };
 
-// --- Аналитика и логирование ---
-const logUserAction = (userId: number, action: string, data?: any) => {
-  const timestamp = new Date().toISOString();
-  console.log(`📊 [${timestamp}] User ${userId}: ${action}`, data ? JSON.stringify(data) : '');
-};
-
-const logError = (error: any, context: string, userId?: number) => {
-  const timestamp = new Date().toISOString();
-  console.error(`❌ [${timestamp}] ERROR in ${context} ${userId ? `(User: ${userId})` : ''}:`, error);
-};
-
-// --- Инициализация ---
+// --- Конфигурация ---
 dotenv.config();
-const prisma = new PrismaClient();
-const botToken = process.env.BOT_TOKEN;
-const CHANNEL_ID = process.env.CHANNEL_ID;
 
-if (!botToken || !CHANNEL_ID) {
-  console.error("🚨 КРИТИЧЕСКАЯ ОШИБКА: BOT_TOKEN или CHANNEL_ID не найдены в .env!");
+const BOT_TOKEN = process.env.BOT_TOKEN;
+const DATABASE_URL = process.env.DATABASE_URL;
+const ADMIN_TELEGRAM_ID = process.env.ADMIN_TELEGRAM_ID_FOR_NOTIFY;
+const CHANNEL_ID = process.env.CHANNEL_ID; // Канал для заявок
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
+const WEBSITE_URL = process.env.WEBSITE_URL || 'https://newdigital.moscow';
+
+if (!BOT_TOKEN) {
+  console.error('❌ BOT_TOKEN не найден в .env');
   process.exit(1);
 }
 
-const bot = new Telegraf<TelegramContext>(botToken);
+if (!CHANNEL_ID) {
+  console.error('❌ CHANNEL_ID не найден в .env');
+  process.exit(1);
+}
 
-// --- Middleware для безопасности ---
-bot.use(async (ctx, next) => {
-  try {
-    if (ctx.from) {
-      logUserAction(ctx.from.id, 'request', {
-        type: ctx.updateType,
-        message: 'text' in ctx.message ? ctx.message.text?.slice(0, 100) : undefined
-      });
-    }
-    await next();
-  } catch (error) {
-    logError(error, 'middleware', ctx.from?.id);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    if (errorMessage.includes('prisma') || errorMessage.includes('database')) {
-      await ctx.reply('🔧 Временные технические работы с базой данных. Попробуйте через несколько минут.');
-    } else {
-      await ctx.reply('⚠️ Произошла техническая ошибка. Попробуйте позже или обратитесь в поддержку.');
-    }
-  }
+// --- Инициализация с retry логикой ---
+const bot = new Telegraf(BOT_TOKEN);
+const prisma = new PrismaClient({
+  datasources: { db: { url: DATABASE_URL } },
+  log: ['error', 'warn'],
+  errorFormat: 'minimal'
 });
 
-// --- Установка команд меню ---
-bot.telegram.setMyCommands([
-  { command: 'app', description: 'Кейсы' }
-]);
-
-// --- Кеширование пользователей ---
+// Сессии в памяти (fallback если БД недоступна)
+const memoryQuizSessions = new Map<number, QuizSession>();
 const userCache = new Map<number, any>();
 
-const getCachedUser = async (telegramId: number) => {
+// --- Утилиты ---
+function log(level: 'info' | 'error' | 'warn', message: string, meta?: any) {
+  const timestamp = new Date().toISOString();
+  const emoji = level === 'error' ? '❌' : level === 'warn' ? '⚠️' : '📊';
+  console.log(`${emoji} [${timestamp}] ${message}${meta ? ` ${JSON.stringify(meta)}` : ''}`);
+}
+
+async function safeDbOperation<T>(operation: () => Promise<T>, fallback?: T): Promise<T | null> {
+  try {
+    return await operation();
+  } catch (error) {
+    log('error', 'Database operation failed', { error: (error as Error).message });
+    return fallback ?? null;
+  }
+}
+
+async function getCachedUser(telegramId: number) {
   try {
     if (userCache.has(telegramId)) {
       return userCache.get(telegramId);
     }
-    const user = await prisma.user.findUnique({ where: { telegram_id: telegramId } });
+    
+    const user = await safeDbOperation(async () => {
+      return await prisma.users.findUnique({ 
+        where: { telegram_id: telegramId.toString() } 
+      });
+    });
+    
     if (user) {
       userCache.set(telegramId, user);
     }
     return user;
   } catch (error) {
-    logError(error, 'getCachedUser', telegramId);
+    log('error', 'getCachedUser failed', { error: (error as Error).message });
     return null;
   }
-};
+}
 
-// --- СТАРТОВОЕ МЕНЮ ---
-bot.start(async (ctx) => {
-  const startTime = Date.now();
-  try {
-    const telegramUser = ctx.from;
-    logUserAction(telegramUser.id, 'start_command');
-    const userInDb = await prisma.user.upsert({
-      where: { telegram_id: telegramUser.id },
+async function ensureUser(telegramUser: NonNullable<TelegramContext['from']>) {
+  return await safeDbOperation(async () => {
+    const user = await prisma.users.upsert({
+      where: { telegram_id: telegramUser.id.toString() },
       update: {
-        username: telegramUser.username,
-        first_name: telegramUser.first_name
+        username: telegramUser.username || null,
+        first_name: telegramUser.first_name || null,
+        last_name: telegramUser.last_name || null,
+        language_code: telegramUser.language_code || null,
+        updated_at: new Date()
       },
       create: {
-        telegram_id: telegramUser.id,
-        username: telegramUser.username,
-        first_name: telegramUser.first_name,
-        last_name: telegramUser.last_name,
-        language_code: telegramUser.language_code,
-      },
+        telegram_id: telegramUser.id.toString(),
+        username: telegramUser.username || null,
+        first_name: telegramUser.first_name || null,
+        last_name: telegramUser.last_name || null,
+        language_code: telegramUser.language_code || null
+      }
+    });
+    
+    // Обновляем кеш
+    userCache.set(telegramUser.id, user);
+    return user;
+  });
+}
+
+function isAdmin(userId: number): boolean {
+  return ADMIN_TELEGRAM_ID === userId.toString();
+}
+
+async function getStats() {
+  try {
+    const stats = await safeDbOperation(async () => {
+      const totalUsers = await prisma.users.count();
+      const totalApplications = await prisma.applications.count();
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      
+      const todayApplications = await prisma.applications.count({
+        where: { created_at: { gte: todayStart } }
+      });
+
+      const newApplications = await prisma.applications.count({
+        where: { status: 'new' }
+      });
+
+      return { totalUsers, totalApplications, todayApplications, newApplications };
     });
 
-    userCache.set(telegramUser.id, userInDb);
-    console.log(`🔥 Пользователь: ${userInDb.first_name} (${telegramUser.id})`);
+    return stats || { totalUsers: 0, totalApplications: 0, todayApplications: 0, newApplications: 0 };
+  } catch (error) {
+    log('error', 'Error getting stats', { error: (error as Error).message });
+    return { totalUsers: 0, totalApplications: 0, todayApplications: 0, newApplications: 0 };
+  }
+}
 
+// --- Главное меню ---
+const mainMenuKeyboard = Markup.inlineKeyboard([
+  [Markup.button.callback('💰 Рассчитать стоимость', 'start_quiz')],
+  [Markup.button.callback('👁 Посмотреть работы', 'view_works')],
+  [Markup.button.callback('📞 Связаться с нами', 'contact')]
+]);
+
+const mainMenuText = `🚀 Добро пожаловать в нашу студию!\n\n` +
+  `🎯 Мы создаем:\n` +
+  `• Современные сайты и лендинги\n` +
+  `• Мобильные приложения\n` +
+  `• Брендинг и дизайн\n` +
+  `• Digital-маркетинг\n\n` +
+  `✨ Выберите действие:`;
+
+// --- Команды ---
+bot.start(async (ctx: TelegramContext) => {
+  try {
+    const telegramUser = ctx.from;
+    if (!telegramUser) {
+      await ctx.reply('❌ Ошибка получения данных пользователя');
+      return;
+    }
+
+    log('info', 'User started bot', { userId: telegramUser.id });
+
+    // Сохраняем пользователя
+    await ensureUser(telegramUser);
+
+    // Пробуем отправить с логотипом, если не получится - текст
     try {
-      console.log('📸 Попытка отправить логотип...');
       await ctx.replyWithPhoto(
         'AgACAgIAAxkBAAICRWhpw6XXPrldcv1IK2YUf2boX6mxAAL99jEbaHNQS0g_hguljSVZAQADAgADeQADNgQ',
         {
           caption: `🚀 Добро пожаловать в Polli Digital!\n\n` +
-                  `Привет, ${userInDb.first_name}! Мы создаем сайты, которые продают.\n\n` +
+                  `Привет, ${telegramUser.first_name}! Мы создаем сайты, которые продают.\n\n` +
                   `🎯 Что можем для вас сделать?`,
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: '💰 Рассчитать стоимость', callback_data: 'start_quiz' }],
-              [{ text: '👁 Посмотреть работы', web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' } }]
-            ]
-          }
+          reply_markup: mainMenuKeyboard.reply_markup
         }
       );
-      const loadTime = Date.now() - startTime;
-      console.log(`✅ Логотип отправлен за ${loadTime}ms`);
-      logUserAction(telegramUser.id, 'welcome_sent', { loadTime, withLogo: true });
+      
+      log('info', 'Welcome sent with logo', { userId: telegramUser.id });
+      
     } catch (photoError) {
-      logError(photoError, 'photo_send', telegramUser.id);
-      console.log('📝 Отправляем текстовое приветствие...');
-      await ctx.reply(
-        `Здравствуйте! Меня зовут Полина, я консультант студии Polli Digital.\n\n` +
-        `Мы создаём бренды, сайты и маркетинг, которые работают на результат и узнаваемость.\n\n` +
-        `Буду рада обсудить ваш проект и помочь найти лучшее решение для вашего бизнеса.`,
-        {
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: '💰 Рассчитать стоимость', callback_data: 'start_quiz' }],
-              [{ text: '👁 Посмотреть работы', web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' } }]
-            ]
-          }
-        }
-      );
-      const loadTime = Date.now() - startTime;
-      console.log(`✅ Текстовое приветствие отправлено за ${loadTime}ms`);
-      logUserAction(telegramUser.id, 'welcome_sent', { loadTime, withLogo: false });
+      log('warn', 'Failed to send photo, sending text', { error: (photoError as Error).message });
+      await ctx.reply(mainMenuText, mainMenuKeyboard);
     }
+
   } catch (error) {
-    logError(error, 'start_command', ctx.from?.id);
-    await ctx.reply(
-      '⚠️ Произошла техническая ошибка при загрузке. Попробуйте выполнить команду /start еще раз.\n\n' +
-      'Если проблема повторится, обратитесь в техподдержку.'
-    );
+    log('error', 'Error in start command', { error: (error as Error).message });
+    await ctx.reply('❌ Произошла ошибка. Попробуйте позже.');
   }
 });
 
-// --- КОМАНДЫ МЕНЮ ---
-bot.command('cases', async (ctx) => {
+// --- Админские команды ---
+bot.command('admin', async (ctx: TelegramContext) => {
   try {
-    logUserAction(ctx.from.id, 'cases_command');
-    await ctx.reply('👁 Посмотрите наши работы:', {
-      reply_markup: {
-        inline_keyboard: [[
-          { text: '🎨 Портфолио Polli Digital', web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' } }
-        ]]
-      }
-    });
-  } catch (error) {
-    logError(error, 'cases_command', ctx.from.id);
-    await ctx.reply('⚠️ Ошибка загрузки портфолио. Попробуйте позже.');
-  }
-});
-
-bot.command('calculate', async (ctx) => {
-  try {
-    logUserAction(ctx.from.id, 'calculate_command');
-    await ctx.reply('💰 Рассчитать стоимость сайта:', {
-      reply_markup: {
-        inline_keyboard: [[
-          { text: '📋 Начать опрос', callback_data: 'start_quiz' }
-        ]]
-      }
-    });
-  } catch (error) {
-    logError(error, 'calculate_command', ctx.from.id);
-    await ctx.reply('⚠️ Ошибка загрузки калькулятора. Попробуйте позже.');
-  }
-});
-
-bot.command('app', async (ctx) => {
-  try {
-    logUserAction(ctx.from.id, 'app_command');
-    await ctx.reply('🚀 Откройте наше приложение:', {
-      reply_markup: {
-        inline_keyboard: [[
-          { text: '🎨 Polli Digital App', web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' } }
-        ]]
-      }
-    });
-  } catch (error) {
-    logError(error, 'app_command', ctx.from.id);
-    await ctx.reply('⚠️ Ошибка запуска приложения. Попробуйте позже.');
-  }
-});
-
-// --- АДМИН КОМАНДЫ ---
-const ADMIN_IDS = [443699588];
-
-bot.command('myid', async (ctx) => {
-  try {
-    await ctx.reply(`🆔 Ваш Telegram ID: \`${ctx.from.id}\``, { parse_mode: 'Markdown' });
-    logUserAction(ctx.from.id, 'myid_request');
-  } catch (error) {
-    logError(error, 'myid_command', ctx.from.id);
-  }
-});
-
-bot.command('admin_stats', async (ctx) => {
-  try {
-    if (!ADMIN_IDS.includes(ctx.from.id)) {
-      logUserAction(ctx.from.id, 'unauthorized_admin_access');
-      await ctx.reply('❌ Недостаточно прав доступа.');
+    if (!ctx.from || !isAdmin(ctx.from.id)) {
+      await ctx.reply('❌ У вас нет прав доступа');
       return;
     }
-    logUserAction(ctx.from.id, 'admin_stats_request');
-    const [usersCount, applicationsCount, completedQuizzes, todayUsers] = await Promise.all([
-      prisma.user.count(),
-      prisma.application.count(),
-      prisma.quizSession.count({ where: { is_completed: true } }),
-      prisma.user.count({
-        where: { created_at: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } }
-      })
-    ]);
-    const conversionRate = usersCount > 0 ? ((applicationsCount / usersCount) * 100).toFixed(1) : '0';
+
     await ctx.reply(
-      `📊 СТАТИСТИКА БОТА\n\n` +
-      `👥 Всего пользователей: ${usersCount}\n` +
-      `🆕 Новых сегодня: ${todayUsers}\n` +
-      `📋 Заявок отправлено: ${applicationsCount}\n` +
-      `✅ Квизов завершено: ${completedQuizzes}\n` +
-      `📈 Конверсия в заявку: ${conversionRate}%\n\n` +
-      `⚡ Команды:\n` +
-      `/admin_users - список пользователей\n` +
-      `/admin_applications - последние заявки\n` +
-      `/admin_health - статус системы`
+      `👨‍💼 Админ панель\n\n` +
+      `Доступные команды:\n` +
+      `/stats - статистика бота\n` +
+      `/status - статус системы`,
+      Markup.inlineKeyboard([
+        [Markup.button.callback('📊 Статистика', 'admin_stats')],
+        [Markup.button.callback('⚙️ Статус системы', 'admin_status')]
+      ])
     );
+
   } catch (error) {
-    logError(error, 'admin_stats', ctx.from.id);
-    await ctx.reply('❌ Ошибка получения статистики.');
+    log('error', 'Error in admin command', { error: (error as Error).message });
   }
 });
 
-bot.command('admin_users', async (ctx) => {
+bot.command('stats', async (ctx: TelegramContext) => {
   try {
-    if (!ADMIN_IDS.includes(ctx.from.id)) return;
-    logUserAction(ctx.from.id, 'admin_users_request');
-    const users = await prisma.user.findMany({
-      orderBy: { created_at: 'desc' },
-      take: 10
-    });
-    let message = `👥 ПОСЛЕДНИЕ 10 ПОЛЬЗОВАТЕЛЕЙ:\n\n`;
-    users.forEach((user, index) => {
-      const date = user.created_at ? new Date(user.created_at).toLocaleDateString('ru-RU') : 'Неизвестно';
-      const isRecent = user.created_at && (new Date().getTime() - new Date(user.created_at).getTime()) < 24 * 60 * 60 * 1000;
-      message += `${index + 1}. ${user.first_name || 'Аноним'} (@${user.username || '?'})\n`;
-      message += `   🆔 ${user.telegram_id} | 📅 ${date} ${isRecent ? '🟢' : '🔘'}\n\n`;
-    });
-    await ctx.reply(message);
+    if (!ctx.from || !isAdmin(ctx.from.id)) return;
+
+    const stats = await getStats();
+    const activeSessions = memoryQuizSessions.size;
+
+    await ctx.reply(
+      `📊 Статистика бота\n\n` +
+      `👥 Всего пользователей: ${stats.totalUsers}\n` +
+      `📋 Всего заявок: ${stats.totalApplications}\n` +
+      `🆕 Заявок сегодня: ${stats.todayApplications}\n` +
+      `⏳ Новых заявок: ${stats.newApplications}\n` +
+      `🔄 Активных сессий: ${activeSessions}\n\n` +
+      `⏰ Время: ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })}`
+    );
+
   } catch (error) {
-    logError(error, 'admin_users', ctx.from.id);
-    await ctx.reply('❌ Ошибка получения пользователей.');
+    log('error', 'Error in stats command', { error: (error as Error).message });
   }
 });
 
-bot.command('admin_applications', async (ctx) => {
+bot.command('status', async (ctx: TelegramContext) => {
   try {
-    if (!ADMIN_IDS.includes(ctx.from.id)) return;
-    logUserAction(ctx.from.id, 'admin_applications_request');
-    const applications = await prisma.application.findMany({
-      include: { user: true },
-      orderBy: { created_at: 'desc' },
-      take: 5
-    });
-    let message = `📋 ПОСЛЕДНИЕ 5 ЗАЯВОК:\n\n`;
-    applications.forEach((app, index) => {
-      const date = app.created_at ? new Date(app.created_at).toLocaleDateString('ru-RU') : 'Неизвестно';
-      const answers = app.answers as any;
-      const isValidPhone = answers.contacts?.phone ? validatePhone(answers.contacts.phone) : false;
-      message += `${index + 1}. ${app.user.first_name} - ${date}\n`;
-      message += `   🌐 Тип: ${answers.site_type || '?'}\n`;
-      message += `   🏢 Ниша: ${answers.niche || '?'}\n`;
-      message += `   🎨 Стиль: ${answers.brand_style || '?'}\n`;
-      message += `   📞 Контакт: ${answers.contacts?.phone || '?'} ${isValidPhone ? '✅' : '⚠️'}\n`;
-      message += `   💬 Комментарий: ${answers.contacts?.comment || 'Нет'}\n\n`;
-    });
-    await ctx.reply(message);
-  } catch (error) {
-    logError(error, 'admin_applications', ctx.from.id);
-    await ctx.reply('❌ Ошибка получения заявок.');
-  }
-});
+    if (!ctx.from || !isAdmin(ctx.from.id)) return;
 
-bot.command('admin_health', async (ctx) => {
-  try {
-    if (!ADMIN_IDS.includes(ctx.from.id)) return;
-    logUserAction(ctx.from.id, 'admin_health_request');
-    const startTime = Date.now();
-    const dbTest = await prisma.user.count();
-    const dbTime = Date.now() - startTime;
-    const memUsage = process.memoryUsage();
+    let dbStatus = '❌ Недоступна';
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      dbStatus = '✅ Работает';
+    } catch {
+      dbStatus = '❌ Ошибка подключения';
+    }
+
     const uptime = process.uptime();
-    const formatBytes = (bytes: number) => {
-      return (bytes / 1024 / 1024).toFixed(2) + ' MB';
-    };
+    const hours = Math.floor(uptime / 3600);
+    const minutes = Math.floor((uptime % 3600) / 60);
+
     await ctx.reply(
-      `🔧 СОСТОЯНИЕ СИСТЕМЫ\n\n` +
-      `⏱️ Время работы: ${Math.floor(uptime / 3600)}ч ${Math.floor((uptime % 3600) / 60)}м\n` +
-      `🗄️ База данных: ${dbTime}ms (${dbTest} пользователей)\n` +
-      `💾 Память: ${formatBytes(memUsage.heapUsed)} / ${formatBytes(memUsage.heapTotal)}\n` +
-      `📊 Кеш пользователей: ${userCache.size} записей\n` +
-      `✅ Статус: Система работает нормально`
+      `⚙️ Статус системы\n\n` +
+      `🗄️ База данных: ${dbStatus}\n` +
+      `⏱️ Время работы: ${hours}ч ${minutes}м\n` +
+      `💾 Использование памяти: ${Math.round(process.memoryUsage().rss / 1024 / 1024)}MB\n` +
+      `🔄 Активных сессий: ${memoryQuizSessions.size}\n` +
+      `📊 PID процесса: ${process.pid}`
     );
+
   } catch (error) {
-    logError(error, 'admin_health', ctx.from.id);
-    await ctx.reply('❌ Ошибка проверки состояния системы.');
+    log('error', 'Error in status command', { error: (error as Error).message });
   }
 });
 
-// --- СОГЛАСИЕ НА ОБРАБОТКУ ДАННЫХ ---
-bot.action('start_quiz', async (ctx) => {
+// --- Обработчики кнопок ---
+bot.action('start_quiz', async (ctx: TelegramContext) => {
   try {
-    logUserAction(ctx.from.id, 'quiz_start_requested');
-    await ctx.reply(
-      `📋 СОГЛАСИЕ НА ОБРАБОТКУ ПЕРСОНАЛЬНЫХ ДАННЫХ\n\n` +
-      `Я даю согласие на обработку моих персональных данных (имя, телефон, Telegram ID) с целью предоставления услуг веб-разработки и связи со мной. Срок хранения данных - 3 года.\n\n` +
-      `Я могу отозвать согласие в любой момент командой /delete_data.`,
-      {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: '✅ Согласен', callback_data: 'consent_agree' }],
-            [{ text: '❌ Не согласен', callback_data: 'consent_decline' }]
-          ]
-        }
-      }
-    );
-  } catch (error) {
-    logError(error, 'start_quiz_action', ctx.from.id);
-    await ctx.reply('⚠️ Ошибка загрузки формы согласия. Попробуйте позже.');
-  }
-});
+    if (!ctx.from) return;
 
-bot.action('consent_decline', async (ctx) => {
-  try {
-    logUserAction(ctx.from.id, 'consent_declined');
-    await ctx.reply(`❌ Понял вас. Без согласия мы не можем начать опрос.\n\nЕсли передумаете - нажмите /start`);
-  } catch (error) {
-    logError(error, 'consent_decline_action', ctx.from.id);
-  }
-});
+    log('info', 'User started quiz', { userId: ctx.from.id });
 
-// --- ЛОГИКА КВИЗА ---
-bot.action('consent_agree', async (ctx) => {
-  try {
-    logUserAction(ctx.from.id, 'consent_agreed');
-    await ctx.reply('⏳ Подготавливаю опрос...');
-    const user = await getCachedUser(ctx.from.id);
-    if (!user) {
-      await ctx.reply('❌ Пользователь не найден. Выполните /start');
+    // Проверяем активную сессию
+    const existingSession = memoryQuizSessions.get(ctx.from.id);
+    
+    if (existingSession) {
+      await ctx.editMessageText(
+        `📋 У вас уже есть незавершенный опрос!\n\n` +
+        `📍 Текущий вопрос: ${existingSession.currentStep}/4\n\n` +
+        `Хотите продолжить или начать заново?`,
+        Markup.inlineKeyboard([
+          [Markup.button.callback('▶️ Продолжить', 'continue_quiz')],
+          [Markup.button.callback('🔄 Начать заново', 'restart_quiz')],
+          [Markup.button.callback('◀️ Главное меню', 'main_menu')]
+        ])
+      );
       return;
     }
-    await prisma.quizSession.deleteMany({
-      where: { user_id: user.id, is_completed: false }
-    });
-    const session = await prisma.quizSession.create({
-      data: { user_id: user.id, current_step: 1, answers: {} },
-    });
-    logUserAction(ctx.from.id, 'quiz_session_created', { sessionId: session.id });
-    await sendQuestion1(ctx);
+
+    // Согласие на обработку данных
+    await ctx.editMessageText(
+      `📋 СОГЛАСИЕ НА ОБРАБОТКУ ПЕРСОНАЛЬНЫХ ДАННЫХ\n\n` +
+      `Я даю согласие на обработку моих персональных данных (имя, телефон, Telegram ID) с целью предоставления услуг веб-разработки и связи со мной.\n\n` +
+      `Срок хранения данных - 3 года. Я могу отозвать согласие командой /delete_data.`,
+      Markup.inlineKeyboard([
+        [Markup.button.callback('✅ Согласен', 'consent_agree')],
+        [Markup.button.callback('❌ Не согласен', 'consent_decline')]
+      ])
+    );
+
   } catch (error) {
-    logError(error, 'consent_agree_action', ctx.from.id);
-    await ctx.reply('❌ Ошибка при создании сессии опроса. Попробуйте начать сначала: /start');
+    log('error', 'Error in start_quiz', { error: (error as Error).message });
+    await ctx.reply('❌ Ошибка при запуске опроса');
   }
 });
+
+bot.action('consent_agree', async (ctx: TelegramContext) => {
+  try {
+    if (!ctx.from) return;
+    
+    log('info', 'User agreed to consent', { userId: ctx.from.id });
+    
+    // Начинаем новую сессию в памяти
+    const session: QuizSession = {
+      userId: ctx.from.id.toString(),
+      currentStep: 1,
+      answers: {},
+      startedAt: new Date()
+    };
+
+    memoryQuizSessions.set(ctx.from.id, session);
+    await sendQuestion1(ctx);
+
+  } catch (error) {
+    log('error', 'Error in consent_agree', { error: (error as Error).message });
+  }
+});
+
+bot.action('consent_decline', async (ctx: TelegramContext) => {
+  try {
+    if (!ctx.from) return;
+    
+    log('info', 'User declined consent', { userId: ctx.from.id });
+    await ctx.editMessageText(
+      `❌ Понял вас. Без согласия мы не можем начать опрос.\n\nЕсли передумаете - нажмите /start`
+    );
+  } catch (error) {
+    log('error', 'Error in consent_decline', { error: (error as Error).message });
+  }
+});
+
+bot.action('view_works', async (ctx: TelegramContext) => {
+  try {
+    if (!ctx.from) return;
+
+    log('info', 'User viewing works', { userId: ctx.from.id });
+
+    await ctx.editMessageText(
+      `👁 Наши работы\n\n` +
+      `🌟 Более 500 успешных проектов!\n\n` +
+      `🎯 Посмотрите примеры работ на нашем сайте.\n` +
+      `После изучения портфолио вы можете вернуться и рассчитать стоимость вашего проекта.`,
+      Markup.inlineKeyboard([
+        [Markup.button.url('🌐 Открыть портфолио', `${WEBSITE_URL}/portfolio`)],
+        [Markup.button.callback('💰 Рассчитать стоимость', 'start_quiz')],
+        [Markup.button.callback('◀️ Главное меню', 'main_menu')]
+      ])
+    );
+
+  } catch (error) {
+    log('error', 'Error in view_works', { error: (error as Error).message });
+  }
+});
+
+bot.action('contact', async (ctx: TelegramContext) => {
+  try {
+    if (!ctx.from) return;
+
+    log('info', 'User viewing contacts', { userId: ctx.from.id });
+
+    await ctx.editMessageText(
+      `📞 Связаться с нами\n\n` +
+      `💬 Telegram: @polli_woww\n` +
+      `📱 WhatsApp: +7 (911) 184-80-08\n` +
+      `📧 Email: info@newdigital.moscow\n\n` +
+      `🌐 Сайт: ${WEBSITE_URL}\n\n` +
+      `⏰ Работаем: Пн-Пт 10:00-19:00 МСК`,
+      Markup.inlineKeyboard([
+        [Markup.button.url('💬 Telegram', 'https://t.me/polli_woww')],
+        [Markup.button.url('📱 WhatsApp', 'https://wa.me/79111848008')],
+        [Markup.button.callback('◀️ Главное меню', 'main_menu')]
+      ])
+    );
+
+  } catch (error) {
+    log('error', 'Error in contact', { error: (error as Error).message });
+  }
+});
+
+bot.action('main_menu', async (ctx: TelegramContext) => {
+  try {
+    await ctx.editMessageText(mainMenuText, mainMenuKeyboard);
+  } catch (error) {
+    log('error', 'Error returning to main menu', { error: (error as Error).message });
+  }
+});
+
+// --- Вопросы опроса ---
+async function sendQuestion1(ctx: TelegramContext) {
+  try {
+    await ctx.editMessageText(
+      `❓ 1/4: Какой сайт вам нужен?`,
+      Markup.inlineKeyboard([
+        [Markup.button.callback('📄 Лендинг', 'q1_landing')],
+        [Markup.button.callback('🌐 Многостраничный сайт', 'q1_multipage')],
+        [Markup.button.callback('🛒 Интернет-магазин', 'q1_shop')],
+        [Markup.button.callback('🤔 Не знаю — нужна консультация', 'q1_consultation')]
+      ])
+    );
+    
+    log('info', 'Question 1 shown', { userId: ctx.from?.id });
+  } catch (error) {
+    log('error', 'Error in sendQuestion1', { error: (error as Error).message });
+  }
+}
+
+async function sendQuestion2(ctx: TelegramContext) {
+  try {
+    await ctx.editMessageText(
+      `❓ 2/4: В какой нише вы работаете?`,
+      Markup.inlineKeyboard([
+        [Markup.button.callback('⚙️ Услуги', 'q2_services')],
+        [Markup.button.callback('🎓 Образование', 'q2_education')],
+        [Markup.button.callback('🏗 Строительство', 'q2_construction')],
+        [Markup.button.callback('💄 Красота/мода', 'q2_beauty')],
+        [Markup.button.callback('🏠 Недвижимость', 'q2_realestate')],
+        [Markup.button.callback('✏️ Другое', 'q2_other')]
+      ])
+    );
+    
+    log('info', 'Question 2 shown', { userId: ctx.from?.id });
+  } catch (error) {
+    log('error', 'Error in sendQuestion2', { error: (error as Error).message });
+  }
+}
+
+async function sendQuestion3(ctx: TelegramContext) {
+  try {
+    await ctx.editMessageText(
+      `❓ 3/4: Есть ли у вас фирменный стиль или логотип?`,
+      Markup.inlineKeyboard([
+        [Markup.button.callback('✅ Да, всё готово', 'q3_ready')],
+        [Markup.button.callback('🔄 Частично', 'q3_partial')],
+        [Markup.button.callback('❌ Нет, нужно создать с нуля', 'q3_none')]
+      ])
+    );
+    
+    log('info', 'Question 3 shown', { userId: ctx.from?.id });
+  } catch (error) {
+    log('error', 'Error in sendQuestion3', { error: (error as Error).message });
+  }
+}
+
+async function sendQuestion4(ctx: TelegramContext) {
+  try {
+    await ctx.editMessageText(`❓ 4/4: Как с вами связаться?\n\n📛 Напишите ваше имя:`);
+    log('info', 'Question 4 shown', { userId: ctx.from?.id });
+  } catch (error) {
+    log('error', 'Error in sendQuestion4', { error: (error as Error).message });
+  }
+}
 
 async function saveAnswerAndNext(
-  ctx: TelegramContext,
-  field: string,
-  value: any,
+  ctx: TelegramContext, 
+  field: string, 
+  value: any, 
   nextFunction: (ctx: TelegramContext) => Promise<void>
 ) {
   try {
+    if (!ctx.from) return;
+    
     await ctx.answerCbQuery('✅ Ответ сохранен');
-    const user = await getCachedUser(ctx.from.id);
-    if (!user) throw new Error('Пользователь не найден');
-    const session = await prisma.quizSession.findFirst({
-      where: { user_id: user.id, is_completed: false },
-      orderBy: { created_at: 'desc' },
-    });
-    if (!session) throw new Error('Активная сессия не найдена');
-    const currentAnswers = (session.answers as QuizAnswers) || {};
+    
+    const session = memoryQuizSessions.get(ctx.from.id);
+    if (!session) {
+      await ctx.reply('❌ Сессия не найдена. Начните заново: /start');
+      return;
+    }
+
     const sanitizedValue = typeof value === 'string' ? sanitizeInput(value) : value;
-    const updatedAnswers = { ...currentAnswers, [field]: sanitizedValue };
-    await prisma.quizSession.update({
-      where: { id: session.id },
-      data: {
-        answers: updatedAnswers,
-        current_step: (session.current_step || 1) + 1
-      },
-    });
-    logUserAction(ctx.from.id, 'quiz_answer_saved', {
-      field,
+    session.answers[field] = sanitizedValue;
+    session.currentStep++;
+    
+    log('info', 'Answer saved', { 
+      userId: ctx.from.id,
+      field, 
       value: typeof value === 'string' ? value.slice(0, 50) : value,
-      step: (session.current_step || 1) + 1
+      step: session.currentStep 
     });
+    
     setTimeout(() => nextFunction(ctx), 300);
+    
   } catch (error) {
-    logError(error, 'saveAnswerAndNext', ctx.from.id);
+    log('error', 'Error in saveAnswerAndNext', { error: (error as Error).message });
     await ctx.reply('❌ Ошибка сохранения ответа. Попробуйте начать сначала: /start');
   }
 }
 
-// --- ВОПРОСЫ КВИЗА ---
-async function sendQuestion1(ctx: TelegramContext) {
-  try {
-    await ctx.reply(`❓ 1/4: Какой сайт вам нужен?`, {
-      reply_markup: {
-        inline_keyboard: [
-          [{ text: '📄 Лендинг', callback_data: 'q1_landing' }],
-          [{ text: '🌐 Многостраничный сайт', callback_data: 'q1_multipage' }],
-          [{ text: '🛒 Интернет-магазин', callback_data: 'q1_shop' }],
-          [{ text: '🤔 Не знаю — нужна консультация', callback_data: 'q1_consultation' }]
-        ]
-      }
-    });
-    logUserAction(ctx.from.id, 'quiz_question_1_shown');
-  } catch (error) {
-    logError(error, 'sendQuestion1', ctx.from.id);
-  }
-}
-
+// --- Обработчики ответов ---
 bot.action('q1_landing', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Лендинг', sendQuestion2));
 bot.action('q1_multipage', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Многостраничный сайт', sendQuestion2));
 bot.action('q1_shop', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Интернет-магазин', sendQuestion2));
 bot.action('q1_consultation', (ctx) => saveAnswerAndNext(ctx, 'site_type', 'Нужна консультация', sendQuestion2));
-
-async function sendQuestion2(ctx: TelegramContext) {
-  try {
-    await ctx.reply(`❓ 2/4: В какой нише вы работаете?`, {
-      reply_markup: {
-        inline_keyboard: [
-          [{ text: '⚙️ Услуги', callback_data: 'q2_services' }],
-          [{ text: '🎓 Образование', callback_data: 'q2_education' }],
-          [{ text: '🏗 Строительство', callback_data: 'q2_construction' }],
-          [{ text: '💄 Красота/мода', callback_data: 'q2_beauty' }],
-          [{ text: '🏠 Недвижимость', callback_data: 'q2_realestate' }],
-          [{ text: '✏️ Другое', callback_data: 'q2_other' }]
-        ]
-      }
-    });
-    logUserAction(ctx.from.id, 'quiz_question_2_shown');
-  } catch (error) {
-    logError(error, 'sendQuestion2', ctx.from.id);
-  }
-}
 
 bot.action('q2_services', (ctx) => saveAnswerAndNext(ctx, 'niche', 'Услуги', sendQuestion3));
 bot.action('q2_education', (ctx) => saveAnswerAndNext(ctx, 'niche', 'Образование', sendQuestion3));
@@ -481,117 +532,73 @@ bot.action('q2_realestate', (ctx) => saveAnswerAndNext(ctx, 'niche', 'Недви
 
 bot.action('q2_other', async (ctx) => {
   try {
+    if (!ctx.from) return;
+    
     await ctx.answerCbQuery('✏️ Укажите нишу');
-    await ctx.reply('✏️ Напишите вашу нишу текстом (например: "IT", "Медицина", "Юриспруденция"):');
-    logUserAction(ctx.from.id, 'quiz_question_2_custom_requested');
+    await ctx.editMessageText('✏️ Напишите вашу нишу текстом (например: "IT", "Медицина", "Юриспруденция"):');
+    log('info', 'Custom niche requested', { userId: ctx.from.id });
   } catch (error) {
-    logError(error, 'q2_other_action', ctx.from.id);
+    log('error', 'Error in q2_other', { error: (error as Error).message });
   }
 });
-
-async function sendQuestion3(ctx: TelegramContext) {
-  try {
-    await ctx.reply(`❓ 3/4: Есть ли у вас фирменный стиль или логотип?`, {
-      reply_markup: {
-        inline_keyboard: [
-          [{ text: '✅ Да, всё готово', callback_data: 'q3_ready' }],
-          [{ text: '🔄 Частично', callback_data: 'q3_partial' }],
-          [{ text: '❌ Нет, нужно создать с нуля', callback_data: 'q3_none' }]
-        ]
-      }
-    });
-    logUserAction(ctx.from.id, 'quiz_question_3_shown');
-  } catch (error) {
-    logError(error, 'sendQuestion3', ctx.from.id);
-  }
-}
 
 bot.action('q3_ready', (ctx) => saveAnswerAndNext(ctx, 'brand_style', 'Да, всё готово', sendQuestion4));
 bot.action('q3_partial', (ctx) => saveAnswerAndNext(ctx, 'brand_style', 'Частично', sendQuestion4));
 bot.action('q3_none', (ctx) => saveAnswerAndNext(ctx, 'brand_style', 'Нет, нужно создать с нуля', sendQuestion4));
 
-async function sendQuestion4(ctx: TelegramContext) {
-  try {
-    await ctx.reply(`❓ 4/4: Как с вами связаться?\n\n📛 Напишите ваше имя:`);
-    logUserAction(ctx.from.id, 'quiz_question_4_shown');
-  } catch (error) {
-    logError(error, 'sendQuestion4', ctx.from.id);
-  }
-}
-
-// --- ОБРАБОТКА КНОПКИ "НЕТ КОММЕНТАРИЯ" ---
+// --- Обработка кнопки "нет комментария" ---
 bot.action('no_comment', async (ctx) => {
   try {
+    if (!ctx.from) return;
+    
     await ctx.answerCbQuery('✅ Завершаю оформление заявки...');
-    const user = await getCachedUser(ctx.from.id);
-    if (!user) return;
-    const session = await prisma.quizSession.findFirst({
-      where: { user_id: user.id, is_completed: false },
-      orderBy: { created_at: 'desc' },
-    });
-    if (!session) return;
-    const currentAnswers = (session.answers as any) || {};
-    if (currentAnswers.contacts && currentAnswers.contacts.phone) {
-      currentAnswers.contacts.comment = 'Без комментария';
-      await prisma.quizSession.update({
-        data: { answers: currentAnswers, is_completed: true },
-        where: { id: session.id }
-      });
-      const application = await prisma.application.create({
-        data: {
-          user_id: user.id,
-          status: 'new',
-          answers: currentAnswers,
-          contact_info: `${currentAnswers.contacts.name}, ${currentAnswers.contacts.phone}`,
-        },
-        include: { user: true },
-      });
-      logUserAction(ctx.from.id, 'application_completed', {
-        applicationId: application.id,
-        hasComment: false
-      });
-      await notifyChannelNewApplication(application);
-      await ctx.editMessageText(
-        `🎉 Спасибо! Ваша заявка #${application.id} принята. Мы скоро свяжемся с вами.\n\n` +
-        `Пока ждете — посмотрите наши работы:`,
-        {
-          reply_markup: {
-            inline_keyboard: [[
-              { text: '👁 Посмотреть портфолио', web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' } }
-            ]]
-          }
-        }
-      );
-    }
+    await completeApplication(ctx, 'Без комментария');
+    
   } catch (error) {
-    logError(error, 'no_comment_action', ctx.from.id);
-    await ctx.reply('❌ Ошибка при обработке заявки. Попробуйте начать сначала: /start');
+    log('error', 'Error in no_comment', { error: (error as Error).message });
   }
 });
 
-// --- ОБРАБОТКА ТЕКСТА ---
-bot.on('text', async (ctx) => {
+// --- Обработка текстовых сообщений ---
+bot.on('text', async (ctx: TelegramContext) => {
   try {
-    const user = await getCachedUser(ctx.from.id);
-    if (!user) return;
-    const session = await prisma.quizSession.findFirst({
-      where: { user_id: user.id, is_completed: false },
-      orderBy: { created_at: 'desc' },
-    });
-    if (!session || !('text' in ctx.message)) return;
+    if (!ctx.from || !ctx.message || !('text' in ctx.message)) return;
+
     const messageText = ctx.message.text;
     const sanitizedText = sanitizeInput(messageText);
-    const currentAnswers = (session.answers as any) || {};
-    if (session.current_step === 2 && !currentAnswers.niche) {
+    const session = memoryQuizSessions.get(ctx.from.id);
+    
+    if (!session) {
+      // Если нет активной сессии, предлагаем главное меню
+      await ctx.reply(
+        `Спасибо за сообщение! 😊\n\nВоспользуйтесь главным меню:`,
+        mainMenuKeyboard
+      );
+      return;
+    }
+
+    log('info', 'Text message in quiz', { 
+      userId: ctx.from.id, 
+      step: session.currentStep,
+      message: messageText.slice(0, 50)
+    });
+
+    // Обработка ввода ниши на шаге 2
+    if (session.currentStep === 2 && !session.answers.niche) {
       if (sanitizedText.length < 2) {
         await ctx.reply('⚠️ Слишком короткое название ниши. Введите минимум 2 символа.');
         return;
       }
+      
+      session.answers.niche = sanitizedText;
+      session.currentStep++;
       await ctx.reply('✅ Ниша сохранена');
-      await saveAnswerAndNext(ctx, 'niche', sanitizedText, sendQuestion3);
+      await sendQuestion3(ctx);
       return;
     }
-    if (session.current_step === 4 && !currentAnswers.contacts) {
+    
+    // Обработка ввода имени на шаге 4
+    if (session.currentStep === 4 && !session.answers.contacts) {
       if (!validateName(sanitizedText)) {
         await ctx.reply(
           '⚠️ Пожалуйста, введите корректное имя (2-50 символов, только буквы).\n\n' +
@@ -599,11 +606,9 @@ bot.on('text', async (ctx) => {
         );
         return;
       }
-      currentAnswers.contacts = { name: sanitizedText };
-      await prisma.quizSession.update({
-        data: { answers: currentAnswers },
-        where: { id: session.id }
-      });
+      
+      session.answers.contacts = { name: sanitizedText };
+      
       await ctx.reply('✅ Имя сохранено');
       await ctx.reply(
         '📱 Поделитесь вашим контактом для связи:',
@@ -611,141 +616,140 @@ bot.on('text', async (ctx) => {
           Markup.button.contactRequest('📞 Поделиться контактом')
         ]).resize().oneTime()
       );
-      logUserAction(ctx.from.id, 'quiz_name_saved', { name: sanitizedText.slice(0, 20) });
+      
+      log('info', 'Name saved', { userId: ctx.from.id, name: sanitizedText.slice(0, 20) });
       return;
     }
-    if (session.current_step === 4 && currentAnswers.contacts && currentAnswers.contacts.phone && !currentAnswers.contacts.comment) {
+    
+    // Обработка комментария после получения контакта
+    if (session.currentStep === 4 && 
+        session.answers.contacts && 
+        session.answers.contacts.phone && 
+        !session.answers.contacts.comment) {
+      
       if (sanitizedText.length > 1000) {
         await ctx.reply('⚠️ Комментарий слишком длинный. Максимум 1000 символов.');
         return;
       }
-      currentAnswers.contacts.comment = sanitizedText;
+      
       await ctx.reply('✅ Комментарий сохранен. Оформляю заявку...');
-      await prisma.quizSession.update({
-        data: { answers: currentAnswers, is_completed: true },
-        where: { id: session.id }
-      });
-      const application = await prisma.application.create({
-        data: {
-          user_id: user.id,
-          status: 'new',
-          answers: currentAnswers,
-          contact_info: `${currentAnswers.contacts.name}, ${currentAnswers.contacts.phone}`,
-        },
-        include: { user: true },
-      });
-      logUserAction(ctx.from.id, 'application_completed', {
-        applicationId: application.id,
-        hasComment: true,
-        commentLength: sanitizedText.length
-      });
-      await notifyChannelNewApplication(application);
-      await ctx.reply(
-        `🎉 Спасибо! Ваша заявка #${application.id} принята. Мы скоро свяжемся с вами.\n\n` +
-        `Пока ждете — посмотрите наши работы:`,
-        {
-          reply_markup: {
-            inline_keyboard: [[
-              { text: '👁 Посмотреть портфолио', web_app: { url: 'https://ehhechre.github.io/studio-bot-backend/webapp/' } }
-            ]]
-          }
-        }
-      );
+      await completeApplication(ctx, sanitizedText);
     }
+
   } catch (error) {
-    logError(error, 'text_processing', ctx.from?.id);
+    log('error', 'Error handling text message', { error: (error as Error).message });
     await ctx.reply('⚠️ Ошибка обработки сообщения. Попробуйте еще раз.');
   }
 });
 
-// --- ОБРАБОТКА КОНТАКТА ---
-bot.on('contact', async (ctx) => {
+// --- Обработка контакта ---
+bot.on('contact', async (ctx: TelegramContext) => {
   try {
-    const user = await getCachedUser(ctx.from.id);
-    if (!user) return;
-    const session = await prisma.quizSession.findFirst({
-      where: { user_id: user.id, is_completed: false },
-      orderBy: { created_at: 'desc' },
-    });
-    if (!session) return;
-    const currentAnswers = (session.answers as any) || {};
+    if (!ctx.from || !ctx.message || !('contact' in ctx.message)) return;
+    
+    const session = memoryQuizSessions.get(ctx.from.id);
+    if (!session || !session.answers.contacts) return;
+    
     const phoneNumber = ctx.message.contact.phone_number;
-    if (currentAnswers.contacts && !currentAnswers.contacts.phone) {
-      if (!validatePhone(phoneNumber)) {
-        await ctx.reply(
-          '⚠️ Некорректный номер телефона. Попробуйте поделиться контактом еще раз или введите номер вручную.',
-          Markup.removeKeyboard()
-        );
-        return;
-      }
-      currentAnswers.contacts.phone = phoneNumber;
-      await prisma.quizSession.update({
-        data: { answers: currentAnswers },
-        where: { id: session.id }
-      });
-      logUserAction(ctx.from.id, 'quiz_phone_saved', {
-        phone: phoneNumber.slice(0, 8) + '***',
-        isValid: validatePhone(phoneNumber)
-      });
-      await ctx.reply('✅ Контакт получен!', Markup.removeKeyboard());
+    
+    // Валидация номера телефона
+    if (!validatePhone(phoneNumber)) {
       await ctx.reply(
-        '✍️ Есть комментарий к заказу?\n\n💡 Расскажите о ваших пожеланиях, сроках или особенностях проекта.\n\nИли нажмите кнопку ниже:',
-        {
-          reply_markup: {
-            inline_keyboard: [[
-              { text: '✅ Нет комментария', callback_data: 'no_comment' }
-            ]]
-          }
-        }
+        '⚠️ Некорректный номер телефона. Попробуйте поделиться контактом еще раз.',
+        Markup.removeKeyboard()
       );
+      return;
     }
+    
+    session.answers.contacts.phone = phoneNumber;
+    
+    log('info', 'Phone saved', { 
+      userId: ctx.from.id, 
+      phone: phoneNumber.slice(0, 8) + '***',
+      isValid: validatePhone(phoneNumber)
+    });
+    
+    await ctx.reply('✅ Контакт получен!', Markup.removeKeyboard());
+    
+    await ctx.reply(
+      '✍️ Есть комментарий к заказу?\n\n💡 Расскажите о ваших пожеланиях, сроках или особенностях проекта.\n\nИли нажмите кнопку ниже:',
+      Markup.inlineKeyboard([
+        [Markup.button.callback('✅ Нет комментария', 'no_comment')]
+      ])
+    );
+    
   } catch (error) {
-    logError(error, 'contact_processing', ctx.from?.id);
+    log('error', 'Error processing contact', { error: (error as Error).message });
     await ctx.reply('⚠️ Ошибка обработки контакта. Попробуйте еще раз.');
   }
 });
 
-// --- КОМАНДА УДАЛЕНИЯ ДАННЫХ ---
-bot.command('delete_data', async (ctx) => {
+// --- Завершение заявки ---
+async function completeApplication(ctx: TelegramContext, comment: string) {
   try {
-    const userId = ctx.from.id;
-    logUserAction(userId, 'delete_data_requested');
-    const userToDelete = await prisma.user.findUnique({
-      where: { telegram_id: userId }
-    });
-    if (userToDelete) {
-      await prisma.quizSession.deleteMany({ where: { user_id: userToDelete.id } });
-      await prisma.application.deleteMany({ where: { user_id: userToDelete.id } });
-      await prisma.user.delete({ where: { telegram_id: userId } });
-      userCache.delete(userId);
-      logUserAction(userId, 'user_data_deleted');
-      console.log(`🗑️ Удалены данные пользователя: ${userId}`);
-      await ctx.reply(
-        `✅ Ваши персональные данные полностью удалены из нашей системы.\n\n` +
-        `Удалено:\n` +
-        `• Профиль пользователя\n` +
-        `• История опросов\n` +
-        `• Заявки и контакты\n\n` +
-        `Спасибо за использование нашего сервиса!`
-      );
-    } else {
-      await ctx.reply(`ℹ️ Ваши данные не найдены в системе.`);
+    if (!ctx.from) return;
+    
+    const session = memoryQuizSessions.get(ctx.from.id);
+    if (!session) return;
+    
+    session.answers.contacts.comment = comment;
+    
+    // Получаем пользователя
+    const user = await getCachedUser(ctx.from.id);
+    if (!user) {
+      await ctx.reply('❌ Ошибка пользователя. Попробуйте /start');
+      return;
     }
+    
+    // Сохраняем заявку в БД
+    const application = await safeDbOperation(async () => {
+      return await prisma.applications.create({
+        data: {
+          user_id: user.id,
+          answers: session.answers,
+          status: 'new'
+        },
+        include: { user: true }
+      });
+    });
+    
+    // Удаляем сессию из памяти
+    memoryQuizSessions.delete(ctx.from.id);
+    
+    // Уведомляем в канал
+    await notifyChannelNewApplication(application, session.answers, user);
+    
+    log('info', 'Application completed', { 
+      userId: ctx.from.id, 
+      applicationId: application?.id,
+      hasComment: comment !== 'Без комментария'
+    });
+    
+    await ctx.reply(
+      `🎉 Спасибо! Ваша заявка${application ? ` #${application.id}` : ''} принята.\n\n` +
+      `📞 Мы свяжемся с вами в течение 2 часов!\n\n` +
+      `Пока ждете — посмотрите наши работы:`,
+      Markup.inlineKeyboard([
+        [Markup.button.url('👁 Посмотреть портфолио', `${WEBSITE_URL}/portfolio`)],
+        [Markup.button.callback('🏠 Главное меню', 'main_menu')]
+      ])
+    );
+    
   } catch (error) {
-    logError(error, 'delete_data_command', ctx.from.id);
-    await ctx.reply('❌ Ошибка при удалении данных. Обратитесь к администратору.');
+    log('error', 'Error completing application', { error: (error as Error).message });
+    await ctx.reply('❌ Ошибка при сохранении заявки. Свяжитесь с нами напрямую.');
   }
-});
+}
 
-// --- ФУНКЦИЯ УВЕДОМЛЕНИЙ В КАНАЛ ---
-async function notifyChannelNewApplication(application: any) {
+// --- Уведомление в канал (адаптированное из вашего кода) ---
+async function notifyChannelNewApplication(application: any, answers: any, user: any) {
   try {
-    const { user, answers } = application;
     const contact = answers.contacts || {};
     const isValidPhone = contact.phone ? validatePhone(contact.phone) : false;
     const phoneStatus = isValidPhone ? '✅' : '⚠️';
-    const message =
-      `🔔 НОВАЯ ЗАЯВКА #${application.id}\n\n` +
+    
+    const message = 
+      `🔔 НОВАЯ ЗАЯВКА${application ? ` #${application.id}` : ''}\n\n` +
       `👤 Клиент: ${user.first_name || 'Аноним'} (@${user.username || 'без username'})\n` +
       `📞 Контакты: ${contact.name}, ${contact.phone} ${phoneStatus}\n` +
       `🆔 Telegram ID: ${user.telegram_id}\n\n` +
@@ -754,77 +758,190 @@ async function notifyChannelNewApplication(application: any) {
       `🏢 Ниша: ${answers.niche || 'Не указано'}\n` +
       `🎨 Фирменный стиль: ${answers.brand_style || 'Не указано'}\n` +
       `💬 Комментарий: ${contact.comment || 'Нет'}\n\n` +
-      `📊 Время: ${new Date().toLocaleString('ru-RU')}`;
+      `📊 Время: ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })}`;
+    
     if (CHANNEL_ID) {
       await bot.telegram.sendMessage(CHANNEL_ID, message);
-      console.log(`✅ Уведомление о заявке #${application.id} отправлено в канал`);
+      log('info', 'Application sent to channel', { 
+        channelId: CHANNEL_ID,
+        applicationId: application?.id 
+      });
     } else {
-      console.error('❌ CHANNEL_ID не найден в .env файле!');
+      log('error', 'CHANNEL_ID not found', {});
     }
-  } catch (error) {
-    logError(error, 'notifyChannelNewApplication', application?.user?.telegram_id);
+  } catch (error) { 
+    log('error', 'Failed to notify channel', { error: (error as Error).message });
   }
 }
 
-// --- ОБРАБОТКА НЕПЕРЕХВАЧЕННЫХ ОШИБОК ---
-process.on('uncaughtException', (error) => {
-  logError(error, 'uncaughtException');
-  console.error('🚨 КРИТИЧЕСКАЯ ОШИБКА - перезапуск приложения может потребоваться');
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  logError(reason, 'unhandledRejection');
-  console.error('🚨 Необработанное отклонение промиса:', promise);
-});
-
-// --- ЗАПУСК БОТА ---
-bot.launch().then(async () => {
-  console.log('🚀 Production bot v2.1 запущен успешно!');
+// --- Команда удаления данных ---
+bot.command('delete_data', async (ctx: TelegramContext) => {
   try {
-    await prisma.user.count();
-    console.log('✅ Соединение с базой данных установлено');
-  } catch (error) {
-    console.error('❌ ОШИБКА подключения к базе данных:', error);
-    console.log('⚠️ Бот запущен, но база данных недоступна');
-  }
-  try {
-    const result = await bot.telegram.callApi('setChatMenuButton', {
-      menu_button: {
-        type: 'web_app',
-        text: 'Кейсы',
-        web_app: { url: 'https://polli-digital.ru/portfolio' }
-      }
-    });
-    console.log('🔥 КНОПКА "КЕЙСЫ" УСТАНОВЛЕНА НА ОСНОВНОЙ САЙТ!');
-  } catch (error) {
-    logError(error, 'setChatMenuButton');
-    try {
-      await bot.telegram.setChatMenuButton(undefined, {
-        type: 'web_app',
-        text: 'Кейсы',
-        web_app: { url: 'https://polli-digital.ru/portfolio' }
+    if (!ctx.from) return;
+    
+    const userId = ctx.from.id;
+    log('info', 'Delete data requested', { userId });
+    
+    const userToDelete = await safeDbOperation(async () => {
+      return await prisma.users.findUnique({ 
+        where: { telegram_id: userId.toString() }
       });
-      console.log('🔥 КНОПКА "КЕЙСЫ" УСТАНОВЛЕНА НА ОСНОВНОЙ САЙТ (способ 2)!');
-    } catch (error2) {
-      logError(error2, 'setChatMenuButton_fallback');
-      console.log('⚠️ Не удалось установить кнопку меню - используйте команды');
+    });
+    
+    if (userToDelete) {
+      await safeDbOperation(async () => {
+        await prisma.applications.deleteMany({ where: { user_id: userToDelete.id } });
+        await prisma.users.delete({ where: { telegram_id: userId.toString() } });
+      });
+      
+      // Очищаем кеши
+      userCache.delete(userId);
+      memoryQuizSessions.delete(userId);
+      
+      log('info', 'User data deleted', { userId });
+      
+      await ctx.reply(
+        `✅ Ваши персональные данные полностью удалены из нашей системы.\n\n` +
+        `Удалено:\n` +
+        `• Профиль пользователя\n` +
+        `• Заявки и контакты\n\n` +
+        `Спасибо за использование нашего сервиса!`
+      );
+    } else {
+      await ctx.reply(`ℹ️ Ваши данные не найдены в системе.`);
     }
+  } catch (error) {
+    log('error', 'Error deleting user data', { error: (error as Error).message });
+    await ctx.reply('❌ Ошибка при удалении данных. Обратитесь к администратору.');
   }
-  const memUsage = process.memoryUsage();
-  console.log(`💾 Память: ${(memUsage.heapUsed / 1024 / 1024).toFixed(2)} MB`);
-  console.log(`📊 Кеш пользователей: ${userCache.size} записей`);
-  console.log('✅ Все системы готовы к работе!');
-}).catch(error => {
-  console.error('🚨 КРИТИЧЕСКАЯ ОШИБКА при запуске бота:', error);
-  process.exit(1);
 });
 
-process.once('SIGINT', () => {
-  console.log('🛑 Получен сигнал SIGINT - корректное завершение...');
-  bot.stop('SIGINT');
+// --- Админские action кнопки ---
+bot.action('admin_stats', async (ctx: TelegramContext) => {
+  try {
+    if (!ctx.from || !isAdmin(ctx.from.id)) return;
+    
+    const stats = await getStats();
+    
+    await ctx.editMessageText(
+      `📊 Детальная статистика\n\n` +
+      `👥 Пользователи: ${stats.totalUsers}\n` +
+      `📋 Заявки: ${stats.totalApplications}\n` +
+      `🆕 Сегодня: ${stats.todayApplications}\n` +
+      `⏳ К обработке: ${stats.newApplications}`,
+      Markup.inlineKeyboard([
+        [Markup.button.callback('⚙️ Статус системы', 'admin_status')],
+        [Markup.button.callback('◀️ Назад', 'admin_back')]
+      ])
+    );
+  } catch (error) {
+    log('error', 'Error in admin_stats action', { error: (error as Error).message });
+  }
 });
 
-process.once('SIGTERM', () => {
-  console.log('🛑 Получен сигнал SIGTERM - корректное завершение...');
-  bot.stop('SIGTERM');
+bot.action('admin_status', async (ctx: TelegramContext) => {
+  try {
+    if (!ctx.from || !isAdmin(ctx.from.id)) return;
+    
+    let dbStatus = '❌';
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      dbStatus = '✅';
+    } catch {
+      dbStatus = '❌';
+    }
+
+    await ctx.editMessageText(
+      `⚙️ Статус системы\n\n` +
+      `🗄️ БД: ${dbStatus}\n` +
+      `💾 RAM: ${Math.round(process.memoryUsage().rss / 1024 / 1024)}MB\n` +
+      `🔄 Сессии: ${memoryQuizSessions.size}\n` +
+      `⏱️ Аптайм: ${Math.floor(process.uptime() / 60)}м`,
+      Markup.inlineKeyboard([
+        [Markup.button.callback('📊 Статистика', 'admin_stats')],
+        [Markup.button.callback('◀️ Назад', 'admin_back')]
+      ])
+    );
+  } catch (error) {
+    log('error', 'Error in admin_status action', { error: (error as Error).message });
+  }
 });
+
+bot.action('admin_back', async (ctx: TelegramContext) => {
+  try {
+    if (!ctx.from || !isAdmin(ctx.from.id)) return;
+    
+    await ctx.editMessageText(
+      `👨‍💼 Админ панель\n\n` +
+      `Доступные команды:\n` +
+      `/stats - статистика\n` +
+      `/status - статус системы`,
+      Markup.inlineKeyboard([
+        [Markup.button.callback('📊 Статистика', 'admin_stats')],
+        [Markup.button.callback('⚙️ Статус системы', 'admin_status')]
+      ])
+    );
+  } catch (error) {
+    log('error', 'Error in admin_back action', { error: (error as Error).message });
+  }
+});
+
+// --- Обработка ошибок ---
+bot.catch((err: unknown, ctx: Context) => {
+  const error = err instanceof Error ? err : new Error(String(err));
+  log('error', 'Bot error', { 
+    error: error.message, 
+    userId: (ctx as TelegramContext).from?.id 
+  });
+});
+
+// --- Health Check ---
+setInterval(async () => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    log('info', 'Database health check: OK');
+  } catch (error) {
+    log('error', 'Database health check failed', { error: (error as Error).message });
+  }
+}, 5 * 60 * 1000); // каждые 5 минут
+
+// --- Graceful Shutdown ---
+async function gracefulShutdown(signal: string) {
+  log('info', `Received ${signal}, shutting down gracefully...`);
+  
+  try {
+    bot.stop(signal);
+    await prisma.$disconnect();
+    log('info', 'Graceful shutdown completed');
+    process.exit(0);
+  } catch (error) {
+    log('error', 'Error during shutdown', { error: (error as Error).message });
+    process.exit(1);
+  }
+}
+
+process.once('SIGINT', () => gracefulShutdown('SIGINT'));
+process.once('SIGTERM', () => gracefulShutdown('SIGTERM'));
+
+// --- Запуск ---
+async function start() {
+  try {
+    // Проверяем подключение к БД
+    await prisma.$connect();
+    log('info', 'Database connected successfully');
+
+    // Запускаем бота
+    await bot.launch();
+    log('info', '🚀 Production Stable Bot v3.0 started successfully!');
+    
+    log('info', `📊 Active sessions: ${memoryQuizSessions.size}`);
+    log('info', `💾 Memory usage: ${Math.round(process.memoryUsage().rss / 1024 / 1024)}MB`);
+    log('info', '✅ All systems operational');
+
+  } catch (error) {
+    log('error', 'Failed to start bot', { error: (error as Error).message });
+    process.exit(1);
+  }
+}
+
+start();
